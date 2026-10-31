@@ -810,10 +810,13 @@
             <div class="section-header" style="border:none; margin-bottom: 0;">
                 <h2>Formulár pre Kúpu a Výmenu</h2>
             </div>
-            <p class="description" style="margin-bottom: 2.5rem;">Vyberte si, o čo máte záujem a zvoľte požadované množstvo balíčkov.</p>
+            <p class="description" style="margin-bottom: 2.5rem;">Vyberte si, o čo máte záujem a zvoľte požadované množstvo balíčkov. Odoslaním formulára odošlete nezáväzný dopyt; skladové zásoby sa tým nemenia.</p>
             
             <form id="contactForm" method="POST" onsubmit="handleFormSubmit(event)">
                 <input type="text" name="_honey" style="display:none">
+                <input type="hidden" name="_subject" value="Nová nezáväzná objednávka – Herba et Fructus">
+                <input type="hidden" name="_template" value="table">
+                <input type="hidden" name="Vybrané odrody a množstvá" id="orderSummary" value="Bez výberu odrôd">
                 
                 <div class="form-grid">
                     <div class="form-group">
@@ -1358,8 +1361,18 @@
         }
 
         // JSON Export & Import funkcie
-        function exportJsonData() {
+        async function exportJsonData() {
             if (!requireAdmin()) return;
+            try {
+                const pendingSaves = await Promise.all(Object.values(cloudSaveQueues));
+                if (pendingSaves.some(saved => saved === false)) {
+                    showToast('⚠️ Nie všetky zmeny sa uložili. Skontrolujte stav cloudu a skúste zálohovať znova.');
+                    return;
+                }
+            } catch (error) {
+                showToast('❌ Pred zálohovaním sa nepodarilo dokončiť cloudové ukladanie.');
+                return;
+            }
             const now = new Date();
             const data = {
                 backupVersion: 1,
@@ -1377,8 +1390,8 @@
             document.body.appendChild(a);
             a.click();
             a.remove();
-            URL.revokeObjectURL(url);
-            showToast('📦 Záloha Herba et Fructus bola stiahnutá.');
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('📦 Záloha Herba et Fructus bola stiahnutá. Obsahuje odrody, sklad, karty, blog aj nastavenia.');
         }
 
         function triggerImportJson() {
@@ -1391,27 +1404,49 @@
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    if (data.sections) sectionsDatabase = data.sections;
-                    if (data.varieties) varietyDatabase = data.varieties;
-                    if (data.blog) blogDatabase = data.blog;
-                    if (data.settings) farmSettings = data.settings;
+                    const valid = data && typeof data === 'object' &&
+                        Array.isArray(data.sections) && Array.isArray(data.varieties) &&
+                        Array.isArray(data.blog) && data.settings && typeof data.settings === 'object' &&
+                        typeof data.settings.email === 'string';
+                    if (!valid) throw new Error('Súbor nemá správnu štruktúru zálohy Herba et Fructus.');
+                    if (!confirm('Import prepíše aktuálne odrody, sklad, karty, blog a nastavenia. Pokračovať?')) return;
 
-                    queueCloudSave('sections', sectionsDatabase);
-                    queueCloudSave('varieties', varietyDatabase);
-                    queueCloudSave('blog', blogDatabase);
-                    queueCloudSave('settings', farmSettings);
-
+                    const previous = {
+                        sections: sectionsDatabase, varieties: varietyDatabase,
+                        blog: blogDatabase, settings: farmSettings
+                    };
+                    sectionsDatabase = data.sections;
+                    varietyDatabase = data.varieties;
+                    blogDatabase = data.blog;
+                    farmSettings = data.settings;
                     renderAll();
-                    showToast('📥 Dáta boli úspešne importované!');
+                    setCloudSaveStatus('☁️ Obnovujem zálohu…', '#FDE68A');
+                    try {
+                        await persistCloudContent('sections', sectionsDatabase);
+                        await persistCloudContent('varieties', varietyDatabase);
+                        await persistCloudContent('blog', blogDatabase);
+                        await persistCloudContent('settings', farmSettings);
+                        setCloudSaveStatus('✓ Záloha obnovená a uložená', '#C6F6D5');
+                        showToast('📥 Záloha bola obnovená v online databáze.');
+                    } catch (saveError) {
+                        sectionsDatabase = previous.sections;
+                        varietyDatabase = previous.varieties;
+                        blogDatabase = previous.blog;
+                        farmSettings = previous.settings;
+                        renderAll();
+                        setCloudSaveStatus('⚠️ Obnova zálohy sa nepodarila', '#FEB2B2');
+                        throw saveError;
+                    }
                 } catch (err) {
-                    alert('Chyba pri čítaní JSON súboru!');
+                    alert('Zálohu sa nepodarilo importovať: ' + (err.message || 'neznáma chyba'));
+                } finally {
+                    event.target.value = '';
                 }
             };
             reader.readAsText(file);
-            event.target.value = '';
         }
 
         function renderAll() {
@@ -1837,43 +1872,37 @@
                 }
             }
 
-            const spravaTextArea = document.getElementById('sprava');
-            if (spravaTextArea) {
-                spravaTextArea.value = totalCount > 0 ? `Môj výber odrôd:\n- ` + selectedItemsList.join('\n- ') + `\n\nCelková cena: ${totalPrice.toFixed(2)} €` : '';
+            const orderSummary = document.getElementById('orderSummary');
+            if (orderSummary) {
+                orderSummary.value = totalCount > 0
+                    ? selectedItemsList.join('\n') + `\nCelkový počet balíčkov: ${totalCount}\nOrientačná suma: ${totalPrice.toFixed(2)} €`
+                    : 'Bez výberu odrôd';
             }
         }
 
         function handleFormSubmit(event) {
             const selectorItems = document.querySelectorAll('#formTomatoSelector .selector-item');
-            let hasError = false;
+            const problems = [];
 
             selectorItems.forEach(item => {
                 const cb = item.querySelector('input[type="checkbox"]');
-                if (cb && cb.checked) {
-                    const varietyName = cb.value;
-                    const qtyInput = item.querySelector('.form-qty-input');
-                    const orderedQty = parseInt(qtyInput.value) || 1;
-
-                    const variety = varietyDatabase.find(v => v.name === varietyName);
-                    if (variety) {
-                        if (variety.stock >= orderedQty) {
-                            variety.stock -= orderedQty; 
-                        } else {
-                            alert(`Ľutujeme, odroda "${variety.name}" už nemá dostatok kusov na sklade (zostáva: ${variety.stock} bal.).`);
-                            hasError = true;
-                        }
-                    }
+                if (!cb || !cb.checked) return;
+                const qtyInput = item.querySelector('.form-qty-input');
+                const orderedQty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+                const variety = varietyDatabase.find(v => v.name === cb.value);
+                const available = variety && Number.isFinite(Number(variety.stock)) ? Number(variety.stock) : 0;
+                if (!variety || available < orderedQty) {
+                    problems.push(`Odroda „${cb.value}“: požadované ${orderedQty} bal., dostupné ${available} bal.`);
                 }
             });
 
-            if (hasError) {
+            if (problems.length) {
                 event.preventDefault();
+                alert('Niektoré vybrané odrody už nemajú dostatočný sklad:\n\n' + problems.join('\n') + '\n\nUpravte výber a odošlite formulár znova.');
                 return false;
             }
-
-            try {
-                queueCloudSave('varieties', varietyDatabase);
-            } catch(e) {}
+            // Ide iba o nezáväzný dopyt. Sklad sa upravuje až po ručnom potvrdení objednávky správcom.
+            return true;
         }
 
         function showToast(message) {
