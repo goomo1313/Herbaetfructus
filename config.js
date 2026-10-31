@@ -4,5 +4,5 @@
 window.HERBA_CONFIG = {
     supabaseUrl: https://ritpkgwbxhxdaxvnqejx.supabase.co,
     supabaseAnonKey: sb_publishable_Lk4CBpe1k8veCJklKqmF8Q_-KcmTjjv,
-    adminUserId: Herbaetfructus
+    adminUserId: peto.gomola@gmail.com
 };
