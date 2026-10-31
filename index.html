@@ -825,6 +825,7 @@
                 <input type="text" name="_honey" style="display:none">
                 <input type="hidden" name="_subject" value="Nová nezáväzná objednávka – Herba et Fructus">
                 <input type="hidden" name="_template" value="table">
+                <input type="hidden" name="_next" id="formReturnUrl" value="">
                 <input type="hidden" name="Vybrané odrody a množstvá" id="orderSummary" value="Bez výberu odrôd">
                 
                 <div class="form-grid">
@@ -1467,7 +1468,12 @@
 
         function updateFormAction() {
             const form = document.getElementById('contactForm');
-            if (form) form.action = `https://formsubmit.co/${farmSettings.email}`;
+            if (!form) return;
+            form.action = `https://formsubmit.co/${farmSettings.email}`;
+            // Po odoslani sa vratime na presnu adresu, z ktorej bol formular otvoreny.
+            // Funguje aj pri hostingu v podpriecinku (napr. GitHub Pages /Herbaetfructus/).
+            const returnUrl = document.getElementById('formReturnUrl');
+            if (returnUrl) returnUrl.value = `${window.location.origin}${window.location.pathname}#kontaktSection`;
         }
 
         function renderNav() {
