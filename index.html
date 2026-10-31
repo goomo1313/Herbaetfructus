@@ -728,7 +728,7 @@
     <!-- ADMIN LIŠTA -->
     <div id="adminBar">
         <div class="admin-bar-row">
-            <div>🔧 <strong>Režim správcu aktívny</strong></div>
+            <div>🔧 <strong>Režim správcu aktívny</strong> <span style="font-size:0.76rem;font-weight:400;">(zmeny sa ukladajú v tomto prehliadači)</span></div>
         </div>
         <div class="admin-actions-scroll">
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openTableManagerModal()">📊 Tabuľka odrôd & Sklad</button>
@@ -895,12 +895,13 @@
         <div class="modal-box">
             <h3 style="color: var(--primary-color); margin-bottom: 15px;">Prihlásenie správcu</h3>
             <div style="margin-bottom: 15px;">
-                <label>Meno</label>
-                <input type="text" id="adminUser" placeholder="admin">
+                <label>E-mail správcu</label>
+                <input type="email" id="adminUser" autocomplete="username" placeholder="vas@email.sk" required>
             </div>
             <div style="margin-bottom: 20px;">
                 <label>Heslo</label>
-                <input type="password" id="adminPass" placeholder="admin">
+                <input type="password" id="adminPass" autocomplete="current-password" placeholder="Zadajte heslo" required>
+                <p style="font-size:0.82rem;color:var(--text-muted);margin-top:8px;">Prihlásenie je overované službou Supabase. Účet správcu musí byť vopred vytvorený v Supabase.</p>
             </div>
             <div style="display: flex; gap: 10px;">
                 <button class="admin-btn" style="flex: 1; padding: 12px;" onclick="performAdminLogin()">Prihlásiť sa</button>
@@ -1086,7 +1087,21 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./config.js"></script>
     <script>
+        // Prihlásenie správcu overuje Supabase Auth; v tomto súbore nie je heslo.
+        const adminAuthConfig = window.HERBA_CONFIG || {};
+        const adminSupabase = (() => {
+            if (!window.supabase || typeof window.supabase.createClient !== 'function') return null;
+            const url = String(adminAuthConfig.supabaseUrl || '').trim();
+            const key = String(adminAuthConfig.supabaseAnonKey || '').trim();
+            if (!url.startsWith('https://') || !key || key.includes('DOPLNTE_')) return null;
+            try { return window.supabase.createClient(url, key, { auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: false } }); }
+            catch (error) { console.error('Nepodarilo sa inicializovať Supabase Auth.', error); return null; }
+        })();
+        let adminAuthenticated = false;
+
         const defaultSections = [
             { id: "domov", name: "Domov", desc: "Vitajte na našej rodinnej semenná farme.", hidden: false },
             { id: "paradajky", name: "Paradajky", desc: "Pestujeme pestrú kolekciu odrôd rozdelenú do prehľadných pomologických kategórií.", hidden: false },
@@ -1188,6 +1203,7 @@
         } catch(e) {}
 
         function resetDatabase() {
+            if (!requireAdmin()) return;
             if (confirm('Naozaj chcete obnoviť dáta na pôvodný stav?')) {
                 try {
                     localStorage.removeItem('herba_sections');
@@ -1201,6 +1217,7 @@
 
         // JSON Export & Import funkcie
         function exportJsonData() {
+            if (!requireAdmin()) return;
             const data = {
                 sections: sectionsDatabase,
                 varieties: varietyDatabase,
@@ -1218,10 +1235,12 @@
         }
 
         function triggerImportJson() {
+            if (!requireAdmin()) return;
             document.getElementById('importJsonFile').click();
         }
 
         function importDatabase(event) {
+            if (!requireAdmin()) return;
             const file = event.target.files[0];
             if (!file) return;
             const reader = new FileReader();
@@ -1728,29 +1747,111 @@
         function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
         function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
 
-        function performAdminLogin() {
-            if (document.getElementById('adminUser').value === 'admin' && document.getElementById('adminPass').value === 'admin') {
-                document.body.classList.add('admin-mode');
-                document.getElementById('adminBar').classList.add('active');
-                closeLoginModal();
-                renderAll();
-                showToast('🔓 Režim správcu aktívny!');
-            } else { alert('Nesprávne meno alebo heslo!'); }
+        function isAdminAuthConfigured() {
+            return Boolean(
+                adminSupabase &&
+                adminAuthConfig.adminUserId &&
+                !String(adminAuthConfig.adminUserId).includes('DOPLNTE_')
+            );
         }
 
-        function logoutAdmin() {
+        function enableAdminMode(showMessage = true) {
+            adminAuthenticated = true;
+            document.body.classList.add('admin-mode');
+            document.getElementById('adminBar').classList.add('active');
+            closeLoginModal();
+            renderAll();
+            if (showMessage) showToast('🔓 Prihlásenie správcu bolo úspešné.');
+        }
+
+        function disableAdminMode(showMessage = false) {
+            adminAuthenticated = false;
             document.body.classList.remove('admin-mode');
             document.getElementById('adminBar').classList.remove('active');
             renderAll();
-            showToast('🔒 Odhlásený.');
+            if (showMessage) showToast('🔒 Boli ste odhlásený.');
+        }
+
+        function requireAdmin() {
+            if (adminAuthenticated) return true;
+            showToast('🔒 Táto funkcia je dostupná iba prihlásenému správcovi.');
+            return false;
+        }
+
+        async function performAdminLogin() {
+            const emailInput = document.getElementById('adminUser');
+            const passwordInput = document.getElementById('adminPass');
+            const loginButton = document.querySelector('#loginModal button[onclick="performAdminLogin()"]');
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!isAdminAuthConfigured()) {
+                alert('Prihlásenie ešte nie je nakonfigurované. Doplňte údaje Supabase do súboru config.js podľa návodu README_SK.md.');
+                return;
+            }
+            if (!email || !password) {
+                alert('Zadajte e-mail a heslo správcu.');
+                return;
+            }
+
+            if (loginButton) loginButton.disabled = true;
+            try {
+                const { data, error } = await adminSupabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+
+                // Povolený je iba konkrétny používateľ určený UUID v config.js.
+                if (!data.user || data.user.id !== adminAuthConfig.adminUserId) {
+                    await adminSupabase.auth.signOut();
+                    throw new Error('Tento účet nemá oprávnenie správcu tejto stránky.');
+                }
+
+                passwordInput.value = '';
+                enableAdminMode(true);
+            } catch (error) {
+                console.error('Prihlásenie správcu zlyhalo:', error);
+                alert(error && error.message ? error.message : 'Prihlásenie sa nepodarilo. Skontrolujte údaje a skúste znova.');
+            } finally {
+                if (loginButton) loginButton.disabled = false;
+            }
+        }
+
+        async function restoreAdminSession() {
+            if (!isAdminAuthConfigured()) return;
+            try {
+                const { data, error } = await adminSupabase.auth.getSession();
+                if (error || !data.session) return;
+
+                // getUser() overí token na serveri Supabase, nie iba lokálne uloženú hodnotu.
+                const { data: userData, error: userError } = await adminSupabase.auth.getUser();
+                if (userError || !userData.user || userData.user.id !== adminAuthConfig.adminUserId) {
+                    await adminSupabase.auth.signOut();
+                    return;
+                }
+                enableAdminMode(false);
+            } catch (error) {
+                console.warn('Obnovenie relácie správcu sa nepodarilo.', error);
+            }
+        }
+
+        async function logoutAdmin() {
+            try {
+                if (adminSupabase) await adminSupabase.auth.signOut();
+            } catch (error) {
+                console.warn('Odhlásenie zo Supabase sa nepodarilo.', error);
+            } finally {
+                document.getElementById('adminPass').value = '';
+                disableAdminMode(true);
+            }
         }
 
         function openFormSettingsModal() {
+            if (!requireAdmin()) return;
             document.getElementById('adminEmailInput').value = farmSettings.email;
             document.getElementById('formSettingsModal').classList.add('active');
         }
         function closeFormSettingsModal() { document.getElementById('formSettingsModal').classList.remove('active'); }
         function saveFormEmailSettings() {
+            if (!requireAdmin()) return;
             farmSettings.email = document.getElementById('adminEmailInput').value.trim();
             try { localStorage.setItem('herba_form_email', farmSettings.email); } catch(e){}
             updateFormAction();
@@ -1759,6 +1860,7 @@
         }
 
         function moveSection(index, direction) {
+            if (!requireAdmin()) return;
             const newIndex = index + direction;
             if (newIndex < 0 || newIndex >= sectionsDatabase.length) return;
             const temp = sectionsDatabase[index];
@@ -1770,6 +1872,7 @@
         }
 
         function moveVariety(index, direction) {
+            if (!requireAdmin()) return;
             const newIndex = index + direction;
             if (newIndex < 0 || newIndex >= varietyDatabase.length) return;
             const temp = varietyDatabase[index];
@@ -1781,6 +1884,7 @@
         }
 
         function openSectionTableModal() {
+            if (!requireAdmin()) return;
             const tbody = document.getElementById('sectionTableBody');
             tbody.innerHTML = '';
             sectionsDatabase.forEach((sec, idx) => {
@@ -1804,6 +1908,7 @@
         function closeSectionTableModal() { document.getElementById('sectionTableModal').classList.remove('active'); }
 
         function openSectionModal() {
+            if (!requireAdmin()) return;
             document.getElementById('editSectionIndex').value = -1;
             document.getElementById('secId').value = '';
             document.getElementById('secName').value = '';
@@ -1811,6 +1916,7 @@
             document.getElementById('sectionModal').classList.add('active');
         }
         function openSectionModalForEdit(idx) {
+            if (!requireAdmin()) return;
             const s = sectionsDatabase[idx];
             document.getElementById('editSectionIndex').value = idx;
             document.getElementById('secId').value = s.id;
@@ -1821,6 +1927,7 @@
         function closeSectionModal() { document.getElementById('sectionModal').classList.remove('active'); }
 
         function saveSection() {
+            if (!requireAdmin()) return;
             const idx = parseInt(document.getElementById('editSectionIndex').value);
             const id = document.getElementById('secId').value.trim().toLowerCase();
             const name = document.getElementById('secName').value.trim();
@@ -1840,12 +1947,14 @@
         }
 
         function toggleSectionVisibility(idx) {
+            if (!requireAdmin()) return;
             sectionsDatabase[idx].hidden = !sectionsDatabase[idx].hidden;
             try { localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase)); } catch(e){}
             renderAll();
         }
 
         function deleteSection(idx) {
+            if (!requireAdmin()) return;
             if(confirm('Naozaj vymazať kartu?')) {
                 sectionsDatabase.splice(idx, 1);
                 try { localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase)); } catch(e){}
@@ -1854,6 +1963,7 @@
         }
 
         function openTableManagerModal() {
+            if (!requireAdmin()) return;
             renderAdminTable();
             document.getElementById('tableManagerModal').classList.add('active');
         }
@@ -1900,6 +2010,7 @@
         }
 
         function updateStockFromTable(index, newVal) {
+            if (!requireAdmin()) return;
             varietyDatabase[index].stock = parseInt(newVal) || 0;
             try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e) {}
             renderAll();
@@ -1915,6 +2026,7 @@
         }
 
         function toggleVarietyStatusInTable(index) {
+            if (!requireAdmin()) return;
             varietyDatabase[index].hidden = !varietyDatabase[index].hidden;
             try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e) {}
             renderAll();
@@ -1922,6 +2034,7 @@
         }
 
         function deleteVarietyFromTable(index) {
+            if (!requireAdmin()) return;
             if (confirm(`Naozaj chcete vymazať odrodu "${varietyDatabase[index].name}"?`)) {
                 varietyDatabase.splice(index, 1);
                 try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e) {}
@@ -1941,6 +2054,7 @@
         }
 
         function openVarietyModal() {
+            if (!requireAdmin()) return;
             document.getElementById('editIndex').value = -1;
             document.getElementById('varName').value = '';
             document.getElementById('varType').value = 'Indeterminantná';
@@ -1964,6 +2078,7 @@
         }
 
         function editVariety(idx) {
+            if (!requireAdmin()) return;
             const t = varietyDatabase[idx];
             document.getElementById('editIndex').value = idx;
             document.getElementById('varName').value = t.name;
@@ -2008,6 +2123,7 @@
         function closeVarietyModal() { document.getElementById('varietyModal').classList.remove('active'); }
 
         function saveVariety() {
+            if (!requireAdmin()) return;
             const idx = parseInt(document.getElementById('editIndex').value);
             const section = document.getElementById('varSectionSelect').value;
             const name = document.getElementById('varName').value.trim();
@@ -2032,7 +2148,8 @@
             const hidden = document.getElementById('varHidden').checked;
 
             if(!name) { alert('Zadajte názov odrody!'); return; }
-            const obj = { name, section, type, color, price, seedsPerPack, stock, weight, img, info, multiflora, hidden };
+            const previousData = idx >= 0 && varietyDatabase[idx] ? varietyDatabase[idx] : {};
+            const obj = { ...previousData, name, section, type, color, price, seedsPerPack, stock, weight, img, info, multiflora, hidden };
 
             if (idx === -1) varietyDatabase.push(obj);
             else varietyDatabase[idx] = obj;
@@ -2044,6 +2161,7 @@
         }
 
         function deleteVariety(idx) {
+            if (!requireAdmin()) return;
             if(confirm('Vymazať odrodu?')) {
                 varietyDatabase.splice(idx, 1);
                 try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e){}
@@ -2052,6 +2170,7 @@
         }
 
         function openBlogModal() {
+            if (!requireAdmin()) return;
             document.getElementById('editBlogIndex').value = -1;
             document.getElementById('blogTitle').value = '';
             document.getElementById('blogImg').value = '';
@@ -2061,6 +2180,7 @@
         }
 
         function editBlogPost(idx) {
+            if (!requireAdmin()) return;
             const p = blogDatabase[idx];
             document.getElementById('editBlogIndex').value = idx;
             document.getElementById('blogTitle').value = p.title;
@@ -2073,6 +2193,7 @@
         function closeBlogModal() { document.getElementById('blogModal').classList.remove('active'); }
 
         function insertBlogTag(openTag, closeTag) {
+            if (!requireAdmin()) return;
             const textarea = document.getElementById('blogContent');
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
@@ -2084,6 +2205,7 @@
         }
 
         function insertBlogImagePrompt() {
+            if (!requireAdmin()) return;
             const url = prompt('Zadajte URL adresu obrázka (napr. https://...):');
             if (url) {
                 const imgHtml = `<img src="${url}" alt="Obrázok v článku" style="width:100%; border-radius:8px; margin:10px 0;">`;
@@ -2095,6 +2217,7 @@
         }
 
         function insertBlogFilePrompt() {
+            if (!requireAdmin()) return;
             const url = prompt('Zadajte URL adresu súboru (napr. https://.../dokument.pdf):');
             const name = prompt('Zadajte text odkazu (napr. Stiahnuť príručku):', 'Stiahnuť súbor');
             if (url && name) {
@@ -2107,6 +2230,7 @@
         }
 
         function insertBlogTipBox() {
+            if (!requireAdmin()) return;
             const textarea = document.getElementById('blogContent');
             const tipHtml = "<div style='background:#E8F0E9; padding:12px; border-left:4px solid #2C5530; margin:10px 0;'>💡 <b>Tip:</b> Sem napíšte dôležitú radu alebo poznámku...</div>\n";
             const start = textarea.selectionStart;
@@ -2115,6 +2239,7 @@
         }
 
         function saveBlogPost() {
+            if (!requireAdmin()) return;
             const idx = parseInt(document.getElementById('editBlogIndex').value);
             const title = document.getElementById('blogTitle').value.trim();
             const img = document.getElementById('blogImg').value.trim();
@@ -2135,6 +2260,7 @@
         }
 
         function deleteBlogPost(idx) {
+            if (!requireAdmin()) return;
             if(confirm('Naozaj vymazať článok?')) {
                 blogDatabase.splice(idx, 1);
                 try { localStorage.setItem('herba_blog', JSON.stringify(blogDatabase)); } catch(e){}
@@ -2143,6 +2269,7 @@
         }
 
         function downloadSiteCode() {
+            if (!requireAdmin()) return;
             const currentSectionsJSON = JSON.stringify(sectionsDatabase, null, 4);
             const currentVarietiesJSON = JSON.stringify(varietyDatabase, null, 4);
             const currentBlogJSON = JSON.stringify(blogDatabase, null, 4);
@@ -2177,7 +2304,10 @@
             showToast('💾 Kód bol úspešne stiahnutý so všetkými dátami!');
         }
 
-        document.addEventListener('DOMContentLoaded', () => { renderAll(); });
+        document.addEventListener('DOMContentLoaded', async () => {
+            renderAll();
+            await restoreAdminSession();
+        });
     </script>
 </body>
 </html>
