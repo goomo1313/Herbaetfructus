@@ -556,6 +556,15 @@
             .contact-container { padding: 1.5rem; }
         }
 
+        @media (max-width: 520px) {
+            .contact-container { padding: 1rem; }
+            .selector-item { flex-wrap: wrap; gap: 8px; }
+            .selector-item > .checkbox-label { min-width: 0; width: 100%; }
+            .selector-item > div { width: 100%; justify-content: flex-end; }
+            .details.form-accordion .accordion-content { padding: 10px; }
+            .form-qty-input { width: 34px; }
+        }
+
         .form-group.full-width { grid-column: 1 / -1; }
 
         label { display: block; margin-bottom: 0.6rem; font-weight: 500; color: var(--text-main); }
@@ -1881,6 +1890,12 @@
         }
 
         function handleFormSubmit(event) {
+            const recipientEmail = String(farmSettings.email || '').trim();
+            if (!recipientEmail || recipientEmail === 'tvojemail@priklad.sk') {
+                event.preventDefault();
+                alert('Formulár ešte nemá nastavený cieľový e-mail. Správca ho musí nastaviť v administrácii cez tlačidlo „E-mail“.');
+                return false;
+            }
             const selectorItems = document.querySelectorAll('#formTomatoSelector .selector-item');
             const problems = [];
 
