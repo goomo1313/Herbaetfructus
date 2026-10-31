@@ -2293,7 +2293,8 @@
             // Exportujeme čistú kópiu stránky, nie jej dočasný stav v administrácii.
             const exportRoot = document.documentElement.cloneNode(true);
             exportRoot.setAttribute('data-herba-export', 'true');
-            exportRoot.classList.remove('admin-mode');
+            const exportedBody = exportRoot.querySelector('body');
+            if (exportedBody) exportedBody.classList.remove('admin-mode');
 
             const exportedAdminBar = exportRoot.querySelector('#adminBar');
             if (exportedAdminBar) exportedAdminBar.classList.remove('active');
