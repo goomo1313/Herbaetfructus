@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herba et Fructus - Rodinná semenná farma</title>
+    
+    <!-- SEO a Open Graph Meta Tagy pre sociálne siete -->
+    <meta name="description" content="Domáce pestovanie, zber semienok a udržiavanie vzácnych aj tradičných odrôd zeleniny a ovocia.">
+    <meta property="og:title" content="Herba et Fructus - Rodinná semenná farma">
+    <meta property="og:description" content="Domáce pestovanie, zber semienok a udržiavanie vzácnych aj tradičných odrôd zeleniny a ovocia.">
+    <meta property="og:type" content="website">
+
+    <!-- Moderné Google Fonty -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2C5530;
+            --primary-light: #E8F0E9;
+            --primary-hover: #1E3D22;
+            --accent-color: #C05621;
+            --gold-color: #D97706;
+            --gold-bg: #FEF3C7;
+            --bg-color: #F9F9F7;
+            --surface-color: #FFFFFF;
+            --text-main: #2D3748;
+            --text-muted: #718096;
+            --border-color: #E2E8F0;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.12);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.7;
+        }
+
+        h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
+
+        /* Admin lišta optimalizovaná pre mobily */
+        #adminBar {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            background: #1A202C;
+            color: white;
+            padding: 8px 15px;
+            z-index: 9999;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            flex-direction: column;
+            gap: 6px;
+        }
+        #adminBar.active { display: flex; }
+        .admin-bar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .admin-actions-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            width: 100%;
+            padding-bottom: 4px;
+            scrollbar-width: thin;
+        }
+        .admin-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            transition: opacity 0.2s;
+        }
+        .admin-btn:hover { opacity: 0.9; }
+
+        /* Navigácia */
+        header {
+            background-color: var(--surface-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow-sm);
+            border-bottom: 1px solid var(--border-color);
+            transition: top 0.3s;
+        }
+        body.admin-mode header { top: 75px; }
+
+        @media (min-width: 768px) {
+            #adminBar {
+                flex-direction: row;
+                justify-content: space-between;
+                padding: 10px 20px;
+            }
+            .admin-actions-scroll {
+                overflow-x: visible;
+                width: auto;
+                flex-wrap: wrap;
+            }
+            body.admin-mode header { top: 55px; }
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 20px;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+
+        .nav-links button, .nav-links a {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .nav-links button:hover, .nav-links button.active-tab,
+        .nav-links a:hover, .nav-links a.active-tab {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 20px 3rem;
+            background: linear-gradient(135deg, rgba(232,240,233,1) 0%, rgba(249,249,247,1) 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
+            color: var(--text-muted);
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 20px;
+        }
+
+        .content-section {
+            display: none;
+            margin-bottom: 4rem;
+        }
+        .content-section.active-section {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: clamp(1.8rem, 4vw, 2.4rem);
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            left: 0; bottom: 0;
+            width: 60px; height: 3px;
+            background-color: var(--accent-color);
+            border-radius: 3px;
+        }
+
+        .description {
+            font-size: 1.05rem;
+            margin-bottom: 2rem;
+            color: var(--text-muted);
+            max-width: 800px;
+        }
+
+        .category-info-box {
+            display: none;
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary-color);
+            padding: 1.2rem 1.5rem;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            margin-bottom: 1.5rem;
+            font-size: 0.98rem;
+            color: var(--primary-hover);
+        }
+        .category-info-box.active { display: block; }
+        .category-info-box h4 { font-family: 'Playfair Display', serif; font-size: 1.2rem; margin-bottom: 4px; }
+
+        .admin-section-actions {
+            display: none;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        body.admin-mode .admin-section-actions { display: flex; }
+
+        /* Filtrovací panel */
+        .filters-wrapper {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            padding: 1.2rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-right: 5px;
+            min-width: 85px;
+        }
+
+        .chip {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .chip:hover, .chip.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .chip.color-chip:hover, .chip.color-chip.active {
+            background-color: #D97706;
+            border-color: #D97706;
+            color: white;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1.2rem;
+            border: 2px solid var(--border-color);
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            background-color: var(--bg-color);
+        }
+
+        .variety-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .variety-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .variety-card.flagship { border: 2px solid var(--gold-color); background: linear-gradient(to bottom, #FFFDF5 0%, #FFFFFF 100%); }
+        .variety-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+
+        .card-img-placeholder {
+            width: 100%;
+            height: 190px;
+            background-color: #F1F5F9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .card-img-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s;
+        }
+        .card-img-placeholder:hover img { transform: scale(1.05); }
+
+        .card-img-placeholder img[src=""], 
+        .card-img-placeholder img:not([src]) { display: none; }
+
+        .card-img-placeholder::after {
+            content: '🌿 Miesto pre fotku (kliknite pre zväčšenie)';
+            position: absolute;
+            color: #94A3B8;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .badges-wrapper {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .badge.type { background: var(--primary-light); color: var(--primary-color); }
+        .badge.price { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; font-weight: 700; }
+        .badge.multiflora { background: var(--gold-bg); color: var(--gold-color); border: 1px solid #FDE68A; }
+        .badge.hidden-badge { background: #FEE2E2; color: #991B1B; font-weight: 700; }
+        .badge.seeds-info { background: #E2E8F0; color: #4A5568; }
+
+        .variety-card h3 { color: var(--primary-color); font-size: 1.3rem; margin-bottom: 8px; }
+        .weight-info { font-size: 0.85rem; color: var(--text-main); margin-bottom: 10px; }
+        .weight-info span { font-weight: 600; color: var(--accent-color); }
+
+        .variety-card p.info {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            flex-grow: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-actions-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* Kompaktnejší výber množstva */
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            background: #F8FAFC;
+            height: 32px;
+        }
+
+        .qty-btn {
+            background: transparent;
+            border: none;
+            padding: 0 8px;
+            height: 100%;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qty-btn:hover { background: var(--primary-light); }
+
+        .qty-input {
+            width: 28px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            font-size: 0.8rem;
+            font-family: inherit;
+        }
+
+        /* Tlačidlo pridať do výberu */
+        .btn-select {
+            flex-grow: 1;
+            background-color: var(--surface-color);
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 0.5rem 0.8rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-select:hover, .btn-select.selected {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .card-admin-actions {
+            display: none;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        body.admin-mode .card-admin-actions { display: flex; }
+        .card-admin-actions button {
+            flex: 1;
+            padding: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .btn-edit-card { background: #ED8936; color: white; }
+        .btn-del-card { background: #E53E3E; color: white; }
+
+        /* Blog štýly */
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+        .blog-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+        }
+        .blog-card img, .blog-card iframe {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .blog-card-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        .blog-date { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
+        .blog-card h3 { color: var(--primary-color); font-size: 1.25rem; margin-bottom: 10px; }
+        .blog-card p { font-size: 0.92rem; color: var(--text-muted); margin-bottom: 15px; flex-grow: 1; }
+
+        /* Kontaktný formulár & Košík */
+        .contact-container {
+            background: var(--surface-color);
+            border-radius: var(--radius-lg);
+            padding: 3rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            margin-top: 4rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .contact-container { padding: 1.5rem; }
+        }
+
+        .form-group.full-width { grid-column: 1 / -1; }
+
+        label { display: block; margin-bottom: 0.6rem; font-weight: 500; color: var(--text-main); }
+        input[type="text"], input[type="email"], textarea, select {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-family: inherit;
+            background: #F8FAFC;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 15px;
+            background: #F8FAFC;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.95rem; }
+
+        .varieties-selector {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 15px;
+            background: var(--surface-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .selector-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #F8FAFC;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        details.form-accordion {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: var(--surface-color);
+            overflow: hidden;
+        }
+
+        details.form-accordion summary { padding: 1rem; font-weight: 600; cursor: pointer; background: #F8FAFC; }
+        details.form-accordion .accordion-content { padding: 15px; border-top: 1px solid var(--border-color); }
+
+        /* Súhrn nákupného košíka vo formulári */
+        .cart-summary-box {
+            background: var(--primary-light);
+            border: 1px solid #CBD5E0;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+        .cart-summary-box h4 { font-family: 'Playfair Display', serif; color: var(--primary-color); margin-bottom: 6px; }
+
+        button.btn-submit {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1.2rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            font-family: inherit;
+            margin-top: 1rem;
+        }
+        button.btn-submit:hover { background-color: var(--primary-hover); }
+
+        .floating-selection {
+            position: fixed;
+            bottom: 30px; right: 30px;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 30px;
+            box-shadow: var(--shadow-md);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 1999;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px; right: 30px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 16px 28px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-hover);
+            display: none;
+            z-index: 2000;
+            font-weight: 500;
+        }
+
+        /* Modal okná */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: white;
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 550px;
+            box-shadow: var(--shadow-hover);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        /* Lightbox pre obrázky */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 20000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .lightbox-overlay.active { display: flex; }
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 20px; right: 30px;
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            background-color: var(--primary-hover);
+            color: #A0AEC0;
+            margin-top: 5rem;
+            font-size: 0.9rem;
+        }
+        footer a { color: #CBD5E0; text-decoration: underline; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- ADMIN LIŠTA -->
+    <div id="adminBar">
+        <div class="admin-bar-row">
+            <div>🔧 <strong>Režim správcu aktívny</strong></div>
+        </div>
+        <div class="admin-actions-scroll">
+            <button class="admin-btn" style="background: #2B6CB0;" onclick="openTableManagerModal()">📊 Tabuľka odrôd & Sklad</button>
+            <button class="admin-btn" style="background: #2B6CB0;" onclick="openSectionTableModal()">📂 Správa kariet</button>
+            <button class="admin-btn" style="background: #D97706;" onclick="openFormSettingsModal()">✉️ E-mail</button>
+            <button class="admin-btn" style="background: var(--primary-color);" onclick="openVarietyModal()">+ Odroda</button>
+            <button class="admin-btn" style="background: #805AD5;" onclick="openBlogModal()">+ Blog</button>
+            <button class="admin-btn" style="background: #3182CE;" onclick="exportJsonData()">📤 Export JSON</button>
+            <button class="admin-btn" style="background: #D69E2E;" onclick="triggerImportJson()">📥 Import JSON</button>
+            <input type="file" id="importJsonFile" accept=".json" style="display: none;" onchange="importDatabase(event)">
+            <button class="admin-btn" style="background: #319795;" onclick="downloadSiteCode()">💾 Stiahnuť HTML</button>
+            <button class="admin-btn" style="background: #E53E3E;" onclick="resetDatabase()">🔄 Obnoviť</button>
+            <button class="admin-btn" style="background: #4A5568;" onclick="logoutAdmin()">Odhlásiť</button>
+        </div>
+    </div>
+
+    <header>
+        <nav>
+            <a class="logo" onclick="switchSection('domov')">
+                <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="55" r="32" fill="#C05621"/>
+                    <path d="M50 23C50 15 57 6 66 3C66 3 63 14 54 19Z" fill="#2C5530"/>
+                    <path d="M47 23C39 16 31 18 28 18C32 25 40 26 47 23Z" fill="#2C5530"/>
+                    <path d="M53 23C61 16 69 18 72 18C68 25 60 26 53 23Z" fill="#2C5530"/>
+                    <circle cx="50" cy="55" r="11" fill="#D97706" opacity="0.95"/>
+                </svg>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; color: var(--primary-color); line-height: 1.1;">Herba et Fructus</span>
+                    <span style="font-family: 'Poppins', sans-serif; font-size: 0.65rem; font-weight: 600; letter-spacing: 1.5px; color: var(--accent-color); margin-top: 2px;">RODINNÁ SEMENNÁ FARMA</span>
+                </div>
+            </a>
+            <ul class="nav-links" id="mainNavLinks"></ul>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h1 id="heroTitle">Herba et Fructus</h1>
+        <p id="heroDesc">Domáce pestovanie, zber semienok a udržiavanie vzácnych aj tradičných odrôd zeleniny a ovocia.</p>
+    </div>
+
+    <main id="mainContainer">
+        <!-- Dynamické karty / sekcie sa vykreslia sem -->
+    </main>
+
+    <!-- SEKCIA PODMIENKY A VÝMENA (GDPR & Bankovanie) -->
+    <section id="podmienkySection" style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: none;">
+        <div class="contact-container">
+            <div class="section-header" style="border:none; margin-bottom: 0;">
+                <h2>Podmienky & Bankovanie semien</h2>
+            </div>
+            <p class="description" style="margin-bottom: 2rem;">Všetko, čo potrebujete vedieť o nákupe, výmene a ochrane osobných údajov.</p>
+            
+            <div style="display: grid; gap: 20px; font-size: 0.95rem; color: var(--text-main);">
+                <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <h3 style="color: var(--primary-color); margin-bottom: 8px;">🛒 Kúpa a doručenie</h3>
+                    <p>Semienka balíme ručne s dôrazom na čistotu a kvalitu odrody. Odosielame štandardne poštom alebo cez zásielkovňu po potvrdení dostupnosti.</p>
+                </div>
+                <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <h3 style="color: var(--primary-color); margin-bottom: 8px;">🔄 Výmena odrôd (Bankovanie)</h3>
+                    <p>Podporujeme uchovávanie genofondu starých a vzácnych odrôd. Ak máte čisté, dobre presušené semienka netradičných odrôd, radi ich s vami vymeníme za iné z našej ponuky.</p>
+                </div>
+                <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <h3 style="color: var(--primary-color); margin-bottom: 8px;">🔒 Ochrana osobných údajov (GDPR)</h3>
+                    <p>Vaše meno, e-mail a adresa sú využité výhradne na vybavenie vašej objednávky alebo dopytu. Údaje neposkytujeme tretím stranám ani ich nepoužívame na hromadný spam.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEKCIA KONTAKT -->
+    <section id="kontaktSection" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+        <div class="contact-container">
+            <div class="section-header" style="border:none; margin-bottom: 0;">
+                <h2>Formulár pre Kúpu a Výmenu</h2>
+            </div>
+            <p class="description" style="margin-bottom: 2.5rem;">Vyberte si, o čo máte záujem a zvoľte požadované množstvo balíčkov.</p>
+            
+            <form id="contactForm" method="POST" onsubmit="handleFormSubmit(event)">
+                <input type="text" name="_honey" style="display:none">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="meno">Meno a Priezvisko *</label>
+                        <input type="text" id="meno" name="meno" required placeholder="Napr. Ján Hraško">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">E-mailová adresa *</label>
+                        <input type="email" id="email" name="email" required placeholder="jan.hrasko@priklad.sk">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="adresa">Doručovacia adresa (Nepovinné)</label>
+                        <input type="text" id="adresa" name="adresa" placeholder="Ulica, Číslo, PSČ, Mesto (vyplňte ak si objednávate semienka)">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Mám záujem o:</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label"><input type="checkbox" name="ucel" value="Kúpa semien"> 🛒 Kúpa semien</label>
+                            <label class="checkbox-label"><input type="checkbox" name="ucel" value="Výmena odrôd"> 🔄 Výmena odrôd (Bankovanie)</label>
+                            <label class="checkbox-label"><input type="checkbox" name="ucel" value="Pestovateľská rada"> 💬 Pestovateľská rada / Otázka</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Vyberte odrody a množstvo balíčkov:</label>
+                        <details class="form-accordion" open>
+                            <summary>Zoznam odrôd na výber (kliknite pre zbalenie/rozbalenie)</summary>
+                            <div class="accordion-content">
+                                <input type="text" style="margin-bottom: 12px;" id="formTomatoFilter" placeholder="🔍 Rýchlo vyhľadať odrodu..." onkeyup="filterFormTomatoes()">
+                                <div class="varieties-selector" id="formTomatoSelector"></div>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Interaktívny prehľad košíka / sumár -->
+                    <div class="form-group full-width">
+                        <div class="cart-summary-box" id="cartSummaryBox">
+                            <h4>📋 Súhrn vášho výberu</h4>
+                            <div id="cartSummaryContent" style="color: var(--text-muted); font-size: 0.9rem;">Zatiaľ nemáte vybrané žiadne položky.</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="sprava">Správa / Doplňujúce informácie</label>
+                        <textarea id="sprava" name="sprava" rows="4" placeholder="Napíšte nám podrobnosti k objednávke..."></textarea>
+                    </div>
+
+                    <!-- Povinný GDPR súhlas -->
+                    <div class="form-group full-width">
+                        <label class="checkbox-label" style="font-weight: 500;">
+                            <input type="checkbox" id="gdprConsent" required> 
+                            Súhlasím so spracovaním osobných údajov na účely vybavenia tejto požiadavky.
+                        </label>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <button type="submit" class="btn-submit">Odoslať žiadosť</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; Herba et Fructus. Všetky práva vyhradené. | <a onclick="openLoginModal()">Prihlásenie správcu</a></p>
+    </footer>
+
+    <div class="floating-selection" id="floatingCounter" onclick="switchSection('kontaktSection')">
+        🛒 Môj výber: <span class="count">0</span> bal. | Spolu: <span class="totalPrice">0.00 €</span>
+    </div>
+
+    <div class="toast" id="toast">Akcia prebehla úspešne!</div>
+
+    <!-- LIGHTBOX PRE ZVÄČŠENIE OBRÁZKA -->
+    <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <img class="lightbox-content" id="lightboxImg" src="" alt="Zväčšená fotografia">
+    </div>
+
+    <!-- MODÁLNE OKNO - PRIHLÁSENIE -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box">
+            <h3 style="color: var(--primary-color); margin-bottom: 15px;">Prihlásenie správcu</h3>
+            <div style="margin-bottom: 15px;">
+                <label>Meno</label>
+                <input type="text" id="adminUser" placeholder="admin">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label>Heslo</label>
+                <input type="password" id="adminPass" placeholder="admin">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="admin-btn" style="flex: 1; padding: 12px;" onclick="performAdminLogin()">Prihlásiť sa</button>
+                <button class="admin-btn" style="flex: 1; background: #CBD5E0; color: #2D3748;" onclick="closeLoginModal()">Zrušiť</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODÁLNE OKNO - NASTAVENIE E-MAILU -->
+    <div class="modal-overlay" id="formSettingsModal">
+        <div class="modal-box">
+            <h3 style="color: var(--primary-color); margin-bottom: 15px;">✉️ Nastavenie cieľového e-mailu</h3>
+            <div style="margin-bottom: 20px;">
+                <label>E-mailová adresa *</label>
+                <input type="email" id="adminEmailInput" placeholder="tvojemail@priklad.sk">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="admin-btn" style="flex: 1; padding: 12px;" onclick="saveFormEmailSettings()">Uložiť</button>
+                <button class="admin-btn" style="flex: 1; background: #CBD5E0; color: #2D3748;" onclick="closeFormSettingsModal()">Zrušiť</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODÁLNE OKNO - SPRÁVA PORADIA KARIET -->
+    <div class="modal-overlay" id="sectionTableModal">
+        <div class="modal-box" style="max-width: 800px; width: 95%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: var(--primary-color); margin: 0;">📂 Správa & Poradie kariet</h3>
+                <div>
+                    <button class="admin-btn" style="background: #2B6CB0;" onclick="openSectionModal()">+ Pridať kartu</button>
+                    <button class="admin-btn" style="background: #CBD5E0; color: #2D3748;" onclick="closeSectionTableModal()">✕ Zavrieť</button>
+                </div>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                    <thead>
+                        <tr style="background: #2D3748; color: white;">
+                            <th style="padding: 10px; text-align: left;">Názov karty</th>
+                            <th style="padding: 10px; text-align: center;">Poradie</th>
+                            <th style="padding: 10px; text-align: center;">Stav</th>
+                            <th style="padding: 10px; text-align: center;">Akcie</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sectionTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODÁLNE OKNO - PRIDANIE / ÚPRAVA KARTY -->
+    <div class="modal-overlay" id="sectionModal">
+        <div class="modal-box">
+            <h3 id="modalSectionTitle" style="color: var(--primary-color); margin-bottom: 15px;">Pridať novú kartu</h3>
+            <input type="hidden" id="editSectionIndex" value="-1">
+            <div style="margin-bottom: 15px;"><label>ID (napr. 'bylinky') *</label><input type="text" id="secId"></div>
+            <div style="margin-bottom: 15px;"><label>Názov v menu *</label><input type="text" id="secName"></div>
+            <div style="margin-bottom: 20px;"><label>Popis</label><textarea id="secDesc" rows="3"></textarea></div>
+            <div style="display: flex; gap: 10px;">
+                <button class="admin-btn" style="flex: 1; padding: 12px;" onclick="saveSection()">Uložiť</button>
+                <button class="admin-btn" style="flex: 1; background: #CBD5E0; color: #2D3748;" onclick="closeSectionModal()">Zrušiť</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODÁLNE OKNO - TABUĽKOVÁ SPRÁVA ODRÔD & SKLAD -->
+    <div class="modal-overlay" id="tableManagerModal">
+        <div class="modal-box" style="max-width: 1100px; width: 95%;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: var(--primary-color); margin: 0;">📊 Tabuľková správa odrôd & Skladové zásoby</h3>
+                <button class="admin-btn" style="background: #CBD5E0; color: #2D3748;" onclick="closeTableManagerModal()">✕ Zavrieť</button>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <input type="text" id="adminTableSearch" placeholder="🔍 Rýchlo nájsť v tabuľke..." onkeyup="filterAdminTable()" style="flex: 1; min-width: 200px; padding: 8px 12px;">
+            </div>
+
+            <div style="max-height: 450px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+                    <thead style="position: sticky; top: 0; background: #2D3748; color: white; z-index: 5;">
+                        <tr>
+                            <th style="padding: 10px;">Názov odrody</th>
+                            <th style="padding: 10px;">Sekcia</th>
+                            <th style="padding: 10px;">Typ / Pomológia</th>
+                            <th style="padding: 10px;">Cena (€)</th>
+                            <th style="padding: 10px;">Semien/Bal.</th>
+                            <th style="padding: 10px; background: #1A202C;">📦 Sklad (balíčky)</th>
+                            <th style="padding: 10px; text-align: center;">Poradie</th>
+                            <th style="padding: 10px; text-align: center;">Dostupnosť</th>
+                            <th style="padding: 10px; text-align: center;">Akcie</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODÁLNE OKNO - PRIDANIE / ÚPRAVA ODRODY -->
+    <div class="modal-overlay" id="varietyModal">
+        <div class="modal-box">
+            <h3 id="modalVarietyTitle" style="color: var(--primary-color); margin-bottom: 15px;">Pridať odrodu</h3>
+            <input type="hidden" id="editIndex" value="-1">
+            <div style="margin-bottom: 15px;"><label>Sekcia *</label><select id="varSectionSelect"></select></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div><label>Názov *</label><input type="text" id="varName"></div>
+                <div><label>Typ / Pomológia *</label>
+                    <select id="varType" onchange="checkCustomType(this)">
+                        <option value="Indeterminantná">Indeterminantná</option>
+                        <option value="Determinantná">Determinantná</option>
+                        <option value="Multiflora">Multiflora</option>
+                        <option value="Cherry & Koktailová">Cherry & Koktailová</option>
+                        <option value="Býčie srdce">Býčie srdce</option>
+                        <option value="Omáčková">Omáčková</option>
+                        <option value="Zberateľská špecialita">Zberateľská špecialita</option>
+                        <option value="Tekvica">Tekvica</option>
+                        <option value="Cuketa">Cuketa</option>
+                        <option value="Ďalší">Ďalší...</option>
+                    </select>
+                </div>
+            </div>
+            <div id="customTypeWrapper" style="margin-bottom: 15px; display: none;">
+                <label>Vlastný typ / Pomológia *</label>
+                <input type="text" id="varCustomType" placeholder="Zadajte vlastný typ...">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div><label>Farba</label>
+                    <select id="varColor">
+                        <option value="Červená">Červená</option>
+                        <option value="Žltá / Oranžová">Žltá / Oranžová</option>
+                        <option value="Čierna / Tmavá">Čierna / Tmavá</option>
+                        <option value="Pásikavá / Pestrá">Pásikavá / Pestrá</option>
+                        <option value="Zelená / Iná">Zelená / Iná</option>
+                    </select>
+                </div>
+                <div><label>Cena (€)</label><input type="text" id="varPrice" placeholder="1.50"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div><label>Počet semien v balíčku</label><input type="text" id="varSeedsPerPack" placeholder="10 ks"></div>
+                <div><label>Skladové zásoby (balíčky)</label><input type="number" id="varStock" placeholder="20" min="0" value="10"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div><label>Hmotnosť plodu</label><input type="text" id="varWeight" placeholder="20-30g"></div>
+                <div><label>Obrázok URL</label><input type="text" id="varImg" placeholder="obrazok.jpg"></div>
+            </div>
+            <div style="margin-bottom: 15px;"><label>Popis</label><textarea id="varInfo" rows="3"></textarea></div>
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <label class="checkbox-label"><input type="checkbox" id="varMultiflora"> 🌟 Multiflora</label>
+                <label class="checkbox-label" style="color: #991B1B;"><input type="checkbox" id="varHidden"> 🚫 Schovať</label>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="admin-btn" style="flex: 1; padding: 12px;" onclick="saveVariety()">Uložiť</button>
+                <button class="admin-btn" style="flex: 1; background: #CBD5E0; color: #2D3748;" onclick="closeVarietyModal()">Zrušiť</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODÁLNE OKNO - BLOG -->
+    <div class="modal-overlay" id="blogModal">
+        <div class="modal-box" style="max-width: 650px;">
+            <h3 id="modalBlogTitle" style="color: var(--primary-color); margin-bottom: 15px;">Pridať článok do blogu</h3>
+            <input type="hidden" id="editBlogIndex" value="-1">
+            <div style="margin-bottom: 15px;"><label>Nadpis článku *</label><input type="text" id="blogTitle" placeholder="Napr. Ako správne odoberať semienka..."></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div><label>Obrázok URL (voliteľné)</label><input type="text" id="blogImg" placeholder="https://..."></div>
+                <div><label>Video URL / YouTube Embed (voliteľné)</label><input type="text" id="blogVideo" placeholder="https://www.youtube.com/embed/..."></div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label>Formátovanie a vkladanie prvkov</label>
+                <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <button type="button" class="admin-btn" style="background: #4A5568; padding: 4px 8px;" onclick="insertBlogTag('<b>', '</b>')"><b>Tučné</b></button>
+                    <button type="button" class="admin-btn" style="background: #4A5568; padding: 4px 8px;" onclick="insertBlogTag('<i>', '</i>')"><i>Kurzíva</i></button>
+                    <button type="button" class="admin-btn" style="background: #4A5568; padding: 4px 8px;" onclick="insertBlogTag('<h4>', '</h4>')">H4 Nadpis</button>
+                    <button type="button" class="admin-btn" style="background: #2B6CB0; padding: 4px 8px;" onclick="insertBlogImagePrompt()">🖼️ Vložiť obrázok</button>
+                    <button type="button" class="admin-btn" style="background: #2B6CB0; padding: 4px 8px;" onclick="insertBlogFilePrompt()">📎 Vložiť súbor</button>
+                    <button type="button" class="admin-btn" style="background: #D97706; padding: 4px 8px;" onclick="insertBlogTipBox()">💡 Tip Box</button>
+                </div>
+                <textarea id="blogContent" rows="8" placeholder="Obsah článku... Môžete písať text alebo použiť tlačidlá vyššie."></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="admin-btn" style="flex: 1; padding: 12px;" onclick="saveBlogPost()">Uložiť článok</button>
+                <button class="admin-btn" style="flex: 1; background: #CBD5E0; color: #2D3748;" onclick="closeBlogModal()">Zrušiť</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const defaultSections = [
+            { id: "domov", name: "Domov", desc: "Vitajte na našej rodinnej semenná farme.", hidden: false },
+            { id: "paradajky", name: "Paradajky", desc: "Pestujeme pestrú kolekciu odrôd rozdelenú do prehľadných pomologických kategórií.", hidden: false },
+            { id: "tekvice", name: "Tekvice a Cukety", desc: "Zelenina vhodná na dlhodobé skladovanie aj okamžitú spotrebu.", hidden: false },
+            { id: "blog", name: "Blog & Rady", desc: "Zaujímavosti, návody, projekty a videá zo života na farme.", hidden: false },
+            { id: "podmienky", name: "Podmienky & Výmena", desc: "Informácie o nákupe, bankovaní semien a ochrane údajov.", hidden: false }
+        ];
+
+        const categoryDescriptions = {
+            "indeterminantná": { title: "Indeterminantná (kolíková)", text: "Rastliny s neukončeným bujným rastom. Vyžadujú oporu a pravidelné vyštipovanie zálistkov." },
+            "determinantná": { title: "Determinantná (kríčková)", text: "Kompaktné rastliny s ukončeným rastom. Netreba ich vyštipovať." },
+            "multiflora": { title: "Multiflora", text: "Unikátne odrody tvoriace obrovské, super-zložené strapce s množstvom plodov." },
+            "cherry & koktailová": { title: "Cherry & Koktailová", text: "Drobnoúrodné odrody s malými, vysoko aromatickými a sladkými plodmi." },
+            "býčie srdce": { title: "Býčie srdce", text: "Veľké, mäsité plody srdcovitého tvaru s lahodnou, plnou chuťou." },
+            "omáčková": { title: "Omáčková (Paste / Roma)", text: "Podlhovasté a pevné plody s nízkym obsahom vody, ideálne na pretlaky." },
+            "zberateľská špecialita": { title: "Zberateľská špecialita", text: "Vzácne historické a antokyanové (tmavé) alebo pásikavé odrody." },
+            "tekvica": { title: "Tekvica", text: "Plody vhodné na dlhodobé skladovanie, pečenie, polievky a pyré." },
+            "cuketa": { title: "Cuketa", text: "Všestranná zelenina s rýchlym rastom a bohatou úrodou." }
+        };
+
+        const defaultBlogPosts = [
+            { title: "Malí Semenári: Ako učíme deti pestovať", date: "28. Október 2026", img: "", video: "", content: "<h4>🌿 Láska k prírode od malička</h4><p>S láskou učíme deti tajomstvám semenárstva a pestovania. Zber najzdravších plodov, čistenie semien a jarná výsadba sú pre ne obrovským zážitkom.</p><div style='background:#E8F0E9; padding:12px; border-left:4px solid #2C5530; margin:10px 0;'>💡 <b>Tip pre rodičov:</b> Dajte deťom vlastný malý záhon, kde si môžu samé posadiť svoje obľúbené odrody!</div>" },
+            { title: "Ako správne odoberať semienka paradajok", date: "24. Október 2026", img: "", video: "", content: "Zber semienok je krásny proces. Vyberte tie najzdravšie plody, oddeľte dužinu a nechajte ich fermentovať..." },
+            { title: "Príprava záhona na jarnú výsadbu", date: "15. Október 2026", img: "", video: "", content: "Kvalitný kompost a správne vrstvenie pôdy sú základom bohatej úrody v novej sezóne..." }
+        ];
+
+        const defaultVarieties = [
+            { name: "Kajkyna kytica", section: "paradajky", type: "Multiflora", weight: "15-25g", color: "Červená", price: "1.50", seedsPerPack: "10 ks", stock: 15, brix: "Vysoká", multiflora: true, hidden: false, info: "Vlastný šľachtený kmeň, obrovské kytice plodov, skvelá chuť.", img: "", isFlagship: true },
+            { name: "Alegaty sunset", section: "paradajky", type: "Indeterminantná", weight: "80–120 g", color: "Červená", price: "1.20", seedsPerPack: "10 ks", stock: 10, info: "Zaujímavá odroda so zaujímavým farebným spektrom pri dozrievaní.", img: "" },
+            { name: "Banana legs", section: "paradajky", type: "Indeterminantná", weight: "60–90 g", color: "Žltá / Oranžová", price: "1.20", seedsPerPack: "12 ks", stock: 8, info: "Podlhovasté žlté plody v tvare „banánov“, mäkká a sladkastá dužina.", img: "" },
+            { name: "Bawole srdce", section: "paradajky", type: "Býčie srdce", weight: "200–500 g+", color: "Červená", price: "1.80", seedsPerPack: "10 ks", stock: 12, info: "Klasická veľká mäsitá odroda s minimom semien a vynikajúcou sladkou chuťou.", img: "" },
+            { name: "Black Cherry", section: "paradajky", type: "Cherry & Koktailová", weight: "15–25 g", color: "Čierna / Tmavá", price: "1.50", seedsPerPack: "15 ks", stock: 20, multiflora: true, info: "Veľmi obľúbená čierna/tmavofialová cherry paradajka s intenzívnou, sladkou, takmer džemovou chuťou.", img: "" },
+            { name: "Black strawberry", section: "paradajky", type: "Cherry & Koktailová", weight: "20–30 g", color: "Čierna / Tmavá", price: "1.50", seedsPerPack: "10 ks", stock: 5, info: "Tmavé plody s antokyanovým zafarbením a jedinečnou korenistou chuťou.", img: "" },
+            { name: "Citrón Groniasty", section: "paradajky", type: "Cherry & Koktailová", weight: "30–50 g", color: "Žltá / Oranžová", price: "1.40", seedsPerPack: "10 ks", stock: 10, info: "Žlté plody v tvare malých citrónov, rastúce v bohatých strapcoch.", img: "" },
+            { name: "Costoluto Fiorentino", section: "paradajky", type: "Omáčková", weight: "150–250 g", color: "Červená", price: "1.50", seedsPerPack: "10 ks", stock: 14, info: "Výrazne rebrované, plocho-okrúhle plody, sýtočervené, ideálne na prípravu omáčok a pretlakov.", img: "" },
+            { name: "Dívčí prs", section: "paradajky", type: "Indeterminantná", weight: "80–130 g", color: "Červená", price: "1.30", seedsPerPack: "10 ks", stock: 9, info: "Zaujímavý tvar plodu s jemným špicatým ukončením, sladká dužina.", img: "" },
+            { name: "Flamantyno", section: "paradajky", type: "Indeterminantná", weight: "90–140 g", color: "Červená", price: "1.30", seedsPerPack: "10 ks", stock: 11, info: "Spoľahlivá odroda s vyváženým pomerom cukrov a kyselín.", img: "" },
+            { name: "Gialletto Brindisino", section: "paradajky", type: "Indeterminantná", weight: "50–80 g", color: "Žltá / Oranžová", price: "1.30", seedsPerPack: "10 ks", stock: 7, info: "Žlté oválne plody vhodné na sušenie aj čerstvú konzumáciu.", img: "" },
+            { name: "Golden Canary", section: "paradajky", type: "Omáčková", weight: "80–120 g", color: "Žltá / Oranžová", price: "1.40", seedsPerPack: "10 ks", stock: 10, info: "Jasne žlté, podlhovasté plody s pevnou stenou, skvelé do štruktúrovaných omáčok.", img: "" },
+            { name: "Goldkrone", section: "paradajky", type: "Cherry & Koktailová", weight: "15–25 g", color: "Žltá / Oranžová", price: "1.40", seedsPerPack: "12 ks", stock: 15, info: "Veľmi sladké, jasne žlté plody visiace v dlhých strapcoch.", img: "" },
+            { name: "Heinz 1370", section: "paradajky", type: "Determinantná", weight: "100–150 g", color: "Červená", price: "1.20", seedsPerPack: "15 ks", stock: 18, info: "Tradičná americká odroda šľachtená na priemyselné spracowanie a kečupy, úrodná.", img: "" },
+            { name: "Hellfrucht", section: "paradajky", type: "Indeterminantná", weight: "80–120 g", color: "Červená", price: "1.20", seedsPerPack: "12 ks", stock: 12, info: "Staršia, overená nemecká odroda s dobrou odolnosťou a klasickou „rajčinovou“ chuťou.", img: "" },
+            { name: "Hugo", section: "paradajky", type: "Indeterminantná", weight: "100–160 g", color: "Červená", price: "1.30", seedsPerPack: "10 ks", stock: 8, info: "Všestranná odroda do skleníkov aj voľnej pôdy.", img: "" },
+            { name: "Ildi", section: "paradajky", type: "Multiflora", weight: "10–15 g", color: "Žltá / Oranžová", price: "1.50", seedsPerPack: "15 ks", stock: 25, multiflora: true, info: "Tvorí obrovské, rozvetvené strapce (kytice) so stovkami drobných žltých plodov lahodnej chuti.", img: "" },
+            { name: "Iva‘s Red Berry", section: "paradajky", type: "Cherry & Koktailová", weight: "10–20 g", color: "Červená", price: "1.40", seedsPerPack: "12 ks", stock: 10, info: "Bohato rodiaca odroda s vysokým obsahom cukru.", img: "" },
+            { name: "Koťja", section: "paradajky", type: "Cherry & Koktailová", weight: "20–40 g", color: "Červená", price: "1.40", seedsPerPack: "10 ks", stock: 14, info: "Obľúbená, veľmi chutná a odolná odroda s dobrým zdravotným stavom.", img: "" },
+            { name: "Malinowy Grant", section: "paradajky", type: "Býčie srdce", weight: "150–250 g", color: "Červená", price: "1.60", seedsPerPack: "10 ks", stock: 6, info: "Mäsitá, šťavnatá malínová paradajka s jemnou šupkou a plnou, sladkou chuťou.", img: "" },
+            { name: "Malinowy Kapturek", section: "paradajky", type: "Cherry & Koktailová", weight: "15–25 g", color: "Červená", price: "1.40", seedsPerPack: "12 ks", stock: 15, info: "Kríčkový až polotyčinkový typ s množstvom drobných ružových plodov.", img: "" },
+            { name: "Malinowy Kujawski", section: "paradajky", type: "Indeterminantná", weight: "120–200 g", color: "Červená", price: "1.50", seedsPerPack: "10 ks", stock: 9, info: "Tradičná poľská malínová odroda cenená pre svoju typickú domácu chuť.", img: "" },
+            { name: "Malinowy Retro", section: "paradajky", type: "Indeterminantná", weight: "150–220 g", color: "Červená", price: "1.50", seedsPerPack: "10 ks", stock: 8, info: "Vyznačuje sa nostalgickou chuťou starých poctivých malínových rajčín.", img: "" },
+            { name: "Matt´s hornet", section: "paradajky", type: "Cherry & Koktailová", weight: "10–15 g", color: "Červená", price: "1.40", seedsPerPack: "15 ks", stock: 11, info: "Drobné plody s divokým charakterom rastu a vysokou odolnosťou.", img: "" },
+            { name: "Midnight Roma", section: "paradajky", type: "Omáčková", weight: "60–90 g", color: "Čierna / Tmavá", price: "1.50", seedsPerPack: "10 ks", stock: 7, info: "Antokyanová pretlaková odroda, tmavej až čierno-červenej farby.", img: "" },
+            { name: "Or pera d'abruzzo", section: "paradajky", type: "Býčie srdce", weight: "150–300 g", color: "Červená", price: "1.60", seedsPerPack: "10 ks", stock: 10, info: "Tradičná talianska hruškovitá odroda s bohatým rebrovaním a mäsitou dužinou.", img: "" },
+            { name: "Pascal de Picardie", section: "paradajky", type: "Zberateľská špecialita", weight: "80–140 g", color: "Pásikavá / Pestrá", price: "1.60", seedsPerPack: "8 ks", stock: 5, info: "Vizuálne nádherná odroda – tmavé plecia prechádzajúce do červenej so zelenými pásikmi, vynikajúca korenistá chuť.", img: "" },
+            { name: "Peper-shaped striped red", section: "paradajky", type: "Zberateľská špecialita", weight: "90–150 g", color: "Pásikavá / Pestrá", price: "1.50", seedsPerPack: "10 ks", stock: 8, info: "Plody pripomínajúce papriku, pásikavé, ideálne na plnenie alebo pečenie.", img: "" },
+            { name: "Perun", section: "paradajky", type: "Cherry & Koktailová", weight: "15–25 g", color: "Žltá / Oranžová", price: "1.40", seedsPerPack: "12 ks", stock: 13, info: "Žlté hruštičky s pevnou štruktúrou, nepraskają a sú veľmi sladké.", img: "" },
+            { name: "Phil's two", section: "paradajky", type: "Indeterminantná", weight: "100–180 g", color: "Červená", price: "1.40", seedsPerPack: "10 ks", stock: 9, info: "Zaujímavá menej bežná odroda s dobrou rovnováhou chutí.", img: "" },
+            { name: "Podororo de saint jean de beauregard", section: "paradajky", type: "Indeterminantná", weight: "100–160 g", color: "Červená", price: "1.50", seedsPerPack: "10 ks", stock: 6, info: "Unikátna historická odroda s výbornou arómou.", img: "" },
+            { name: "Pomidor oxheart", section: "paradajky", type: "Býčie srdce", weight: "200–400 g", color: "Červená", price: "1.60", seedsPerPack: "10 ks", stock: 11, info: "Klasické veľké srdcové plody s jemnou, mäsitou štruktúrou.", img: "" },
+            { name: "Primabella", section: "paradajky", type: "Cherry & Koktailová", weight: "30–50 g", color: "Červená", price: "1.50", seedsPerPack: "12 ks", stock: 16, info: "Špeciálne šľachtená na vysokú odolnosť voči plesni zemiakovej (Phytophthora), skvelá do vonkajších podmienok.", img: "" },
+            { name: "Queen of the night", section: "paradajky", type: "Zberateľská špecialita", weight: "80–120 g", color: "Pásikavá / Pestrá", price: "1.60", seedsPerPack: "10 ks", stock: 7, info: "Výrazne sfarbené plody s tmavými čiernymi plecami a žlto-červeným žíhaním.", img: "" },
+            { name: "Red pear", section: "paradajky", type: "Cherry & Koktailová", weight: "30–60 g", color: "Červená", price: "1.40", seedsPerPack: "12 ks", stock: 12, info: "Tradičná hruškovitá odroda, šťavnatá a dekoratívna.", img: "" },
+            { name: "Resibella", section: "paradajky", type: "Indeterminantná", weight: "50–80 g", color: "Červená", price: "1.40", seedsPerPack: "10 ks", stock: 10, info: "Moderná odroda s vysokou genetickou odolnosťou proti chorobám.", img: "" },
+            { name: "S. Marzano 3", section: "paradajky", type: "Omáčková", weight: "80–120 g", color: "Červená", price: "1.40", seedsPerPack: "15 ks", stock: 22, info: "Celosvetovo preslávená odroda na pravú taliansku paradajkovú omáčku a konzervovanie.", img: "" },
+            { name: "Scatolone 3", section: "paradajky", type: "Omáčková", weight: "100–150 g", color: "Červená", price: "1.40", seedsPerPack: "10 ks", stock: 9, info: "Skvelá na plnenie mäsom alebo syrom, nakoľko má duté vnútro.", img: "" },
+            { name: "Siberian panther", section: "paradajky", type: "Zberateľská špecialita", weight: "60–100 g", color: "Pásikavá / Pestrá", price: "1.50", seedsPerPack: "10 ks", stock: 8, info: "Atraktívne plody s tigrovaným/panterovým vzorom, odolnejšie chladnejšiemu počasiu.", img: "" },
+            { name: "Sladké setkání", section: "paradajky", type: "Indeterminantná", weight: "30–50 g", color: "Červená", price: "1.40", seedsPerPack: "12 ks", stock: 14, info: "Sladká chuť, ideálna na priamu konzumáciu priamo zo záhona.", img: "" },
+            { name: "Slivka gurmán", section: "paradajky", type: "Omáčková", weight: "60–90 g", color: "Červená", price: "1.40", seedsPerPack: "10 ks", stock: 11, info: "Plody v tvare sliviek s pevnou dužinou, vhodné na sušenie aj omáčky.", img: "" },
+            { name: "Sofia’s Fire Comet", section: "paradajky", type: "Zberateľská špecialita", weight: "100–180 g", color: "Pásikavá / Pestrá", price: "1.60", seedsPerPack: "8 ks", stock: 6, info: "Vizuálne pôsobivá odroda s ohnivým sfarbením.", img: "" },
+            { name: "Striperanoid", section: "paradajky", type: "Zberateľská špecialita", weight: "80–130 g", color: "Pásikavá / Pestrá", price: "1.50", seedsPerPack: "10 ks", stock: 7, info: "Výrazne pruhované plody s pevnou textúrou a výbornou chuťou.", img: "" },
+            { name: "Striped roman", section: "paradajky", type: "Omáčková", weight: "120–180 g", color: "Pásikavá / Pestrá", price: "1.60", seedsPerPack: "10 ks", stock: 10, info: "Unikátne podlhovasté plody so špicom a zlatými pásikmi, mäsitá dužina s malým množstvom semien.", img: "" },
+            { name: "Tarasenko legend", section: "paradajky", type: "Multiflora", weight: "70–120 g", color: "Červená", price: "1.50", seedsPerPack: "15 ks", stock: 18, multiflora: true, info: "Preslávená ukrajinská odroda tvoriaca obrovské množstvá plodov v bohatých strapcoch s malým nosíkom na konci.", img: "" },
+            { name: "Terion", section: "paradajky", type: "Indeterminantná", weight: "90–140 g", color: "Červená", price: "1.30", seedsPerPack: "10 ks", stock: 12, info: "Spoľahlivá a chutná odroda do záhrady.", img: "" },
+            { name: "Tiger zebra", section: "paradajky", type: "Zberateľská špecialita", weight: "40–70 g", color: "Pásikavá / Pestrá", price: "1.40", seedsPerPack: "10 ks", stock: 9, info: "Pestré tigrované sfarbenie, sladkokyslá osviežujúca chuť.", img: "" },
+            { name: "Tigerella", section: "paradajky", type: "Zberateľská špecialita", weight: "70–100 g", color: "Pásikavá / Pestrá", price: "1.40", seedsPerPack: "12 ks", stock: 13, info: "Klasická britská skôr skorá odroda s červeným základom a žltými pásikmi.", img: "" },
+            { name: "Vyšnička žltá", section: "paradajky", type: "Cherry & Koktailová", weight: "10–20 g", color: "Žltá / Oranžová", price: "1.30", seedsPerPack: "15 ks", stock: 17, info: "Drobné žlté plody pripomínajúce čerešne, vysoká rodivosť.", img: "" },
+            { name: "Yellowstone", section: "paradajky", type: "Indeterminantná", weight: "200–350 g", color: "Žltá / Oranžová", price: "1.60", seedsPerPack: "10 ks", stock: 8, info: "Veľké, mäsité žlté plody s nízkym obsahom kyselín, veľmi jemná chuť.", img: "" },
+            { name: "Zyska", section: "paradajky", type: "Determinantná", weight: "60–90 g", color: "Červená", price: "1.30", seedsPerPack: "12 ks", stock: 11, info: "Kompaktná odroda vhodná na nenáročné pestovanie s dobrou úrodou.", img: "" },
+            { name: "Hokkaido", section: "tekvice", type: "Tekvica", weight: "1-2kg", color: "Žltá / Oranžová", price: "2.00", seedsPerPack: "10 ks", stock: 25, info: "Mimoriadne obľúbená tekvica s jemne orieškovou chuťou.", img: "" }
+        ];
+
+        let sectionsDatabase = [...defaultSections];
+        let varietyDatabase = [...defaultVarieties];
+        let blogDatabase = [...defaultBlogPosts];
+        let farmSettings = { email: "tvojemail@priklad.sk" };
+        let currentActiveSection = 'domov';
+        let currentCategory = 'all';
+        let currentColor = 'all';
+
+        try {
+            const savedSec = localStorage.getItem('herba_sections');
+            if (savedSec) sectionsDatabase = JSON.parse(savedSec);
+            const savedVar = localStorage.getItem('herba_varieties');
+            if (savedVar) varietyDatabase = JSON.parse(savedVar);
+            const savedBlog = localStorage.getItem('herba_blog');
+            if (savedBlog) blogDatabase = JSON.parse(savedBlog);
+            const savedEmail = localStorage.getItem('herba_form_email');
+            if (savedEmail) farmSettings.email = savedEmail;
+        } catch(e) {}
+
+        function resetDatabase() {
+            if (confirm('Naozaj chcete obnoviť dáta na pôvodný stav?')) {
+                try {
+                    localStorage.removeItem('herba_sections');
+                    localStorage.removeItem('herba_varieties');
+                    localStorage.removeItem('herba_blog');
+                    localStorage.removeItem('herba_form_email');
+                } catch(e) {}
+                location.reload();
+            }
+        }
+
+        // JSON Export & Import funkcie
+        function exportJsonData() {
+            const data = {
+                sections: sectionsDatabase,
+                varieties: varietyDatabase,
+                blog: blogDatabase,
+                settings: farmSettings
+            };
+            const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'herba_fructus_backup.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📤 Dáta boli úspešne exportované do JSON!');
+        }
+
+        function triggerImportJson() {
+            document.getElementById('importJsonFile').click();
+        }
+
+        function importDatabase(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.sections) sectionsDatabase = data.sections;
+                    if (data.varieties) varietyDatabase = data.varieties;
+                    if (data.blog) blogDatabase = data.blog;
+                    if (data.settings) farmSettings = data.settings;
+
+                    localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase));
+                    localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase));
+                    localStorage.setItem('herba_blog', JSON.stringify(blogDatabase));
+                    localStorage.setItem('herba_form_email', farmSettings.email);
+
+                    renderAll();
+                    showToast('📥 Dáta boli úspešne importované!');
+                } catch (err) {
+                    alert('Chyba pri čítaní JSON súboru!');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function renderAll() {
+            renderNav();
+            renderMainContent();
+            renderFormTomatoCheckboxes();
+            updateFormAction();
+        }
+
+        function updateFormAction() {
+            const form = document.getElementById('contactForm');
+            if (form) form.action = `https://formsubmit.co/${farmSettings.email}`;
+        }
+
+        function renderNav() {
+            const navUl = document.getElementById('mainNavLinks');
+            if (!navUl) return;
+            navUl.innerHTML = '';
+            const isAdmin = document.body.classList.contains('admin-mode');
+
+            sectionsDatabase.forEach(sec => {
+                if (sec.hidden && !isAdmin) return;
+                const li = document.createElement('li');
+                const btn = document.createElement('button');
+                btn.innerText = sec.name + (sec.hidden && isAdmin ? ' (Skryté)' : '');
+                if (sec.id === currentActiveSection) btn.classList.add('active-tab');
+                btn.onclick = () => switchSection(sec.id);
+                li.appendChild(btn);
+                navUl.appendChild(li);
+            });
+        }
+
+        function switchSection(secId) {
+            currentActiveSection = secId;
+            renderNav();
+            
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active-section'));
+            const target = document.getElementById('section_' + secId);
+            if (target) target.classList.add('active-section');
+
+            const contactSec = document.getElementById('kontaktSection');
+            const podmienkySec = document.getElementById('podmienkySection');
+
+            if (secId === 'domov') {
+                contactSec.style.display = 'none';
+                podmienkySec.style.display = 'none';
+            } else if (secId === 'podmienky') {
+                contactSec.style.display = 'none';
+                podmienkySec.style.display = 'block';
+            } else {
+                contactSec.style.display = 'block';
+                podmienkySec.style.display = 'none';
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderMainContent() {
+            const container = document.getElementById('mainContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            const isAdmin = document.body.classList.contains('admin-mode');
+
+            sectionsDatabase.forEach((sec, secIndex) => {
+                if (sec.hidden && !isAdmin) return;
+                if (sec.id === 'podmienky') return;
+
+                const sectionDiv = document.createElement('div');
+                sectionDiv.id = 'section_' + sec.id;
+                sectionDiv.className = `content-section ${sec.id === currentActiveSection ? 'active-section' : ''}`;
+                if (sec.hidden) sectionDiv.style.opacity = '0.6';
+
+                let html = `
+                    <div class="section-header">
+                        <div>
+                            <div class="admin-section-actions">
+                                <button class="admin-btn" style="background: #ED8936;" onclick="openSectionModalForEdit(${secIndex})">✏️ Upraviť</button>
+                                <button class="admin-btn" style="background: ${sec.hidden ? '#38A169' : '#D97706'};" onclick="toggleSectionVisibility(${secIndex})">${sec.hidden ? '👁️ Zobraziť' : '🚫 Schovať'}</button>
+                                <button class="admin-btn" style="background: #3182CE;" onclick="moveSection(${secIndex}, -1)">⬆️</button>
+                                <button class="admin-btn" style="background: #3182CE;" onclick="moveSection(${secIndex}, 1)">⬇️</button>
+                                <button class="admin-btn" style="background: #E53E3E;" onclick="deleteSection(${secIndex})">🗑️ Zmazať</button>
+                            </div>
+                            <h2>${sec.name}</h2>
+                        </div>
+                    </div>
+                    <p class="description">${sec.desc}</p>
+                `;
+
+                if (sec.id === 'domov') {
+                    html += `
+                        <div class="variety-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
+                            <div class="variety-card" style="padding: 2rem;">
+                                <h3>🌿 Naša Všeobecná Ponuka</h3>
+                                <p class="info" style="margin-top: 10px;">Preskúmajte naše odrody paradajok, tekvíc a zapojte sa do našich semenárskych aktivít.</p>
+                                <button class="btn-select" style="margin-top: 15px;" onclick="switchSection('paradajky')">Pozrieť paradajky</button>
+                            </div>
+                            <div class="variety-card" style="padding: 2rem;">
+                                <h3>📚 Blog & Malí Semenári</h3>
+                                <p class="info" style="margin-top: 10px;">Prečítajte si užitočné tipy, návody a projekty z našej farmy vrátane výchovy malých semenárov.</p>
+                                <button class="btn-select" style="margin-top: 15px;" onclick="switchSection('blog')">Otvoriť blog</button>
+                            </div>
+                        </div>
+                    `;
+                } else if (sec.id === 'blog') {
+                    html += `<div class="blog-grid" id="blogGridContainer"></div>`;
+                } else {
+                    html += `
+                        <div class="filters-wrapper">
+                            <div class="search-box">
+                                <input type="text" id="searchInput_${sec.id}" placeholder="🔍 Hľadať odrodu, farbu..." onkeyup="applyFilters('${sec.id}')">
+                            </div>
+                            <div class="filter-row">
+                                <span class="filter-label">Pomológia:</span>
+                                <div class="filter-chips" id="filterChips_${sec.id}"></div>
+                            </div>
+                            <div class="filter-row">
+                                <span class="filter-label">Farebnosť:</span>
+                                <div class="filter-chips" id="colorChips_${sec.id}">
+                                    <button class="chip color-chip active" onclick="filterByColor('all', '${sec.id}', this)">Všetky farby</button>
+                                    <button class="chip color-chip" onclick="filterByColor('červená', '${sec.id}', this)">🔴 Červená</button>
+                                    <button class="chip color-chip" onclick="filterByColor('žltá', '${sec.id}', this)">🟡 Žltá / Oranžová</button>
+                                    <button class="chip color-chip" onclick="filterByColor('čierna', '${sec.id}', this)">⚫ Čierna / Tmavá</button>
+                                    <button class="chip color-chip" onclick="filterByColor('pásikavá', '${sec.id}', this)">🟢 Pásikavá / Pestrá</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="category-info-box" id="categoryInfoBox_${sec.id}"></div>
+                        <div class="variety-grid" data-section-grid="${sec.id}"></div>
+                    `;
+                }
+
+                sectionDiv.innerHTML = html;
+                container.appendChild(sectionDiv);
+
+                if (sec.id !== 'domov' && sec.id !== 'blog') {
+                    renderVarietyGridForSection(sec.id);
+                    renderFilterChipsForSection(sec.id);
+                } else if (sec.id === 'blog') {
+                    renderBlogPosts();
+                }
+            });
+        }
+
+        function renderFilterChipsForSection(secId) {
+            const chipsContainer = document.getElementById(`filterChips_${secId}`);
+            if (!chipsContainer) return;
+
+            const types = new Set();
+            varietyDatabase.filter(v => v.section === secId).forEach(v => {
+                if (v.type) types.add(v.type.trim());
+            });
+
+            let chipsHtml = `<button class="chip active" onclick="filterByCategory('all', '${secId}', this)">Všetky</button>`;
+            types.forEach(tType => {
+                chipsHtml += `<button class="chip" onclick="filterByCategory('${tType.toLowerCase()}', '${secId}', this)">${tType}</button>`;
+            });
+            chipsContainer.innerHTML = chipsHtml;
+        }
+
+        function filterByCategory(category, secId, btnElement) {
+            currentCategory = category.toLowerCase();
+            const container = document.getElementById(`filterChips_${secId}`);
+            if (container) container.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+
+            updateCategoryInfoBox(secId);
+            applyFilters(secId);
+        }
+
+        function filterByColor(color, secId, btnElement) {
+            currentColor = color.toLowerCase();
+            const container = document.getElementById(`colorChips_${secId}`);
+            if (container) container.querySelectorAll('.chip').forEach(b => b.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+            applyFilters(secId);
+        }
+
+        function updateCategoryInfoBox(secId) {
+            const infoBox = document.getElementById(`categoryInfoBox_${secId}`);
+            if (!infoBox) return;
+
+            if (currentCategory === 'all' || !categoryDescriptions[currentCategory]) {
+                infoBox.classList.remove('active');
+                infoBox.innerHTML = '';
+            } else {
+                const info = categoryDescriptions[currentCategory];
+                infoBox.classList.add('active');
+                infoBox.innerHTML = `<h4>🌿 ${info.title}</h4><p>${info.text}</p>`;
+            }
+        }
+
+        function applyFilters(secId) {
+            const searchInput = document.getElementById(`searchInput_${secId}`);
+            const textQuery = searchInput ? searchInput.value.toLowerCase() : '';
+            const grid = document.querySelector(`[data-section-grid="${secId}"]`);
+            if (!grid) return;
+            const cards = grid.querySelectorAll('.variety-card');
+
+            cards.forEach(card => {
+                if (!card.dataset.search) return;
+                const matchesText = card.dataset.search.includes(textQuery);
+                const matchesCategory = currentCategory === 'all' || card.dataset.type === currentCategory;
+                const matchesColor = currentColor === 'all' || card.dataset.color.includes(currentColor);
+
+                card.style.display = (matchesText && matchesCategory && matchesColor) ? 'flex' : 'none';
+            });
+        }
+
+        function renderVarietyGridForSection(secId) {
+            const grid = document.querySelector(`[data-section-grid="${secId}"]`);
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const items = varietyDatabase.filter(v => v.section === secId);
+            const isAdmin = document.body.classList.contains('admin-mode');
+
+            items.forEach((t) => {
+                const realIndex = varietyDatabase.findIndex(item => item === t);
+                if (t.hidden && !isAdmin) return;
+
+                const card = document.createElement('div');
+                card.className = `variety-card ${t.isFlagship ? 'flagship' : ''}`;
+                card.dataset.type = t.type.trim().toLowerCase();
+                card.dataset.color = (t.color || '').toLowerCase();
+                card.dataset.search = `${t.name.toLowerCase()} ${t.info.toLowerCase()} ${t.color ? t.color.toLowerCase() : ''} ${t.type.toLowerCase()}`;
+
+                const priceFormatted = t.price ? (t.price.includes('€') ? t.price : t.price + ' €') : '';
+                const seedsInfo = t.seedsPerPack ? `🌱 ${t.seedsPerPack}` : '';
+                const stockVal = typeof t.stock === 'number' ? t.stock : 10;
+                const isSoldOut = stockVal <= 0;
+
+                card.innerHTML = `
+                    <div class="card-img-placeholder" ${t.img ? `onclick="openLightbox('${t.img}')"` : ''}>${t.img ? `<img src="${t.img}" alt="${t.name}">` : ''}</div>
+                    <div class="card-content">
+                        <div class="badges-wrapper">
+                            ${t.isFlagship ? '<span class="badge multiflora">🌟 Vlajková</span>' : ''}
+                            <span class="badge type">${t.type}</span>
+                            ${priceFormatted ? `<span class="badge price">💰 ${priceFormatted}</span>` : ''}
+                            ${seedsInfo ? `<span class="badge seeds-info">${seedsInfo}</span>` : ''}
+                            ${isSoldOut ? '<span class="badge hidden-badge">❌ Vypredané</span>' : ''}
+                            ${t.hidden ? '<span class="badge hidden-badge">🚫 Nedostupné</span>' : ''}
+                        </div>
+                        <h3>${t.name}</h3>
+                        ${t.weight ? `<div class="weight-info">⚖️ Hmotnosť: <span>${t.weight}</span></div>` : ''}
+                        <p class="info">${t.info}</p>
+                        
+                        ${!isSoldOut || isAdmin ? `
+                            <div class="card-actions-row">
+                                <div class="quantity-selector">
+                                    <button class="qty-btn" type="button" onclick="changeCardQty(this, -1)">-</button>
+                                    <input type="text" class="qty-input" value="1" readonly>
+                                    <button class="qty-btn" type="button" onclick="changeCardQty(this, 1)">+</button>
+                                </div>
+                                <button class="btn-select" type="button" onclick="addVarietyToForm('${t.name.replace(/'/g, "\\'")}', this)">+ Pridať do výberu</button>
+                            </div>
+                        ` : '<div style="color: #E53E3E; font-weight: 600; font-size: 0.9rem; text-align: center; padding: 8px;">Vypredané</div>'}
+                        
+                        <div class="card-admin-actions">
+                            <button class="btn-edit-card" onclick="editVariety(${realIndex})">✏️</button>
+                            <button style="background: #3182CE; color:white; border:none; border-radius:4px;" onclick="moveVariety(${realIndex}, -1)">⬆️</button>
+                            <button style="background: #3182CE; color:white; border:none; border-radius:4px;" onclick="moveVariety(${realIndex}, 1)">⬇️</button>
+                            <button class="btn-del-card" onclick="deleteVariety(${realIndex})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function changeCardQty(btn, delta) {
+            const input = btn.parentElement.querySelector('.qty-input');
+            let val = parseInt(input.value) + delta;
+            if (val < 1) val = 1;
+            input.value = val;
+        }
+
+        function renderBlogPosts() {
+            const grid = document.getElementById('blogGridContainer');
+            if (!grid) return;
+            grid.innerHTML = '';
+            const isAdmin = document.body.classList.contains('admin-mode');
+
+            blogDatabase.forEach((post, index) => {
+                const card = document.createElement('div');
+                card.className = 'blog-card';
+                let mediaHtml = '';
+                if (post.img) mediaHtml += `<img src="${post.img}" alt="${post.title}">`;
+                if (post.video) mediaHtml += `<iframe src="${post.video}" frameborder="0" allowfullscreen></iframe>`;
+
+                card.innerHTML = `
+                    ${mediaHtml}
+                    <div class="blog-card-content">
+                        <div class="blog-date">${post.date}</div>
+                        <h3>${post.title}</h3>
+                        <div>${post.content}</div>
+                        ${isAdmin ? `
+                            <div style="display:flex; gap:5px; margin-top:15px;">
+                                <button class="admin-btn" style="background:#ED8936; padding:4px 10px;" onclick="editBlogPost(${index})">✏️ Upraviť</button>
+                                <button class="admin-btn" style="background:#E53E3E; padding:4px 10px;" onclick="deleteBlogPost(${index})">🗑️ Zmazať</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderFormTomatoCheckboxes() {
+            const container = document.getElementById('formTomatoSelector');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            varietyDatabase.forEach((t, index) => {
+                if (t.hidden) return;
+                const safeId = 'variety_check_' + index;
+                const priceNum = parseFloat(t.price) || 0;
+                const priceClean = t.price ? (t.price.includes('€') ? t.price : t.price + ' €') : '0.00 €';
+                const stockVal = typeof t.stock === 'number' ? t.stock : 10;
+                const isSoldOut = stockVal <= 0;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'selector-item';
+                
+                itemDiv.innerHTML = `
+                    <label class="checkbox-label" style="flex-grow: 1; ${isSoldOut ? 'opacity: 0.5;' : ''}">
+                        <input type="checkbox" id="${safeId}" name="odrody_checkbox" value="${t.name}" data-price="${priceNum}" ${isSoldOut ? 'disabled' : ''} onchange="toggleFormCheckboxRow(this)">
+                        <span><b>${t.name}</b> (${priceClean}) ${isSoldOut ? '<span style="color:#E53E3E; font-size:0.8rem;">(Vypredané)</span>' : ''}</span>
+                    </label>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">Počet bal.:</span>
+                        <div class="quantity-selector">
+                            <button class="qty-btn" type="button" onclick="changeFormQty(this, -1)">-</button>
+                            <input type="text" class="qty-input form-qty-input" value="1" readonly data-index="${index}">
+                            <button class="qty-btn" type="button" onclick="changeFormQty(this, 1)">+</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+        }
+
+        function changeFormQty(btn, delta) {
+            const input = btn.parentElement.querySelector('.qty-input');
+            let val = parseInt(input.value) + delta;
+            if (val < 1) val = 1;
+            input.value = val;
+            updateSelectionCounter();
+        }
+
+        function toggleFormCheckboxRow(checkbox) {
+            updateSelectionCounter();
+        }
+
+        function addVarietyToForm(varietyName, btnElement) {
+            const cardContent = btnElement.closest('.variety-card');
+            const cardQtyInput = cardContent.querySelector('.qty-input');
+            const qtyToAdd = parseInt(cardQtyInput.value) || 1;
+
+            let targetCheckbox = null;
+            let targetQtyInput = null;
+
+            document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (cb && cb.value === varietyName) {
+                    targetCheckbox = cb;
+                    targetQtyInput = item.querySelector('.form-qty-input');
+                }
+            });
+
+            if (targetCheckbox && targetQtyInput) {
+                targetCheckbox.checked = true;
+                let currentVal = parseInt(targetQtyInput.value) || 1;
+                targetQtyInput.value = currentVal + qtyToAdd - 1; 
+                updateSelectionCounter();
+                showToast(`✅ Úspešne pridané do výberu (${qtyToAdd} ks)`);
+            }
+        }
+
+        function filterFormTomatoes() {
+            const query = document.getElementById('formTomatoFilter').value.toLowerCase();
+            document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(query) ? 'flex' : 'none';
+            });
+        }
+
+        function updateSelectionCounter() {
+            const selectorItems = document.querySelectorAll('#formTomatoSelector .selector-item');
+            let totalCount = 0;
+            let totalPrice = 0;
+            let selectedItemsList = [];
+            let cartSummaryHtml = '';
+
+            selectorItems.forEach(item => {
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (cb && cb.checked) {
+                    const qtyInput = item.querySelector('.form-qty-input');
+                    const qty = parseInt(qtyInput.value) || 1;
+                    const price = parseFloat(cb.dataset.price) || 0;
+                    totalCount += qty;
+                    totalPrice += price * qty;
+                    
+                    const itemTotal = (price * qty).toFixed(2);
+                    selectedItemsList.push(`${cb.value} (počet: ${qty} bal.)`);
+                    cartSummaryHtml += `• ${cb.value} – ${qty}x bal. (${itemTotal} €)<br>`;
+                }
+            });
+
+            const counterEl = document.getElementById('floatingCounter');
+            if (totalCount > 0) {
+                counterEl.style.display = 'flex';
+                counterEl.querySelector('.count').innerText = totalCount;
+                counterEl.querySelector('.totalPrice').innerText = totalPrice.toFixed(2) + ' €';
+            } else {
+                counterEl.style.display = 'none';
+            }
+
+            const cartSummaryContent = document.getElementById('cartSummaryContent');
+            if (cartSummaryContent) {
+                if (totalCount > 0) {
+                    cartSummaryContent.innerHTML = cartSummaryHtml + `<div style="margin-top: 8px; font-weight: 600; color: var(--primary-color);">Celková suma: ${totalPrice.toFixed(2)} €</div>`;
+                } else {
+                    cartSummaryContent.innerHTML = 'Zatiaľ nemáte vybrané žiadne položky.';
+                }
+            }
+
+            const spravaTextArea = document.getElementById('sprava');
+            if (spravaTextArea) {
+                spravaTextArea.value = totalCount > 0 ? `Môj výber odrôd:\n- ` + selectedItemsList.join('\n- ') + `\n\nCelková cena: ${totalPrice.toFixed(2)} €` : '';
+            }
+        }
+
+        function handleFormSubmit(event) {
+            const selectorItems = document.querySelectorAll('#formTomatoSelector .selector-item');
+            let hasError = false;
+
+            selectorItems.forEach(item => {
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (cb && cb.checked) {
+                    const varietyName = cb.value;
+                    const qtyInput = item.querySelector('.form-qty-input');
+                    const orderedQty = parseInt(qtyInput.value) || 1;
+
+                    const variety = varietyDatabase.find(v => v.name === varietyName);
+                    if (variety) {
+                        if (variety.stock >= orderedQty) {
+                            variety.stock -= orderedQty; 
+                        } else {
+                            alert(`Ľutujeme, odroda "${variety.name}" už nemá dostatok kusov na sklade (zostáva: ${variety.stock} bal.).`);
+                            hasError = true;
+                        }
+                    }
+                }
+            });
+
+            if (hasError) {
+                event.preventDefault();
+                return false;
+            }
+
+            try {
+                localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase));
+            } catch(e) {}
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            if (!toast) return;
+            toast.innerText = message;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        function openLightbox(imgSrc) {
+            document.getElementById('lightboxImg').src = imgSrc;
+            document.getElementById('lightboxOverlay').classList.add('active');
+        }
+        function closeLightbox() { document.getElementById('lightboxOverlay').classList.remove('active'); }
+
+        // --- ADMIN & SPRÁVA ---
+        function openLoginModal() { document.getElementById('loginModal').classList.add('active'); }
+        function closeLoginModal() { document.getElementById('loginModal').classList.remove('active'); }
+
+        function performAdminLogin() {
+            if (document.getElementById('adminUser').value === 'admin' && document.getElementById('adminPass').value === 'admin') {
+                document.body.classList.add('admin-mode');
+                document.getElementById('adminBar').classList.add('active');
+                closeLoginModal();
+                renderAll();
+                showToast('🔓 Režim správcu aktívny!');
+            } else { alert('Nesprávne meno alebo heslo!'); }
+        }
+
+        function logoutAdmin() {
+            document.body.classList.remove('admin-mode');
+            document.getElementById('adminBar').classList.remove('active');
+            renderAll();
+            showToast('🔒 Odhlásený.');
+        }
+
+        function openFormSettingsModal() {
+            document.getElementById('adminEmailInput').value = farmSettings.email;
+            document.getElementById('formSettingsModal').classList.add('active');
+        }
+        function closeFormSettingsModal() { document.getElementById('formSettingsModal').classList.remove('active'); }
+        function saveFormEmailSettings() {
+            farmSettings.email = document.getElementById('adminEmailInput').value.trim();
+            try { localStorage.setItem('herba_form_email', farmSettings.email); } catch(e){}
+            updateFormAction();
+            closeFormSettingsModal();
+            showToast('✅ E-mail aktualizovaný!');
+        }
+
+        function moveSection(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= sectionsDatabase.length) return;
+            const temp = sectionsDatabase[index];
+            sectionsDatabase[index] = sectionsDatabase[newIndex];
+            sectionsDatabase[newIndex] = temp;
+            try { localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase)); } catch(e){}
+            renderAll();
+            openSectionTableModal();
+        }
+
+        function moveVariety(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= varietyDatabase.length) return;
+            const temp = varietyDatabase[index];
+            varietyDatabase[index] = varietyDatabase[newIndex];
+            varietyDatabase[newIndex] = temp;
+            try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e){}
+            renderAll();
+            openTableManagerModal();
+        }
+
+        function openSectionTableModal() {
+            const tbody = document.getElementById('sectionTableBody');
+            tbody.innerHTML = '';
+            sectionsDatabase.forEach((sec, idx) => {
+                tbody.innerHTML += `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 10px; font-weight:600;">${sec.name}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <button class="admin-btn" style="padding: 2px 6px;" onclick="moveSection(${idx}, -1)">⬆️</button>
+                            <button class="admin-btn" style="padding: 2px 6px;" onclick="moveSection(${idx}, 1)">⬇️</button>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">${sec.hidden ? '🚫 Skryté' : '✅ Zobrazené'}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <button class="admin-btn" style="background:#ED8936; padding:4px 8px;" onclick="closeSectionTableModal(); openSectionModalForEdit(${idx})">✏️</button>
+                            <button class="admin-btn" style="background:#E53E3E; padding:4px 8px;" onclick="deleteSection(${idx}); openSectionTableModal();">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            document.getElementById('sectionTableModal').classList.add('active');
+        }
+        function closeSectionTableModal() { document.getElementById('sectionTableModal').classList.remove('active'); }
+
+        function openSectionModal() {
+            document.getElementById('editSectionIndex').value = -1;
+            document.getElementById('secId').value = '';
+            document.getElementById('secName').value = '';
+            document.getElementById('secDesc').value = '';
+            document.getElementById('sectionModal').classList.add('active');
+        }
+        function openSectionModalForEdit(idx) {
+            const s = sectionsDatabase[idx];
+            document.getElementById('editSectionIndex').value = idx;
+            document.getElementById('secId').value = s.id;
+            document.getElementById('secName').value = s.name;
+            document.getElementById('secDesc').value = s.desc;
+            document.getElementById('sectionModal').classList.add('active');
+        }
+        function closeSectionModal() { document.getElementById('sectionModal').classList.remove('active'); }
+
+        function saveSection() {
+            const idx = parseInt(document.getElementById('editSectionIndex').value);
+            const id = document.getElementById('secId').value.trim().toLowerCase();
+            const name = document.getElementById('secName').value.trim();
+            const desc = document.getElementById('secDesc').value.trim();
+            if(!id || !name) { alert('Vyplňte ID a názov!'); return; }
+
+            if (idx === -1) {
+                sectionsDatabase.push({ id, name, desc, hidden: false });
+            } else {
+                sectionsDatabase[idx].name = name;
+                sectionsDatabase[idx].desc = desc;
+            }
+            try { localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase)); } catch(e){}
+            closeSectionModal();
+            renderAll();
+            showToast('✅ Karta uložená!');
+        }
+
+        function toggleSectionVisibility(idx) {
+            sectionsDatabase[idx].hidden = !sectionsDatabase[idx].hidden;
+            try { localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase)); } catch(e){}
+            renderAll();
+        }
+
+        function deleteSection(idx) {
+            if(confirm('Naozaj vymazať kartu?')) {
+                sectionsDatabase.splice(idx, 1);
+                try { localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase)); } catch(e){}
+                renderAll();
+            }
+        }
+
+        function openTableManagerModal() {
+            renderAdminTable();
+            document.getElementById('tableManagerModal').classList.add('active');
+        }
+        function closeTableManagerModal() { document.getElementById('tableManagerModal').classList.remove('active'); }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            varietyDatabase.forEach((v, index) => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid var(--border-color)';
+                tr.style.background = v.hidden ? '#FFF5F5' : 'white';
+                tr.dataset.search = `${v.name.toLowerCase()} ${v.type.toLowerCase()} ${(v.color || '').toLowerCase()} ${v.section.toLowerCase()}`;
+
+                const stockVal = typeof v.stock === 'number' ? v.stock : 10;
+
+                tr.innerHTML = `
+                    <td style="padding: 8px 10px; font-weight: 600;">${v.name} ${v.isFlagship ? '🌟' : ''}</td>
+                    <td style="padding: 8px 10px;">${v.section}</td>
+                    <td style="padding: 8px 10px;">${v.type}</td>
+                    <td style="padding: 8px 10px; font-weight: 600; color: #B45309;">${v.price || '0.00'} €</td>
+                    <td style="padding: 8px 10px;">${v.seedsPerPack || '10 ks'}</td>
+                    <td style="padding: 8px 10px; background: #F7FAFC;">
+                        <input type="number" value="${stockVal}" min="0" style="width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; font-weight:600;" onchange="updateStockFromTable(${index}, this.value)">
+                    </td>
+                    <td style="padding: 8px 10px; text-align: center;">
+                        <button class="admin-btn" style="padding: 2px 6px;" onclick="moveVariety(${index}, -1)">⬆️</button>
+                        <button class="admin-btn" style="padding: 2px 6px;" onclick="moveVariety(${index}, 1)">⬇️</button>
+                    </td>
+                    <td style="padding: 8px 10px; text-align: center;">
+                        <button onclick="toggleVarietyStatusInTable(${index})" style="padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold; background: ${v.hidden ? '#E53E3E' : '#38A169'}; color: white;">
+                            ${v.hidden ? '🚫 Skryté' : '✅ Viditeľné'}
+                        </button>
+                    </td>
+                    <td style="padding: 8px 10px; text-align: center;">
+                        <button onclick="closeTableManagerModal(); editVariety(${index})" style="background: #ED8936; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;" title="Upraviť">✏️</button>
+                        <button onclick="deleteVarietyFromTable(${index})" style="background: #E53E3E; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;" title="Zmazať">🗑️</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateStockFromTable(index, newVal) {
+            varietyDatabase[index].stock = parseInt(newVal) || 0;
+            try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e) {}
+            renderAll();
+            showToast('📦 Sklad aktualizovaný');
+        }
+
+        function filterAdminTable() {
+            const query = document.getElementById('adminTableSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#adminTableBody tr');
+            rows.forEach(row => {
+                row.style.display = row.dataset.search.includes(query) ? '' : 'none';
+            });
+        }
+
+        function toggleVarietyStatusInTable(index) {
+            varietyDatabase[index].hidden = !varietyDatabase[index].hidden;
+            try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e) {}
+            renderAll();
+            renderAdminTable();
+        }
+
+        function deleteVarietyFromTable(index) {
+            if (confirm(`Naozaj chcete vymazať odrodu "${varietyDatabase[index].name}"?`)) {
+                varietyDatabase.splice(index, 1);
+                try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e) {}
+                renderAll();
+                renderAdminTable();
+            }
+        }
+
+        function checkCustomType(selectEl) {
+            const customWrapper = document.getElementById('customTypeWrapper');
+            if (selectEl.value === 'Ďalší') {
+                customWrapper.style.display = 'block';
+            } else {
+                customWrapper.style.display = 'none';
+                document.getElementById('varCustomType').value = '';
+            }
+        }
+
+        function openVarietyModal() {
+            document.getElementById('editIndex').value = -1;
+            document.getElementById('varName').value = '';
+            document.getElementById('varType').value = 'Indeterminantná';
+            document.getElementById('varCustomType').value = '';
+            document.getElementById('customTypeWrapper').style.display = 'none';
+            document.getElementById('varPrice').value = '';
+            document.getElementById('varSeedsPerPack').value = '10 ks';
+            document.getElementById('varStock').value = '10';
+            document.getElementById('varWeight').value = '';
+            document.getElementById('varImg').value = '';
+            document.getElementById('varInfo').value = '';
+            document.getElementById('varMultiflora').checked = false;
+            document.getElementById('varHidden').checked = false;
+
+            const sel = document.getElementById('varSectionSelect');
+            sel.innerHTML = '';
+            sectionsDatabase.filter(s => s.id !== 'domov' && s.id !== 'blog' && s.id !== 'podmienky').forEach(s => {
+                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+            document.getElementById('varietyModal').classList.add('active');
+        }
+
+        function editVariety(idx) {
+            const t = varietyDatabase[idx];
+            document.getElementById('editIndex').value = idx;
+            document.getElementById('varName').value = t.name;
+            
+            const typeSelect = document.getElementById('varType');
+            const customWrapper = document.getElementById('customTypeWrapper');
+            let foundOption = false;
+            for (let i = 0; i < typeSelect.options.length; i++) {
+                if (typeSelect.options[i].value === t.type) {
+                    foundOption = true;
+                    break;
+                }
+            }
+
+            if (foundOption) {
+                typeSelect.value = t.type;
+                customWrapper.style.display = 'none';
+                document.getElementById('varCustomType').value = '';
+            } else {
+                typeSelect.value = 'Ďalší';
+                customWrapper.style.display = 'block';
+                document.getElementById('varCustomType').value = t.type;
+            }
+
+            document.getElementById('varColor').value = t.color || 'Červená';
+            document.getElementById('varPrice').value = t.price || '';
+            document.getElementById('varSeedsPerPack').value = t.seedsPerPack || '10 ks';
+            document.getElementById('varStock').value = typeof t.stock === 'number' ? t.stock : 10;
+            document.getElementById('varWeight').value = t.weight || '';
+            document.getElementById('varImg').value = t.img || '';
+            document.getElementById('varInfo').value = t.info;
+            document.getElementById('varMultiflora').checked = t.multiflora;
+            document.getElementById('varHidden').checked = t.hidden || false;
+
+            const sel = document.getElementById('varSectionSelect');
+            sel.innerHTML = '';
+            sectionsDatabase.filter(s => s.id !== 'domov' && s.id !== 'blog' && s.id !== 'podmienky').forEach(s => {
+                sel.innerHTML += `<option value="${s.id}" ${s.id === t.section ? 'selected' : ''}>${s.name}</option>`;
+            });
+            document.getElementById('varietyModal').classList.add('active');
+        }
+        function closeVarietyModal() { document.getElementById('varietyModal').classList.remove('active'); }
+
+        function saveVariety() {
+            const idx = parseInt(document.getElementById('editIndex').value);
+            const section = document.getElementById('varSectionSelect').value;
+            const name = document.getElementById('varName').value.trim();
+            
+            let type = document.getElementById('varType').value.trim();
+            if (type === 'Ďalší') {
+                type = document.getElementById('varCustomType').value.trim();
+                if (!type) {
+                    alert('Zadajte vlastný typ / pomológiu!');
+                    return;
+                }
+            }
+
+            const color = document.getElementById('varColor').value.trim();
+            const price = document.getElementById('varPrice').value.trim().replace('€', '');
+            const seedsPerPack = document.getElementById('varSeedsPerPack').value.trim();
+            const stock = parseInt(document.getElementById('varStock').value) || 0;
+            const weight = document.getElementById('varWeight').value.trim();
+            const img = document.getElementById('varImg').value.trim();
+            const info = document.getElementById('varInfo').value.trim();
+            const multiflora = document.getElementById('varMultiflora').checked;
+            const hidden = document.getElementById('varHidden').checked;
+
+            if(!name) { alert('Zadajte názov odrody!'); return; }
+            const obj = { name, section, type, color, price, seedsPerPack, stock, weight, img, info, multiflora, hidden };
+
+            if (idx === -1) varietyDatabase.push(obj);
+            else varietyDatabase[idx] = obj;
+
+            try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e){}
+            closeVarietyModal();
+            renderAll();
+            showToast('✅ Odroda uložená!');
+        }
+
+        function deleteVariety(idx) {
+            if(confirm('Vymazať odrodu?')) {
+                varietyDatabase.splice(idx, 1);
+                try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e){}
+                renderAll();
+            }
+        }
+
+        function openBlogModal() {
+            document.getElementById('editBlogIndex').value = -1;
+            document.getElementById('blogTitle').value = '';
+            document.getElementById('blogImg').value = '';
+            document.getElementById('blogVideo').value = '';
+            document.getElementById('blogContent').value = '';
+            document.getElementById('blogModal').classList.add('active');
+        }
+
+        function editBlogPost(idx) {
+            const p = blogDatabase[idx];
+            document.getElementById('editBlogIndex').value = idx;
+            document.getElementById('blogTitle').value = p.title;
+            document.getElementById('blogImg').value = p.img || '';
+            document.getElementById('blogVideo').value = p.video || '';
+            document.getElementById('blogContent').value = p.content;
+            document.getElementById('blogModal').classList.add('active');
+        }
+
+        function closeBlogModal() { document.getElementById('blogModal').classList.remove('active'); }
+
+        function insertBlogTag(openTag, closeTag) {
+            const textarea = document.getElementById('blogContent');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selectedText = text.substring(start, end);
+            textarea.value = text.substring(0, start) + openTag + selectedText + closeTag + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + openTag.length, end + openTag.length);
+        }
+
+        function insertBlogImagePrompt() {
+            const url = prompt('Zadajte URL adresu obrázka (napr. https://...):');
+            if (url) {
+                const imgHtml = `<img src="${url}" alt="Obrázok v článku" style="width:100%; border-radius:8px; margin:10px 0;">`;
+                const textarea = document.getElementById('blogContent');
+                const start = textarea.selectionStart;
+                textarea.value = textarea.value.substring(0, start) + imgHtml + textarea.value.substring(start);
+                textarea.focus();
+            }
+        }
+
+        function insertBlogFilePrompt() {
+            const url = prompt('Zadajte URL adresu súboru (napr. https://.../dokument.pdf):');
+            const name = prompt('Zadajte text odkazu (napr. Stiahnuť príručku):', 'Stiahnuť súbor');
+            if (url && name) {
+                const fileHtml = `<a href="${url}" target="_blank" style="display:inline-block; background:#2C5530; color:white; padding:8px 16px; border-radius:6px; text-decoration:none; margin:10px 0; font-weight:600;">📎 ${name}</a>`;
+                const textarea = document.getElementById('blogContent');
+                const start = textarea.selectionStart;
+                textarea.value = textarea.value.substring(0, start) + fileHtml + textarea.value.substring(start);
+                textarea.focus();
+            }
+        }
+
+        function insertBlogTipBox() {
+            const textarea = document.getElementById('blogContent');
+            const tipHtml = "<div style='background:#E8F0E9; padding:12px; border-left:4px solid #2C5530; margin:10px 0;'>💡 <b>Tip:</b> Sem napíšte dôležitú radu alebo poznámku...</div>\n";
+            const start = textarea.selectionStart;
+            textarea.value = textarea.value.substring(0, start) + tipHtml + textarea.value.substring(start);
+            textarea.focus();
+        }
+
+        function saveBlogPost() {
+            const idx = parseInt(document.getElementById('editBlogIndex').value);
+            const title = document.getElementById('blogTitle').value.trim();
+            const img = document.getElementById('blogImg').value.trim();
+            const video = document.getElementById('blogVideo').value.trim();
+            const content = document.getElementById('blogContent').value.trim();
+            const date = new Date().toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' });
+
+            if(!title || !content) { alert('Vyplňte nadpis a text článku!'); return; }
+            const obj = { title, date, img, video, content };
+
+            if (idx === -1) blogDatabase.unshift(obj);
+            else blogDatabase[idx] = obj;
+
+            try { localStorage.setItem('herba_blog', JSON.stringify(blogDatabase)); } catch(e){}
+            closeBlogModal();
+            renderAll();
+            showToast('✅ Článok v blogu uložený!');
+        }
+
+        function deleteBlogPost(idx) {
+            if(confirm('Naozaj vymazať článok?')) {
+                blogDatabase.splice(idx, 1);
+                try { localStorage.setItem('herba_blog', JSON.stringify(blogDatabase)); } catch(e){}
+                renderAll();
+            }
+        }
+
+        function downloadSiteCode() {
+            const currentSectionsJSON = JSON.stringify(sectionsDatabase, null, 4);
+            const currentVarietiesJSON = JSON.stringify(varietyDatabase, null, 4);
+            const currentBlogJSON = JSON.stringify(blogDatabase, null, 4);
+            const currentEmail = farmSettings.email;
+
+            let htmlContent = document.documentElement.outerHTML;
+
+            // Dôkladné nahradenie predvolených dát za aktuálne upravené dáta z pamäte
+            htmlContent = htmlContent.replace(
+                /const defaultSections = \[[\s\S]*?\];\s*const categoryDescriptions/,
+                `const defaultSections = ${currentSectionsJSON};\n\n        const categoryDescriptions`
+            );
+            htmlContent = htmlContent.replace(
+                /const defaultBlogPosts = \[[\s\S]*?\];\s*const defaultVarieties/,
+                `const defaultBlogPosts = ${currentBlogJSON};\n\n        const defaultVarieties`
+            );
+            htmlContent = htmlContent.replace(
+                /const defaultVarieties = \[[\s\S]*?\];\s*let sectionsDatabase/,
+                `const defaultVarieties = ${currentVarietiesJSON};\n\n        let sectionsDatabase = [...defaultSections];\n        let varietyDatabase = [...defaultVarieties];\n        let blogDatabase = [...defaultBlogPosts];\n        let farmSettings = { email: "${currentEmail}" };`
+            );
+
+            const fullHtml = '<!DOCTYPE html>\n' + htmlContent;
+            const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('💾 Kód bol úspešne stiahnutý so všetkými dátami!');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { renderAll(); });
+    </script>
+</body>
+</html>
