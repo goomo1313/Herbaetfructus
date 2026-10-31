@@ -739,7 +739,7 @@
             <button class="admin-btn" style="background: #3182CE;" onclick="exportJsonData()">📤 Export JSON</button>
             <button class="admin-btn" style="background: #D69E2E;" onclick="triggerImportJson()">📥 Import JSON</button>
             <input type="file" id="importJsonFile" accept=".json" style="display: none;" onchange="importDatabase(event)">
-            <button class="admin-btn" style="background: #319795;" onclick="downloadSiteCode()">💾 Stiahnuť HTML</button>
+            <button class="admin-btn" style="background: #319795;" onclick="downloadSiteCode()">💾 ☁️ Uložiť do cloudu</button>
             <button class="admin-btn" style="background: #E53E3E;" onclick="resetDatabase()">🔄 Obnoviť</button>
             <button class="admin-btn" style="background: #4A5568;" onclick="logoutAdmin()">Odhlásiť</button>
         </div>
@@ -1102,6 +1102,105 @@
         })();
         let adminAuthenticated = false;
 
+        // CLOUD STORAGE: obsah stránky sa ukladá do Supabase, nie do exportovaného HTML.
+        const cloudContentTable = 'site_content';
+        let cloudDatabaseReady = false;
+        let cloudContentLoaded = false;
+
+        async function loadCloudContent() {
+            if (!adminSupabase) {
+                console.warn('Supabase nie je nakonfigurovaný; používajú sa predvolené údaje.');
+                return;
+            }
+            try {
+                const { data, error } = await adminSupabase
+                    .from(cloudContentTable)
+                    .select('id, content');
+                if (error) throw error;
+
+                const records = Object.fromEntries((data || []).map(row => [row.id, row.content]));
+                // Staršie lokálne dáta použijeme iba ako jednorazový migračný zdroj,
+                // ak v cloude ešte príslušný záznam neexistuje.
+                try {
+                    if (records.sections) sectionsDatabase = records.sections;
+                    else {
+                        const old = localStorage.getItem('herba_sections');
+                        if (old) sectionsDatabase = JSON.parse(old);
+                    }
+                    if (records.varieties) varietyDatabase = records.varieties;
+                    else {
+                        const old = localStorage.getItem('herba_varieties');
+                        if (old) varietyDatabase = JSON.parse(old);
+                    }
+                    if (records.blog) blogDatabase = records.blog;
+                    else {
+                        const old = localStorage.getItem('herba_blog');
+                        if (old) blogDatabase = JSON.parse(old);
+                    }
+                    if (records.settings) farmSettings = records.settings;
+                    else {
+                        const oldEmail = localStorage.getItem('herba_form_email');
+                        if (oldEmail) farmSettings.email = oldEmail;
+                    }
+                } catch (legacyError) {
+                    console.warn('Staršie lokálne údaje sa nepodarilo načítať.', legacyError);
+                }
+                cloudDatabaseReady = true;
+                cloudContentLoaded = true;
+            } catch (error) {
+                cloudDatabaseReady = false;
+                console.error('Načítanie obsahu zo Supabase zlyhalo:', error);
+                showToast('⚠️ Databáza ešte nie je pripravená. Spusti SQL skript v Supabase.');
+            }
+        }
+
+        async function persistCloudContent(id, content) {
+            if (!adminAuthenticated || !adminSupabase) {
+                throw new Error('Ukladanie vyžaduje prihlásenie správcu.');
+            }
+            const { error } = await adminSupabase
+                .from(cloudContentTable)
+                .upsert({ id, content, updated_at: new Date().toISOString() }, { onConflict: 'id' });
+            if (error) throw error;
+            return true;
+        }
+
+        function queueCloudSave(id, content) {
+            if (!adminAuthenticated) return;
+            persistCloudContent(id, content)
+                .then(() => console.info('Cloud uloženie úspešné:', id))
+                .catch(error => {
+                    console.error('Cloud uloženie zlyhalo:', id, error);
+                    showToast('❌ Uloženie do cloudu zlyhalo: ' + (error.message || 'skontroluj Supabase SQL a pripojenie'));
+                });
+        }
+
+        async function seedCloudContentIfNeeded() {
+            if (!adminAuthenticated || !adminSupabase || !cloudDatabaseReady) return;
+            try {
+                const { data, error } = await adminSupabase.from(cloudContentTable).select('id');
+                if (error) throw error;
+                const existing = new Set((data || []).map(row => row.id));
+                const defaults = [
+                    { id: 'sections', content: sectionsDatabase },
+                    { id: 'varieties', content: varietyDatabase },
+                    { id: 'blog', content: blogDatabase },
+                    { id: 'settings', content: farmSettings }
+                ];
+                const missing = defaults.filter(item => !existing.has(item.id));
+                if (missing.length) {
+                    const { error: insertError } = await adminSupabase.from(cloudContentTable).insert(
+                        missing.map(item => ({ ...item, updated_at: new Date().toISOString() }))
+                    );
+                    if (insertError) throw insertError;
+                    showToast('☁️ Úvodné údaje boli prenesené do databázy.');
+                }
+            } catch (error) {
+                console.error('Prvotný prenos údajov do cloudu zlyhal:', error);
+                showToast('❌ Prenos do databázy zlyhal: ' + (error.message || 'skontroluj SQL nastavenie'));
+            }
+        }
+
         const defaultSections = [
             { id: "domov", name: "Domov", desc: "Vitajte na našej rodinnej semenná farme.", hidden: false },
             { id: "paradajky", name: "Paradajky", desc: "Pestujeme pestrú kolekciu odrôd rozdelenú do prehľadných pomologických kategórií.", hidden: false },
@@ -1191,30 +1290,7 @@
         let currentCategory = 'all';
         let currentColor = 'all';
 
-        // Exportovaný HTML súbor má prednosť pred starými dátami uloženými v prehliadači.
-        const isHerbaExport = document.documentElement.hasAttribute('data-herba-export');
-        if (isHerbaExport) {
-            try {
-                localStorage.removeItem('herba_sections');
-                localStorage.removeItem('herba_varieties');
-                localStorage.removeItem('herba_blog');
-                localStorage.removeItem('herba_form_email');
-            } catch(e) {}
-        }
-
-        try {
-            const savedSec = localStorage.getItem('herba_sections');
-            if (savedSec) sectionsDatabase = JSON.parse(savedSec);
-            const savedVar = localStorage.getItem('herba_varieties');
-            if (savedVar) varietyDatabase = JSON.parse(savedVar);
-            const savedBlog = localStorage.getItem('herba_blog');
-            if (savedBlog) blogDatabase = JSON.parse(savedBlog);
-            const savedEmail = localStorage.getItem('herba_form_email');
-            if (savedEmail) farmSettings.email = savedEmail;
-        } catch(e) {}
-
-        // Označenie exportu odstránime až po jednorazovom vyčistení starých dát.
-        if (isHerbaExport) document.documentElement.removeAttribute('data-herba-export');
+        // Údaje sa načítajú zo Supabase po inicializácii stránky.
 
         function resetDatabase() {
             if (!requireAdmin()) return;
@@ -1266,10 +1342,10 @@
                     if (data.blog) blogDatabase = data.blog;
                     if (data.settings) farmSettings = data.settings;
 
-                    localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase));
-                    localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase));
-                    localStorage.setItem('herba_blog', JSON.stringify(blogDatabase));
-                    localStorage.setItem('herba_form_email', farmSettings.email);
+                    queueCloudSave('sections', sectionsDatabase);
+                    queueCloudSave('varieties', varietyDatabase);
+                    queueCloudSave('blog', blogDatabase);
+                    queueCloudSave('settings', farmSettings);
 
                     renderAll();
                     showToast('📥 Dáta boli úspešne importované!');
@@ -1739,7 +1815,7 @@
             }
 
             try {
-                localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase));
+                queueCloudSave('varieties', varietyDatabase);
             } catch(e) {}
         }
 
@@ -1821,6 +1897,7 @@
 
                 passwordInput.value = '';
                 enableAdminMode(true);
+                await seedCloudContentIfNeeded();
             } catch (error) {
                 console.error('Prihlásenie správcu zlyhalo:', error);
                 alert(error && error.message ? error.message : 'Prihlásenie sa nepodarilo. Skontrolujte údaje a skúste znova.');
@@ -1842,6 +1919,7 @@
                     return;
                 }
                 enableAdminMode(false);
+                await seedCloudContentIfNeeded();
             } catch (error) {
                 console.warn('Obnovenie relácie správcu sa nepodarilo.', error);
             }
@@ -1867,7 +1945,7 @@
         function saveFormEmailSettings() {
             if (!requireAdmin()) return;
             farmSettings.email = document.getElementById('adminEmailInput').value.trim();
-            try { localStorage.setItem('herba_form_email', farmSettings.email); } catch(e){}
+            try { queueCloudSave('settings', farmSettings); } catch(e){}
             updateFormAction();
             closeFormSettingsModal();
             showToast('✅ E-mail aktualizovaný!');
@@ -1880,7 +1958,7 @@
             const temp = sectionsDatabase[index];
             sectionsDatabase[index] = sectionsDatabase[newIndex];
             sectionsDatabase[newIndex] = temp;
-            try { localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase)); } catch(e){}
+            try { queueCloudSave('sections', sectionsDatabase); } catch(e){}
             renderAll();
             openSectionTableModal();
         }
@@ -1892,7 +1970,7 @@
             const temp = varietyDatabase[index];
             varietyDatabase[index] = varietyDatabase[newIndex];
             varietyDatabase[newIndex] = temp;
-            try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e){}
+            try { queueCloudSave('varieties', varietyDatabase); } catch(e){}
             renderAll();
             openTableManagerModal();
         }
@@ -1954,7 +2032,7 @@
                 sectionsDatabase[idx].name = name;
                 sectionsDatabase[idx].desc = desc;
             }
-            try { localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase)); } catch(e){}
+            try { queueCloudSave('sections', sectionsDatabase); } catch(e){}
             closeSectionModal();
             renderAll();
             showToast('✅ Karta uložená!');
@@ -1963,7 +2041,7 @@
         function toggleSectionVisibility(idx) {
             if (!requireAdmin()) return;
             sectionsDatabase[idx].hidden = !sectionsDatabase[idx].hidden;
-            try { localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase)); } catch(e){}
+            try { queueCloudSave('sections', sectionsDatabase); } catch(e){}
             renderAll();
         }
 
@@ -1971,7 +2049,7 @@
             if (!requireAdmin()) return;
             if(confirm('Naozaj vymazať kartu?')) {
                 sectionsDatabase.splice(idx, 1);
-                try { localStorage.setItem('herba_sections', JSON.stringify(sectionsDatabase)); } catch(e){}
+                try { queueCloudSave('sections', sectionsDatabase); } catch(e){}
                 renderAll();
             }
         }
@@ -2026,7 +2104,7 @@
         function updateStockFromTable(index, newVal) {
             if (!requireAdmin()) return;
             varietyDatabase[index].stock = parseInt(newVal) || 0;
-            try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e) {}
+            try { queueCloudSave('varieties', varietyDatabase); } catch(e) {}
             renderAll();
             showToast('📦 Sklad aktualizovaný');
         }
@@ -2042,7 +2120,7 @@
         function toggleVarietyStatusInTable(index) {
             if (!requireAdmin()) return;
             varietyDatabase[index].hidden = !varietyDatabase[index].hidden;
-            try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e) {}
+            try { queueCloudSave('varieties', varietyDatabase); } catch(e) {}
             renderAll();
             renderAdminTable();
         }
@@ -2051,7 +2129,7 @@
             if (!requireAdmin()) return;
             if (confirm(`Naozaj chcete vymazať odrodu "${varietyDatabase[index].name}"?`)) {
                 varietyDatabase.splice(index, 1);
-                try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e) {}
+                try { queueCloudSave('varieties', varietyDatabase); } catch(e) {}
                 renderAll();
                 renderAdminTable();
             }
@@ -2168,7 +2246,7 @@
             if (idx === -1) varietyDatabase.push(obj);
             else varietyDatabase[idx] = obj;
 
-            try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e){}
+            try { queueCloudSave('varieties', varietyDatabase); } catch(e){}
             closeVarietyModal();
             renderAll();
             showToast('✅ Odroda uložená!');
@@ -2178,7 +2256,7 @@
             if (!requireAdmin()) return;
             if(confirm('Vymazať odrodu?')) {
                 varietyDatabase.splice(idx, 1);
-                try { localStorage.setItem('herba_varieties', JSON.stringify(varietyDatabase)); } catch(e){}
+                try { queueCloudSave('varieties', varietyDatabase); } catch(e){}
                 renderAll();
             }
         }
@@ -2267,7 +2345,7 @@
             if (idx === -1) blogDatabase.unshift(obj);
             else blogDatabase[idx] = obj;
 
-            try { localStorage.setItem('herba_blog', JSON.stringify(blogDatabase)); } catch(e){}
+            try { queueCloudSave('blog', blogDatabase); } catch(e){}
             closeBlogModal();
             renderAll();
             showToast('✅ Článok v blogu uložený!');
@@ -2277,67 +2355,29 @@
             if (!requireAdmin()) return;
             if(confirm('Naozaj vymazať článok?')) {
                 blogDatabase.splice(idx, 1);
-                try { localStorage.setItem('herba_blog', JSON.stringify(blogDatabase)); } catch(e){}
+                try { queueCloudSave('blog', blogDatabase); } catch(e){}
                 renderAll();
             }
         }
 
-        function downloadSiteCode() {
+        async function downloadSiteCode() {
             if (!requireAdmin()) return;
-
-            const currentSectionsJSON = JSON.stringify(sectionsDatabase, null, 4);
-            const currentVarietiesJSON = JSON.stringify(varietyDatabase, null, 4);
-            const currentBlogJSON = JSON.stringify(blogDatabase, null, 4);
-            const currentSettingsJSON = JSON.stringify(farmSettings, null, 4);
-
-            // Exportujeme čistú kópiu stránky, nie jej dočasný stav v administrácii.
-            const exportRoot = document.documentElement.cloneNode(true);
-            exportRoot.setAttribute('data-herba-export', 'true');
-            const exportedBody = exportRoot.querySelector('body');
-            if (exportedBody) exportedBody.classList.remove('admin-mode');
-
-            const exportedAdminBar = exportRoot.querySelector('#adminBar');
-            if (exportedAdminBar) exportedAdminBar.classList.remove('active');
-
-            exportRoot.querySelectorAll('.modal-overlay.active, .lightbox-overlay.active').forEach(element => {
-                element.classList.remove('active');
-            });
-
-            let htmlContent = exportRoot.outerHTML;
-
-            // Vložíme aktuálne údaje priamo do HTML súboru.
-            htmlContent = htmlContent.replace(
-                /const defaultSections = \[[\s\S]*?\];\s*const categoryDescriptions/,
-                `const defaultSections = ${currentSectionsJSON};\n\n        const categoryDescriptions`
-            );
-            htmlContent = htmlContent.replace(
-                /const defaultBlogPosts = \[[\s\S]*?\];\s*const defaultVarieties/,
-                `const defaultBlogPosts = ${currentBlogJSON};\n\n        const defaultVarieties`
-            );
-            htmlContent = htmlContent.replace(
-                /const defaultVarieties = \[[\s\S]*?\];\s*let sectionsDatabase/,
-                `const defaultVarieties = ${currentVarietiesJSON};\n\n        let sectionsDatabase = [...defaultSections];\n        let varietyDatabase = [...defaultVarieties];\n        let blogDatabase = [...defaultBlogPosts];\n        let farmSettings = ${currentSettingsJSON};`
-            );
-
-            if (!htmlContent.includes('data-herba-export="true"')) {
-                alert('Export sa nepodarilo pripraviť. Súbor nebol stiahnutý.');
-                return;
+            try {
+                await Promise.all([
+                    persistCloudContent('sections', sectionsDatabase),
+                    persistCloudContent('varieties', varietyDatabase),
+                    persistCloudContent('blog', blogDatabase),
+                    persistCloudContent('settings', farmSettings)
+                ]);
+                showToast('☁️ Všetky údaje sú uložené v online databáze. HTML už netreba sťahovať.');
+            } catch (error) {
+                console.error('Kontrola cloud uloženia zlyhala:', error);
+                showToast('❌ Cloud uloženie zlyhalo: ' + (error.message || 'neznáma chyba'));
             }
-
-            const fullHtml = '<!DOCTYPE html>\n' + htmlContent;
-            const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'index.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-            showToast('💾 Čistý HTML súbor s aktuálnymi údajmi bol stiahnutý!');
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            await loadCloudContent();
             renderAll();
             await restoreAdminSession();
         });
