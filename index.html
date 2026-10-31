@@ -756,6 +756,19 @@
     .story-inner p { color: #465247; line-height: 1.85; font-size: 1.03rem; margin: 0 0 14px; }
     .story-link { display: inline-block; margin-top: 14px; padding: 12px 24px; border-radius: 6px; background: var(--primary-color); color: #fff; text-decoration: none; font-weight: 600; }
     .story-link:hover { opacity: .9; }
+    .story-section { padding: 64px 20px; background: #f4f7f1; }
+    .story-inner { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 1.15fr .85fr; gap: 42px; align-items: center; }
+    .story-copy { text-align: left; }
+    .story-kicker { color: var(--accent-color); font-size: .78rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 10px; }
+    .story-copy h2 { color: var(--primary-color); font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 22px; }
+    .story-copy p { color: #465247; line-height: 1.85; font-size: 1.03rem; margin: 0 0 14px; }
+    .story-link { display: inline-block; margin-top: 14px; padding: 12px 24px; border-radius: 6px; background: var(--primary-color); color: #fff; text-decoration: none; font-weight: 600; }
+    .story-link:hover { opacity: .9; }
+    .story-photo-wrap { width: 100%; min-height: 320px; border-radius: 16px; overflow: hidden; background: #e5ecdf; box-shadow: var(--shadow-md); display:flex; align-items:center; justify-content:center; }
+    .story-photo-wrap img { width:100%; height:100%; min-height:320px; max-height:520px; object-fit:cover; display:block; }
+    .story-photo-placeholder { min-height:320px; width:100%; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; color:#66745f; font-size:2.2rem; text-align:center; padding:24px; }
+    .story-photo-placeholder span { font-size:.95rem; max-width:260px; line-height:1.5; }
+    @media(max-width:760px) { .story-inner { grid-template-columns:1fr; gap:24px; } .story-photo-wrap { min-height:240px; } .story-photo-wrap img { min-height:240px; } .story-copy { text-align:left; } }
 </style>
 </head>
 <body>
@@ -772,6 +785,7 @@
             <button class="admin-btn" style="background: #D97706;" onclick="openFormSettingsModal()">✉️ E-mail</button>
             <button class="admin-btn" style="background: var(--primary-color);" onclick="openVarietyModal()">+ Odroda</button>
             <button class="admin-btn" style="background: #805AD5;" onclick="openBlogModal()">+ Blog</button>
+            <button class="admin-btn" style="background: #276749;" onclick="openStoryModal()">🌿 Príbeh a fotografie</button>
             <button class="admin-btn" style="background: #3182CE;" onclick="exportJsonData()">📦 Zálohovať JSON</button>
             <button class="admin-btn" style="background: #D69E2E;" onclick="triggerImportJson()">📥 Import JSON</button>
             <input type="file" id="importJsonFile" accept=".json" style="display: none;" onchange="importDatabase(event)">
@@ -919,14 +933,18 @@
         </div>
     </section>
 
-    <section id="storySection" class="story-section">
+        <section id="storySection" class="story-section">
         <div class="story-inner">
-            <div class="story-kicker">NÁŠ PRÍBEH</div>
-            <h2>Od jednej paradajky k stovke odrôd</h2>
-            <p>Všetko sa začalo jednou odrodou – <strong>Vajce vtáka Ohniváka</strong>. Kúpil som si jej semená a podarilo sa mi dopestovať vlastné paradajky. Ich pestovanie ma nadchlo natoľko, že v nasledujúcom roku som rozšíril svoju zbierku na 30 odrôd. Potom ich bolo 50 a na ďalšiu sezónu sa pripravujem už s približne 100 odrodami.</p>
-            <p>Postupne som začal objavovať nové odrody, zbierať ich a učiť sa, ako správne získavať a uchovávať vlastné semená. Z pôvodného koníčka sa stala vášeň, ktorej venujem čoraz viac času.</p>
-            <p>Keďže mám semien dostatok, rád sa o ne podelím aj s ďalšími pestovateľmi. Herba et Fructus vzniklo z jednoduchej myšlienky – <strong>uchovávať zaujímavé odrody a posúvať radosť z ich pestovania ďalej.</strong></p>
-            <a class="story-link" href="#kontaktSection" onclick="switchSection('kontaktSection')">Vybrať si semená</a>
+            <div class="story-copy">
+                <div class="story-kicker" id="storyEyebrow">NÁŠ PRÍBEH</div>
+                <h2 id="storyTitle">Od jednej paradajky k stovke odrôd</h2>
+                <div id="storyParagraphs"></div>
+                <a class="story-link" id="storyButton" href="#kontaktSection" onclick="switchSection('kontaktSection')">Vybrať si semená</a>
+            </div>
+            <div class="story-photo-wrap" id="storyPhotoWrap">
+                <div class="story-photo-placeholder" id="storyPhotoPlaceholder">📷<span>Miesto pre fotografie z našej záhrady a pestovania</span></div>
+                <img id="storyPhoto" alt="Fotografia pestovania Herba et Fructus" style="display:none;">
+            </div>
         </div>
     </section>
 
@@ -1152,6 +1170,27 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="storyModal">
+        <div class="modal-content" style="max-width:760px;">
+            <h2>Upraviť príbeh a fotografie</h2>
+            <p style="color:var(--text-muted);margin-bottom:16px;">Text a fotografia sa uložia do online databázy. Fotografie sa nahrávajú do úložiska Supabase.</p>
+            <div class="form-group"><label for="storyAdminEyebrow">Malý nadpis</label><input id="storyAdminEyebrow" type="text"></div>
+            <div class="form-group"><label for="storyAdminTitle">Hlavný nadpis</label><input id="storyAdminTitle" type="text"></div>
+            <div class="form-group"><label for="storyAdminP1">Prvý odsek</label><textarea id="storyAdminP1" rows="4"></textarea></div>
+            <div class="form-group"><label for="storyAdminP2">Druhý odsek</label><textarea id="storyAdminP2" rows="4"></textarea></div>
+            <div class="form-group"><label for="storyAdminP3">Tretí odsek</label><textarea id="storyAdminP3" rows="4"></textarea></div>
+            <div class="form-group"><label for="storyAdminButton">Text tlačidla</label><input id="storyAdminButton" type="text"></div>
+            <div class="form-group"><label for="storyAdminPhotoFile">Nahrať fotografiu z počítača alebo mobilu</label><input id="storyAdminPhotoFile" type="file" accept="image/*"><small>Odporúčame fotografiu na šírku. Maximálna veľkosť súboru je 5 MB.</small></div>
+            <div class="form-group"><label for="storyAdminPhotoUrl">Alebo adresa fotografie (URL)</label><input id="storyAdminPhotoUrl" type="url" placeholder="https://..."></div>
+            <div class="form-group"><label for="storyAdminPhotoAlt">Popis fotografie</label><input id="storyAdminPhotoAlt" type="text"></div>
+            <div id="storyUploadStatus" style="font-size:.9rem;margin:8px 0;"></div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px;">
+                <button class="admin-btn" style="background:#718096;" onclick="closeStoryModal()">Zrušiť</button>
+                <button class="admin-btn" style="background:var(--primary-color);" onclick="saveStoryContent()">Uložiť príbeh</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./config.js"></script>
     <script>
@@ -1203,6 +1242,7 @@
                         if (old) blogDatabase = JSON.parse(old);
                     }
                     if (records.settings) farmSettings = records.settings;
+                    if (records.story) storyContent = { ...storyContent, ...records.story };
                     else {
                         const oldEmail = localStorage.getItem('herba_form_email');
                         if (oldEmail) farmSettings.email = oldEmail;
@@ -1379,6 +1419,19 @@
         let varietyDatabase = [...defaultVarieties];
         let blogDatabase = [...defaultBlogPosts];
         let farmSettings = { email: "tvojemail@priklad.sk" };
+        let storyContent = {
+            eyebrow: "NÁŠ PRÍBEH",
+            title: "Od jednej paradajky k stovke odrôd",
+            paragraphs: [
+                "Všetko sa začalo jednou odrodou – Vajce vtáka Ohniváka. Kúpil som si jej semená a podarilo sa mi dopestovať vlastné paradajky. Ich pestovanie ma nadchlo natoľko, že v nasledujúcom roku som rozšíril svoju zbierku na 30 odrôd. Potom ich bolo 50 a na ďalšiu sezónu sa pripravujem už s približne 100 odrodami.",
+                "Postupne som začal objavovať nové odrody, zbierať ich a učiť sa, ako správne získavať a uchovávať vlastné semená. Z pôvodného koníčka sa stala vášeň, ktorej venujem čoraz viac času.",
+                "Keďže mám semien dostatok, rád sa o ne podelím aj s ďalšími pestovateľmi. Herba et Fructus vzniklo z jednoduchej myšlienky – uchovávať zaujímavé odrody a posúvať radosť z ich pestovania ďalej."
+            ],
+            button: "Vybrať si semená",
+            photo: "",
+            photoAlt: "Fotografia pestovania Herba et Fructus"
+        };
+
         let currentActiveSection = 'domov';
         let currentCategory = 'all';
         let currentColor = 'all';
@@ -1427,7 +1480,8 @@
                 sections: sectionsDatabase,
                 varieties: varietyDatabase,
                 blog: blogDatabase,
-                settings: farmSettings
+                settings: farmSettings,
+                story: storyContent
             };
             const blob = new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -1463,12 +1517,13 @@
 
                     const previous = {
                         sections: sectionsDatabase, varieties: varietyDatabase,
-                        blog: blogDatabase, settings: farmSettings
+                        blog: blogDatabase, settings: farmSettings, story: storyContent
                     };
                     sectionsDatabase = data.sections;
                     varietyDatabase = data.varieties;
                     blogDatabase = data.blog;
                     farmSettings = data.settings;
+                    if (data.story && typeof data.story === "object") storyContent = { ...storyContent, ...data.story };
                     renderAll();
                     setCloudSaveStatus('☁️ Obnovujem zálohu…', '#FDE68A');
                     try {
@@ -1476,6 +1531,7 @@
                         await persistCloudContent('varieties', varietyDatabase);
                         await persistCloudContent('blog', blogDatabase);
                         await persistCloudContent('settings', farmSettings);
+                        await persistCloudContent('story', storyContent);
                         setCloudSaveStatus('✓ Záloha obnovená a uložená', '#C6F6D5');
                         showToast('📥 Záloha bola obnovená v online databáze.');
                     } catch (saveError) {
@@ -1483,6 +1539,7 @@
                         varietyDatabase = previous.varieties;
                         blogDatabase = previous.blog;
                         farmSettings = previous.settings;
+                        storyContent = previous.story;
                         renderAll();
                         setCloudSaveStatus('⚠️ Obnova zálohy sa nepodarila', '#FEB2B2');
                         throw saveError;
@@ -1496,9 +1553,88 @@
             reader.readAsText(file);
         }
 
+        function renderStorySection() {
+            const eyebrow = document.getElementById('storyEyebrow');
+            const title = document.getElementById('storyTitle');
+            const paragraphs = document.getElementById('storyParagraphs');
+            const button = document.getElementById('storyButton');
+            const photo = document.getElementById('storyPhoto');
+            const placeholder = document.getElementById('storyPhotoPlaceholder');
+            if (!eyebrow || !title || !paragraphs || !button) return;
+            const safe = value => String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+            eyebrow.textContent = storyContent.eyebrow || '';
+            title.textContent = storyContent.title || '';
+            paragraphs.innerHTML = (storyContent.paragraphs || []).filter(Boolean).map(p => '<p>' + safe(p).replace(/\n/g,'<br>') + '</p>').join('');
+            button.textContent = storyContent.button || 'Vybrať si semená';
+            if (storyContent.photo) {
+                photo.src = storyContent.photo;
+                photo.alt = storyContent.photoAlt || 'Fotografia Herba et Fructus';
+                photo.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                photo.removeAttribute('src');
+                photo.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+        }
+
+        function openStoryModal() {
+            if (!requireAdmin()) return;
+            document.getElementById('storyAdminEyebrow').value = storyContent.eyebrow || '';
+            document.getElementById('storyAdminTitle').value = storyContent.title || '';
+            document.getElementById('storyAdminP1').value = (storyContent.paragraphs || [])[0] || '';
+            document.getElementById('storyAdminP2').value = (storyContent.paragraphs || [])[1] || '';
+            document.getElementById('storyAdminP3').value = (storyContent.paragraphs || [])[2] || '';
+            document.getElementById('storyAdminButton').value = storyContent.button || '';
+            document.getElementById('storyAdminPhotoUrl').value = storyContent.photo || '';
+            document.getElementById('storyAdminPhotoAlt').value = storyContent.photoAlt || '';
+            document.getElementById('storyAdminPhotoFile').value = '';
+            document.getElementById('storyUploadStatus').textContent = '';
+            document.getElementById('storyModal').classList.add('active');
+        }
+        function closeStoryModal() { document.getElementById('storyModal').classList.remove('active'); }
+
+        async function saveStoryContent() {
+            if (!requireAdmin()) return;
+            const status = document.getElementById('storyUploadStatus');
+            const file = document.getElementById('storyAdminPhotoFile').files[0];
+            let photoUrl = document.getElementById('storyAdminPhotoUrl').value.trim();
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) { status.textContent = 'Fotografia je väčšia ako 5 MB.'; return; }
+                if (!file.type.startsWith('image/')) { status.textContent = 'Vyberte obrazový súbor.'; return; }
+                if (!adminSupabase) { status.textContent = 'Supabase nie je dostupný. Skontrolujte konfiguráciu.'; return; }
+                status.textContent = 'Nahrávam fotografiu…';
+                const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+                const path = 'story/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + extension;
+                const { error } = await adminSupabase.storage.from('site-images').upload(path, file, { upsert: true, contentType: file.type });
+                if (error) { status.textContent = 'Nahratie zlyhalo: ' + error.message + '. Skontrolujte bucket site-images a jeho pravidlá.'; return; }
+                const { data } = adminSupabase.storage.from('site-images').getPublicUrl(path);
+                photoUrl = data.publicUrl;
+            }
+            if (photoUrl && !/^https:\/\//i.test(photoUrl)) { status.textContent = 'Adresa fotografie musí začínať https://'; return; }
+            storyContent = {
+                eyebrow: document.getElementById('storyAdminEyebrow').value.trim(),
+                title: document.getElementById('storyAdminTitle').value.trim(),
+                paragraphs: [
+                    document.getElementById('storyAdminP1').value.trim(),
+                    document.getElementById('storyAdminP2').value.trim(),
+                    document.getElementById('storyAdminP3').value.trim()
+                ],
+                button: document.getElementById('storyAdminButton').value.trim(),
+                photo: photoUrl,
+                photoAlt: document.getElementById('storyAdminPhotoAlt').value.trim()
+            };
+            const saved = await queueCloudSave('story', storyContent);
+            if (!saved) { status.textContent = 'Text sa nepodarilo uložiť. Skúste to znova.'; return; }
+            renderStorySection();
+            closeStoryModal();
+            showToast('Príbeh a fotografie boli uložené.');
+        }
+
         function renderAll() {
             renderNav();
             renderMainContent();
+            renderStorySection();
             renderFormTomatoCheckboxes();
             updateFormAction();
         }
