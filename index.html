@@ -749,7 +749,14 @@
             font-size: 0.9rem;
         }
         footer a { color: #CBD5E0; text-decoration: underline; cursor: pointer; }
-    </style>
+        .story-section { padding: 64px 20px; background: #f4f7f1; }
+    .story-inner { max-width: 850px; margin: 0 auto; text-align: center; }
+    .story-kicker { color: var(--accent-color); font-size: .78rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 10px; }
+    .story-inner h2 { color: var(--primary-color); font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 22px; }
+    .story-inner p { color: #465247; line-height: 1.85; font-size: 1.03rem; margin: 0 0 14px; }
+    .story-link { display: inline-block; margin-top: 14px; padding: 12px 24px; border-radius: 6px; background: var(--primary-color); color: #fff; text-decoration: none; font-weight: 600; }
+    .story-link:hover { opacity: .9; }
+</style>
 </head>
 <body>
 
@@ -909,6 +916,17 @@
                     </div>
                 </div>
             </form>
+        </div>
+    </section>
+
+    <section id="storySection" class="story-section">
+        <div class="story-inner">
+            <div class="story-kicker">NÁŠ PRÍBEH</div>
+            <h2>Od jednej paradajky k stovke odrôd</h2>
+            <p>Všetko sa začalo jednou odrodou – <strong>Vajce vtáka Ohniváka</strong>. Kúpil som si jej semená a podarilo sa mi dopestovať vlastné paradajky. Ich pestovanie ma nadchlo natoľko, že v nasledujúcom roku som rozšíril svoju zbierku na 30 odrôd. Potom ich bolo 50 a na ďalšiu sezónu sa pripravujem už s približne 100 odrodami.</p>
+            <p>Postupne som začal objavovať nové odrody, zbierať ich a učiť sa, ako správne získavať a uchovávať vlastné semená. Z pôvodného koníčka sa stala vášeň, ktorej venujem čoraz viac času.</p>
+            <p>Keďže mám semien dostatok, rád sa o ne podelím aj s ďalšími pestovateľmi. Herba et Fructus vzniklo z jednoduchej myšlienky – <strong>uchovávať zaujímavé odrody a posúvať radosť z ich pestovania ďalej.</strong></p>
+            <a class="story-link" href="#kontaktSection" onclick="switchSection('kontaktSection')">Vybrať si semená</a>
         </div>
     </section>
 
