@@ -1292,16 +1292,25 @@
 
         // Údaje sa načítajú zo Supabase po inicializácii stránky.
 
-        function resetDatabase() {
+        async function resetDatabase() {
             if (!requireAdmin()) return;
-            if (confirm('Naozaj chcete obnoviť dáta na pôvodný stav?')) {
-                try {
-                    localStorage.removeItem('herba_sections');
-                    localStorage.removeItem('herba_varieties');
-                    localStorage.removeItem('herba_blog');
-                    localStorage.removeItem('herba_form_email');
-                } catch(e) {}
-                location.reload();
+            if (!confirm('Naozaj chcete obnoviť všetky údaje v online databáze na pôvodný stav?')) return;
+            sectionsDatabase = [...defaultSections];
+            varietyDatabase = [...defaultVarieties];
+            blogDatabase = [...defaultBlogPosts];
+            farmSettings = { email: "tvojemail@priklad.sk" };
+            try {
+                await Promise.all([
+                    persistCloudContent('sections', sectionsDatabase),
+                    persistCloudContent('varieties', varietyDatabase),
+                    persistCloudContent('blog', blogDatabase),
+                    persistCloudContent('settings', farmSettings)
+                ]);
+                renderAll();
+                showToast('🔄 Pôvodné údaje boli obnovené v online databáze.');
+            } catch (error) {
+                console.error('Obnovenie databázy zlyhalo:', error);
+                showToast('❌ Obnovenie zlyhalo: ' + (error.message || 'neznáma chyba'));
             }
         }
 
