@@ -1,76 +1,73 @@
-# Herba et Fructus – web pre GitHub Pages
+# Herba et Fructus – web s online databázou
 
-Tento balík obsahuje upravenú stránku Herba et Fructus pripravenú na publikovanie cez GitHub Pages.
+Stránka je statická (GitHub Pages), ale jej obsah sa ukladá do databázy **Supabase**. Po úprave odrody, skladu, kategórie alebo článku sa zmena uloží online. Nie je potrebné sťahovať ani opätovne nahrávať `index.html`.
 
-## Čo zostalo zachované
+## Čo je v projekte
 
-- úvodná stránka a navigácia podľa sekcií,
-- katalóg odrôd paradajok a tekvíc,
-- vyhľadávanie a filtre podľa typu a farby,
-- karty odrôd, obrázky a zväčšenie fotografií,
-- výber odrôd a množstva v objednávkovom formulári,
-- formulár kúpy, výmeny a pestovateľských otázok cez FormSubmit,
-- blog s obrázkami, videami a formátovaním,
-- administrácia sekcií, odrôd, skladu a blogu,
-- import/export JSON, reset lokálnych dát a stiahnutie upraveného HTML.
+- `index.html` – web a administrácia.
+- `config.js` – verejná konfigurácia Supabase.
+- `supabase_setup.sql` – SQL skript na vytvorenie databázy a bezpečnostných pravidiel.
+- `README_SK.md` – tento návod.
 
-## Bezpečnejšie prihlasovanie správcu
+## 1. Nastavenie databázy Supabase
 
-Pôvodné verejné prihlasovanie `admin / admin` bolo odstránené. Nové prihlasovanie overuje e-mail a heslo cez **Supabase Auth**. V zdrojovom kóde nie je uložené heslo.
+Projekt Supabase je už nakonfigurovaný v `config.js`. Databázová tabuľka sa vytvorí takto:
 
-### 1. Vytvorenie Supabase projektu
+1. Prihláste sa na [Supabase](https://supabase.com/) a otvorte projekt Herba et Fructus.
+2. V ľavom menu otvorte **SQL Editor**.
+3. Vyberte **New query**.
+4. Na GitHube otvorte súbor `supabase_setup.sql`.
+5. Skopírujte celý jeho obsah do SQL Editora v Supabase.
+6. Kliknite na **Run**.
+7. Výsledok má potvrdiť vytvorenie tabuľky `site_content`. Posledný kontrolný SELECT môže zatiaľ vrátiť nula riadkov – je to v poriadku.
 
-1. Vytvorte bezplatný projekt na [supabase.com](https://supabase.com/).
-2. V projekte otvorte **Authentication → Users** a vytvorte používateľa správcu s vaším e-mailom a silným, jedinečným heslom.
-3. Pri vytvorení používateľa si skopírujte jeho **User UID** (UUID).
-4. V **Authentication → Providers → Email** ponechajte prihlásenie e-mailom a heslom povolené.
-5. V nastaveniach prihlasovania vypnite verejnú registráciu nových používateľov (**Allow new users to sign up**). Správcu pridávajte iba cez administráciu Supabase.
+Skript vytvorí jednu tabuľku pre obsah webu a zapne Row Level Security (RLS):
+- návštevníci môžu obsah iba čítať,
+- zapisovať a meniť obsah môže iba prihlásený správca s nakonfigurovaným UUID,
+- verejný kľúč v `config.js` nemá oprávnenie obísť tieto pravidlá.
 
-### 2. Vyplnenie konfigurácie
+## 2. Prvý prenos údajov do cloudu
 
-Otvorte súbor `config.js` a doplňte tri hodnoty:
+Po spustení SQL:
 
-- `supabaseUrl` – Project URL zo Supabase → Project Settings → API.
-- `supabaseAnonKey` – verejný **publishable key** alebo starší **anon key** z tej istej sekcie.
-- `adminUserId` – UUID používateľa správcu z Authentication → Users.
+1. Otvorte zverejnenú stránku Herba et Fructus.
+2. Obnovte stránku (ideálne Ctrl + F5).
+3. Prihláste sa v administrácii e-mailom a heslom správcu.
+4. Pri prvom prihlásení administrácia automaticky prenesie aktuálne kategórie, odrody, články a nastavenia do Supabase.
+5. V Supabase otvorte **Table Editor → site_content**. Mali by sa zobraziť štyri riadky: `sections`, `varieties`, `blog`, `settings`.
 
-Do `config.js` nikdy nevkladajte heslo ani `service_role` / `secret` kľúč. Publishable/anon kľúč je určený na použitie vo verejnom klientovi; nesmie však mať priveľké oprávnenia k databáze. Táto stránka na prihlasovanie databázu nepoužíva.
+Ak sa štyri riadky nevytvoria, skontrolujte chybu zobrazenú na stránke a výsledok SQL skriptu. Nespúšťajte opakované importy naslepo.
 
-### 3. Nahratie na GitHub Pages
+## 3. Ako teraz funguje administrácia
 
-1. Rozbaľte tento ZIP.
-2. Vytvorte nový GitHub repository (alebo použite existujúci).
-3. Nahrajte do koreňa repozitára súbory `index.html`, `config.js` a prípadne `.nojekyll`.
-4. Otvorte **Settings → Pages**.
-5. Ako zdroj vyberte **Deploy from a branch**, branch `main` a priečinok `/ (root)`, potom uložte.
-6. Po publikovaní otvorte adresu GitHub Pages a otestujte verejnú stránku aj prihlásenie správcu.
+- **Odrody, kategórie a články:** zmena sa uloží do Supabase.
+- **Sklad:** zmena počtu kusov sa uloží online a návštevníci uvidia aktuálne údaje po obnovení stránky.
+- **Nastavenie e-mailu:** uloží sa do databázy spolu s ostatnými nastaveniami.
+- **Obnoviť:** vráti obsah databázy na predvolené údaje vložené v aktuálnom kóde.
+- **Uložiť do cloudu:** ručne uloží všetky štyri časti obsahu. Už nevytvára HTML súbor.
+- **Import JSON:** importované údaje sa odošlú do online databázy.
 
-Supabase URL musí používať HTTPS. Pri testovaní cez lokálny server môžete do Supabase Auth → URL Configuration doplniť aj lokálnu adresu; samotné prihlásenie e-mailom a heslom nevyžaduje OAuth presmerovanie.
+Zmeny sa ukladajú do databázy, nie do súboru HTML. Aktualizácia stránky preto nevyžaduje nový upload na GitHub.
 
-## Dôležité: ako fungujú úpravy a sklad
+## 4. Konfigurácia a bezpečnosť
 
-Stránka je statická (GitHub Pages). Rovnako ako pôvodná verzia, aj táto ukladá zmeny administrácie do `localStorage` konkrétneho prehliadača. Zmeny sa automaticky nepublikujú na GitHub a nevidia ich ostatní návštevníci.
+V `config.js` sú tieto verejné hodnoty:
+- `supabaseUrl` – adresa projektu.
+- `supabaseAnonKey` – verejný publishable/anon kľúč.
+- `adminUserId` – UUID jediného používateľa oprávneného meniť obsah.
 
-Pred prvým spustením nastavte aj cieľový e-mail objednávkového formulára: v administračnej lište otvorte **E-mail**, zadajte svoju adresu a následne použite **Stiahnuť HTML**. Predvolená adresa `tvojemail@priklad.sk` je iba zástupný text.
+**Nikdy nevkladajte do `config.js` heslo správcu ani Supabase `service_role` / secret key.** Verejný kľúč je určený pre webový prehliadač; bezpečnosť zápisu zabezpečujú pravidlá RLS v databáze.
 
-Postup zverejnenia úprav:
+Správca musí byť vytvorený v Supabase → **Authentication → Users**. Vypnite verejnú registráciu používateľov, ak ju nepotrebujete.
 
-1. Prihláste sa ako správca.
-2. Upravte katalóg, sklad, sekcie alebo blog.
-3. Použite **Stiahnuť HTML** a stiahnutý súbor pomenujte `index.html`.
-4. Nahraďte ním `index.html` v GitHub repozitári a commitnite zmenu.
+## 5. Publikovanie webu
 
-Na uchovanie údajov použite aj tlačidlo **Export JSON**. Sklad v tejto verzii je lokálny: odpočítanie zásob z formulára sa prejaví iba v prehliadači, z ktorého bol formulár odoslaný. Nie je to spoločný sklad v reálnom čase. Na spoločný sklad a automatické zverejňovanie by bolo potrebné pripojiť databázu a serverové pravidlá prístupu.
+Kód je v GitHub repozitári `goomo1313/Herbaetfructus`. Pri každej zmene kódu (napríklad dizajn alebo nová funkcia) sa aktualizuje GitHub. Bežné zmeny obsahu stránky sa však ukladajú priamo do Supabase a nevyžadujú nový upload.
 
-## Bezpečnostné upozornenia
+Ak používate GitHub Pages, v repozitári otvorte **Settings → Pages** a skontrolujte, že sa publikuje branch `main` z koreňového priečinka.
 
-- Každý, kto má prístup do GitHub repozitára s právom zápisu, môže zmeniť verejnú stránku. Chráňte GitHub účet dvojfaktorovým overením.
-- Prihlasovacie heslo správcu sa neposiela do GitHubu ani sa neukladá v súbore stránky.
-- UUID správcu a publishable/anon kľúč sú verejné identifikátory, nie prihlasovacie tajomstvá.
-- Prihlasovacia obrazovka chráni vstup do administračného rozhrania, ale samotný GitHub Pages web je statický. Skutočnú ochranu publikovania zabezpečuje prístup do GitHub repozitára.
+## Poznámky
 
-## Súbory
-
-- `index.html` – stránka a všetky pôvodné funkcie.
-- `config.js` – verejná konfigurácia Supabase (treba doplniť).
-- `.nojekyll` – pomocný súbor pre GitHub Pages.
+- Obrázky sa zatiaľ ukladajú ako existujúce URL adresy v údajoch odrôd a článkov. Samostatné nahrávanie fotografií do Supabase Storage môžeme doplniť ako ďalšiu etapu.
+- Objednávkový formulár naďalej používa existujúce nastavenie FormSubmit. Databázové ukladanie objednávok zatiaľ nie je súčasťou tejto úpravy.
+- Pri prvom spustení sa do cloudu prenesú údaje dostupné v prehliadači, z ktorého sa správca prvýkrát prihlási. Ak ste v minulosti upravovali obsah iba v inom prehliadači alebo zariadení, najprv z neho vyexportujte JSON a použite Import JSON po nastavení databázy.
