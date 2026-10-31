@@ -498,6 +498,12 @@
         .btn-edit-card { background: #ED8936; color: white; }
         .btn-del-card { background: #E53E3E; color: white; }
 
+        .admin-variety-summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(115px,1fr)); gap:8px; margin:0 0 12px; }
+        .admin-variety-stat { background:#F1F5F9; border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; }
+        .admin-variety-stat strong { display:block; color:var(--primary-color); font-size:1.15rem; }
+        .admin-variety-stat span { color:var(--text-muted); font-size:.75rem; }
+        @media(max-width:650px){ #tableManagerModal .modal-box { padding:12px !important; } #tableManagerModal table { min-width:900px; } }
+
         /* Blog štýly */
         .blog-grid {
             display: grid;
@@ -975,8 +981,17 @@
                 <button class="admin-btn" style="background: #CBD5E0; color: #2D3748;" onclick="closeTableManagerModal()">✕ Zavrieť</button>
             </div>
 
+            <div class="admin-variety-summary" id="adminVarietySummary" aria-live="polite"></div>
             <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
-                <input type="text" id="adminTableSearch" placeholder="🔍 Rýchlo nájsť v tabuľke..." onkeyup="filterAdminTable()" style="flex: 1; min-width: 200px; padding: 8px 12px;">
+                <input type="text" id="adminTableSearch" placeholder="🔍 Hľadať názov, farbu, typ alebo sekciu..." oninput="filterAdminTable()" style="flex: 1; min-width: 200px; padding: 8px 12px;">
+                <select id="adminTableStatus" onchange="filterAdminTable()" style="min-width: 160px; padding: 8px 12px;">
+                    <option value="all">Všetky odrody</option>
+                    <option value="visible">Iba viditeľné</option>
+                    <option value="hidden">Iba skryté</option>
+                    <option value="stock">Sklad nad 0</option>
+                    <option value="empty">Sklad 0</option>
+                </select>
+                <button class="admin-btn" onclick="openVarietyModal()">＋ Pridať odrodu</button>
             </div>
 
             <div style="max-height: 450px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
@@ -2108,12 +2123,23 @@
             const tbody = document.getElementById('adminTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
+            const summary = document.getElementById('adminVarietySummary');
+            if (summary) {
+                const total = varietyDatabase.length;
+                const visible = varietyDatabase.filter(v => !v.hidden).length;
+                const hidden = total - visible;
+                const stock = varietyDatabase.reduce((sum, v) => sum + Math.max(0, Number(v.stock) || 0), 0);
+                summary.innerHTML = [
+                    ['Odrody spolu', total], ['Viditeľné', visible], ['Skryté', hidden], ['Balíčky na sklade', stock]
+                ].map(([label, value]) => `<div class="admin-variety-stat"><strong>${value}</strong><span>${label}</span></div>`).join('');
+            }
 
             varietyDatabase.forEach((v, index) => {
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = '1px solid var(--border-color)';
                 tr.style.background = v.hidden ? '#FFF5F5' : 'white';
-                tr.dataset.search = `${v.name.toLowerCase()} ${v.type.toLowerCase()} ${(v.color || '').toLowerCase()} ${v.section.toLowerCase()}`;
+                tr.dataset.search = `${v.name || ''} ${v.type || ''} ${(v.color || '')} ${v.section || ''}`.toLocaleLowerCase('sk');
+                tr.dataset.index = index;
 
                 const stockVal = typeof v.stock === 'number' ? v.stock : 10;
 
@@ -2137,6 +2163,7 @@
                     </td>
                     <td style="padding: 8px 10px; text-align: center;">
                         <button onclick="closeTableManagerModal(); editVariety(${index})" style="background: #ED8936; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;" title="Upraviť">✏️</button>
+                        <button onclick="duplicateVariety(${index})" style="background:#3182CE;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:.75rem;" title="Vytvoriť kópiu">📄</button>
                         <button onclick="deleteVarietyFromTable(${index})" style="background: #E53E3E; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;" title="Zmazať">🗑️</button>
                     </td>
                 `;
@@ -2153,11 +2180,30 @@
         }
 
         function filterAdminTable() {
-            const query = document.getElementById('adminTableSearch').value.toLowerCase();
+            const query = (document.getElementById('adminTableSearch')?.value || '').trim().toLocaleLowerCase('sk');
+            const status = document.getElementById('adminTableStatus')?.value || 'all';
             const rows = document.querySelectorAll('#adminTableBody tr');
             rows.forEach(row => {
-                row.style.display = row.dataset.search.includes(query) ? '' : 'none';
+                const v = varietyDatabase[Number(row.dataset.index)];
+                let match = row.dataset.search.includes(query);
+                if (status === 'visible') match = match && !v?.hidden;
+                if (status === 'hidden') match = match && !!v?.hidden;
+                if (status === 'stock') match = match && (Number(v?.stock) || 0) > 0;
+                if (status === 'empty') match = match && (Number(v?.stock) || 0) <= 0;
+                row.style.display = match ? '' : 'none';
             });
+        }
+
+        function duplicateVariety(index) {
+            if (!requireAdmin()) return;
+            const original = varietyDatabase[index];
+            if (!original) return;
+            const copy = { ...original, name: original.name + ' – kópia', hidden: true };
+            varietyDatabase.splice(index + 1, 0, copy);
+            try { queueCloudSave('varieties', varietyDatabase); } catch (e) {}
+            renderAll();
+            renderAdminTable();
+            showToast('📄 Kópia odrody vytvorená ako skrytá. Uprav názov a údaje.');
         }
 
         function toggleVarietyStatusInTable(index) {
