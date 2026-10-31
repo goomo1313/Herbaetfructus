@@ -1191,6 +1191,17 @@
         let currentCategory = 'all';
         let currentColor = 'all';
 
+        // Exportovaný HTML súbor má prednosť pred starými dátami uloženými v prehliadači.
+        const isHerbaExport = document.documentElement.hasAttribute('data-herba-export');
+        if (isHerbaExport) {
+            try {
+                localStorage.removeItem('herba_sections');
+                localStorage.removeItem('herba_varieties');
+                localStorage.removeItem('herba_blog');
+                localStorage.removeItem('herba_form_email');
+            } catch(e) {}
+        }
+
         try {
             const savedSec = localStorage.getItem('herba_sections');
             if (savedSec) sectionsDatabase = JSON.parse(savedSec);
@@ -1201,6 +1212,9 @@
             const savedEmail = localStorage.getItem('herba_form_email');
             if (savedEmail) farmSettings.email = savedEmail;
         } catch(e) {}
+
+        // Označenie exportu odstránime až po jednorazovom vyčistení starých dát.
+        if (isHerbaExport) document.documentElement.removeAttribute('data-herba-export');
 
         function resetDatabase() {
             if (!requireAdmin()) return;
@@ -2270,14 +2284,27 @@
 
         function downloadSiteCode() {
             if (!requireAdmin()) return;
+
             const currentSectionsJSON = JSON.stringify(sectionsDatabase, null, 4);
             const currentVarietiesJSON = JSON.stringify(varietyDatabase, null, 4);
             const currentBlogJSON = JSON.stringify(blogDatabase, null, 4);
-            const currentEmail = farmSettings.email;
+            const currentSettingsJSON = JSON.stringify(farmSettings, null, 4);
 
-            let htmlContent = document.documentElement.outerHTML;
+            // Exportujeme čistú kópiu stránky, nie jej dočasný stav v administrácii.
+            const exportRoot = document.documentElement.cloneNode(true);
+            exportRoot.setAttribute('data-herba-export', 'true');
+            exportRoot.classList.remove('admin-mode');
 
-            // Dôkladné nahradenie predvolených dát za aktuálne upravené dáta z pamäte
+            const exportedAdminBar = exportRoot.querySelector('#adminBar');
+            if (exportedAdminBar) exportedAdminBar.classList.remove('active');
+
+            exportRoot.querySelectorAll('.modal-overlay.active, .lightbox-overlay.active').forEach(element => {
+                element.classList.remove('active');
+            });
+
+            let htmlContent = exportRoot.outerHTML;
+
+            // Vložíme aktuálne údaje priamo do HTML súboru.
             htmlContent = htmlContent.replace(
                 /const defaultSections = \[[\s\S]*?\];\s*const categoryDescriptions/,
                 `const defaultSections = ${currentSectionsJSON};\n\n        const categoryDescriptions`
@@ -2288,8 +2315,13 @@
             );
             htmlContent = htmlContent.replace(
                 /const defaultVarieties = \[[\s\S]*?\];\s*let sectionsDatabase/,
-                `const defaultVarieties = ${currentVarietiesJSON};\n\n        let sectionsDatabase = [...defaultSections];\n        let varietyDatabase = [...defaultVarieties];\n        let blogDatabase = [...defaultBlogPosts];\n        let farmSettings = { email: "${currentEmail}" };`
+                `const defaultVarieties = ${currentVarietiesJSON};\n\n        let sectionsDatabase = [...defaultSections];\n        let varietyDatabase = [...defaultVarieties];\n        let blogDatabase = [...defaultBlogPosts];\n        let farmSettings = ${currentSettingsJSON};`
             );
+
+            if (!htmlContent.includes('data-herba-export="true"')) {
+                alert('Export sa nepodarilo pripraviť. Súbor nebol stiahnutý.');
+                return;
+            }
 
             const fullHtml = '<!DOCTYPE html>\n' + htmlContent;
             const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
@@ -2300,8 +2332,8 @@
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('💾 Kód bol úspešne stiahnutý so všetkými dátami!');
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('💾 Čistý HTML súbor s aktuálnymi údajmi bol stiahnutý!');
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
