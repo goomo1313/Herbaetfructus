@@ -632,6 +632,19 @@
             font-size: 0.95rem;
         }
         .cart-summary-box h4 { font-family: 'Playfair Display', serif; color: var(--primary-color); margin-bottom: 6px; }
+        .order-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 1.5rem; }
+        .order-step { padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: #F8FAFC; font-size: .88rem; }
+        .order-step strong { display: block; color: var(--primary-color); margin-bottom: 3px; }
+        .selector-search-meta { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin: -4px 0 10px; color: var(--text-muted); font-size: .82rem; }
+        .selector-empty { padding: 18px; text-align: center; color: var(--text-muted); border: 1px dashed var(--border-color); border-radius: 8px; }
+        .cart-line { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px solid rgba(44,85,48,.12); }
+        .cart-total-meta { margin-top: 9px; color: var(--text-muted); font-size: .82rem; }
+        @media (max-width: 600px) {
+            .order-steps { grid-template-columns: 1fr; gap: 7px; }
+            .order-step { padding: 9px 12px; }
+            .floating-selection { right: 10px; bottom: 10px; left: 10px; justify-content: center; padding: 10px 12px; font-size: .85rem; }
+            .selector-search-meta { align-items: flex-start; flex-direction: column; }
+        }
 
         button.btn-submit {
             background-color: var(--primary-color);
@@ -819,7 +832,12 @@
             <div class="section-header" style="border:none; margin-bottom: 0;">
                 <h2>Formulár pre Kúpu a Výmenu</h2>
             </div>
-            <p class="description" style="margin-bottom: 2.5rem;">Vyberte si, o čo máte záujem a zvoľte požadované množstvo balíčkov. Odoslaním formulára odošlete nezáväzný dopyt; skladové zásoby sa tým nemenia.</p>
+            <p class="description" style="margin-bottom: 1.5rem;">Vyberte si odrody, vyplňte kontaktné údaje a odošlite nezáväznú objednávku. Dostupnosť a ďalšie podrobnosti vám potvrdíme e-mailom. Odoslaním sa skladové zásoby nemenia.</p>
+            <div class="order-steps" aria-label="Postup objednávky">
+                <div class="order-step"><strong>1. Výber odrôd</strong>Vyberte odrody a počet balení.</div>
+                <div class="order-step"><strong>2. Kontaktné údaje</strong>Vyplňte údaje potrebné na odpoveď.</div>
+                <div class="order-step"><strong>3. Nezáväzný dopyt</strong>Odošlite výber, ktorý následne potvrdíme.</div>
+            </div>
             
             <form id="contactForm" method="POST" onsubmit="handleFormSubmit(event)">
                 <input type="text" name="_honey" style="display:none">
@@ -858,7 +876,8 @@
                         <details class="form-accordion" open>
                             <summary>Zoznam odrôd na výber (kliknite pre zbalenie/rozbalenie)</summary>
                             <div class="accordion-content">
-                                <input type="text" style="margin-bottom: 12px;" id="formTomatoFilter" placeholder="🔍 Rýchlo vyhľadať odrodu..." onkeyup="filterFormTomatoes()">
+                                <input type="text" style="margin-bottom: 8px;" id="formTomatoFilter" placeholder="🔍 Hľadať podľa názvu odrody..." oninput="filterFormTomatoes()" aria-label="Vyhľadať odrodu">
+                                <div class="selector-search-meta"><span id="formTomatoResults" aria-live="polite">Načítavam odrody…</span><span>Pri každej odrode nastavte počet balení.</span></div>
                                 <div class="varieties-selector" id="formTomatoSelector"></div>
                             </div>
                         </details>
@@ -1793,19 +1812,21 @@
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Počet bal.:</span>
                         <div class="quantity-selector">
                             <button class="qty-btn" type="button" onclick="changeFormQty(this, -1)">-</button>
-                            <input type="text" class="qty-input form-qty-input" value="1" readonly data-index="${index}">
-                            <button class="qty-btn" type="button" onclick="changeFormQty(this, 1)">+</button>
+                            <input type="text" class="qty-input form-qty-input" value="1" readonly data-index="${index}" data-max="${stockVal}" aria-label="Počet balení odrody ${t.name}">
+                            <button class="qty-btn" type="button" onclick="changeFormQty(this, 1)" aria-label="Pridať balenie ${t.name}">+</button>
                         </div>
                     </div>
                 `;
                 container.appendChild(itemDiv);
             });
+            updateFormFilterCount();
         }
 
         function changeFormQty(btn, delta) {
             const input = btn.parentElement.querySelector('.qty-input');
-            let val = parseInt(input.value) + delta;
-            if (val < 1) val = 1;
+            const max = Math.max(1, parseInt(input.dataset.max, 10) || 1);
+            let val = (parseInt(input.value, 10) || 1) + delta;
+            val = Math.max(1, Math.min(max, val));
             input.value = val;
             updateSelectionCounter();
         }
@@ -1832,19 +1853,44 @@
 
             if (targetCheckbox && targetQtyInput) {
                 targetCheckbox.checked = true;
-                let currentVal = parseInt(targetQtyInput.value) || 1;
-                targetQtyInput.value = currentVal + qtyToAdd - 1; 
+                let currentVal = parseInt(targetQtyInput.value, 10) || 1;
+                const max = Math.max(1, parseInt(targetQtyInput.dataset.max, 10) || 1);
+                const requested = currentVal + qtyToAdd - 1;
+                targetQtyInput.value = Math.min(max, requested);
                 updateSelectionCounter();
-                showToast(`✅ Úspešne pridané do výberu (${qtyToAdd} ks)`);
+                showToast(requested > max
+                    ? `Do výberu bolo pridaných ${max} bal. – viac kusov nie je skladom.`
+                    : `✅ Úspešne pridané do výberu (${qtyToAdd} ks)`);
             }
         }
 
         function filterFormTomatoes() {
-            const query = document.getElementById('formTomatoFilter').value.toLowerCase();
+            const query = document.getElementById('formTomatoFilter').value.trim().toLocaleLowerCase('sk');
             document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
-                const text = item.innerText.toLowerCase();
+                const text = item.innerText.toLocaleLowerCase('sk');
                 item.style.display = text.includes(query) ? 'flex' : 'none';
             });
+            updateFormFilterCount();
+        }
+
+        function updateFormFilterCount() {
+            const selector = document.getElementById('formTomatoSelector');
+            const result = document.getElementById('formTomatoResults');
+            if (!selector || !result) return;
+            const items = Array.from(selector.querySelectorAll('.selector-item'));
+            const visible = items.filter(item => item.style.display !== 'none');
+            result.textContent = `Zobrazených ${visible.length} z ${items.length} odrôd`;
+            let empty = selector.querySelector('.selector-empty');
+            if (visible.length === 0) {
+                if (!empty) {
+                    empty = document.createElement('div');
+                    empty.className = 'selector-empty';
+                    empty.textContent = 'Nenašli sa žiadne odrody. Skúste upraviť hľadaný výraz.';
+                    selector.appendChild(empty);
+                }
+            } else if (empty) {
+                empty.remove();
+            }
         }
 
         function updateSelectionCounter() {
@@ -1865,7 +1911,7 @@
                     
                     const itemTotal = (price * qty).toFixed(2);
                     selectedItemsList.push(`${cb.value} (počet: ${qty} bal.)`);
-                    cartSummaryHtml += `• ${cb.value} – ${qty}x bal. (${itemTotal} €)<br>`;
+                    cartSummaryHtml += `<div class="cart-line"><span>${cb.value} – ${qty} × bal.</span><strong>${itemTotal} €</strong></div>`;
                 }
             });
 
@@ -1881,7 +1927,7 @@
             const cartSummaryContent = document.getElementById('cartSummaryContent');
             if (cartSummaryContent) {
                 if (totalCount > 0) {
-                    cartSummaryContent.innerHTML = cartSummaryHtml + `<div style="margin-top: 8px; font-weight: 600; color: var(--primary-color);">Celková suma: ${totalPrice.toFixed(2)} €</div>`;
+                    cartSummaryContent.innerHTML = `<div class="cart-total-meta">Vybrané odrody: ${selectedItemsList.length} · Počet balení: ${totalCount}</div>` + cartSummaryHtml + `<div style="margin-top: 10px; font-weight: 700; color: var(--primary-color);">Orientačná suma: ${totalPrice.toFixed(2)} €</div><div class="cart-total-meta">Cena dopravy nie je zahrnutá. Konečné podmienky potvrdíme po prijatí dopytu.</div>`;
                 } else {
                     cartSummaryContent.innerHTML = 'Zatiaľ nemáte vybrané žiadne položky.';
                 }
