@@ -728,7 +728,8 @@
     <!-- ADMIN LIŠTA -->
     <div id="adminBar">
         <div class="admin-bar-row">
-            <div>🔧 <strong>Režim správcu aktívny</strong> <span style="font-size:0.76rem;font-weight:400;">(zmeny sa ukladajú v tomto prehliadači)</span></div>
+            <div>🔧 <strong>Režim správcu aktívny</strong> <span style="font-size:0.76rem;font-weight:400;">(zmeny sa ukladajú automaticky do cloudu)</span></div>
+            <div id="cloudSaveStatus" role="status" aria-live="polite" style="font-size:0.78rem;font-weight:600;color:#C6F6D5;white-space:nowrap;">☁️ Cloud pripravený</div>
         </div>
         <div class="admin-actions-scroll">
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openTableManagerModal()">📊 Tabuľka odrôd & Sklad</button>
@@ -736,7 +737,7 @@
             <button class="admin-btn" style="background: #D97706;" onclick="openFormSettingsModal()">✉️ E-mail</button>
             <button class="admin-btn" style="background: var(--primary-color);" onclick="openVarietyModal()">+ Odroda</button>
             <button class="admin-btn" style="background: #805AD5;" onclick="openBlogModal()">+ Blog</button>
-            <button class="admin-btn" style="background: #3182CE;" onclick="exportJsonData()">📤 Export JSON</button>
+            <button class="admin-btn" style="background: #3182CE;" onclick="exportJsonData()">📦 Zálohovať JSON</button>
             <button class="admin-btn" style="background: #D69E2E;" onclick="triggerImportJson()">📥 Import JSON</button>
             <input type="file" id="importJsonFile" accept=".json" style="display: none;" onchange="importDatabase(event)">
             <button class="admin-btn" style="background: #319795;" onclick="downloadSiteCode()">💾 ☁️ Uložiť do cloudu</button>
@@ -1165,14 +1166,42 @@
             return true;
         }
 
+        // Každý typ obsahu ukladáme postupne, aby starší zápis neprepísal novší.
+        const cloudSaveQueues = Object.create(null);
+
+        function setCloudSaveStatus(message, color = '#C6F6D5') {
+            const status = document.getElementById('cloudSaveStatus');
+            if (!status) return;
+            status.textContent = message;
+            status.style.color = color;
+        }
+
         function queueCloudSave(id, content) {
-            if (!adminAuthenticated) return;
-            persistCloudContent(id, content)
-                .then(() => console.info('Cloud uloženie úspešné:', id))
-                .catch(error => {
-                    console.error('Cloud uloženie zlyhalo:', id, error);
-                    showToast('❌ Uloženie do cloudu zlyhalo: ' + (error.message || 'skontroluj Supabase SQL a pripojenie'));
-                });
+            if (!adminAuthenticated) return Promise.resolve(false);
+
+            // Uložíme nemennú kópiu aktuálneho stavu, nie meniaci sa objekt.
+            const snapshot = JSON.parse(JSON.stringify(content));
+            const previous = cloudSaveQueues[id] || Promise.resolve();
+            setCloudSaveStatus('☁️ Ukladám zmeny…', '#FDE68A');
+
+            const task = previous.catch(() => {}).then(() => persistCloudContent(id, snapshot));
+            const tracked = task.then(() => {
+                if (cloudSaveQueues[id] === tracked) delete cloudSaveQueues[id];
+                if (Object.keys(cloudSaveQueues).length === 0) {
+                    setCloudSaveStatus('✓ Všetky zmeny sú uložené', '#C6F6D5');
+                }
+                console.info('Cloud uloženie úspešné:', id);
+                return true;
+            }).catch(error => {
+                if (cloudSaveQueues[id] === tracked) delete cloudSaveQueues[id];
+                console.error('Cloud uloženie zlyhalo:', id, error);
+                setCloudSaveStatus('⚠️ Uloženie sa nepodarilo', '#FEB2B2');
+                showToast('❌ Uloženie do cloudu zlyhalo: ' + (error.message || 'skontroluj pripojenie'));
+                return false;
+            });
+
+            cloudSaveQueues[id] = tracked;
+            return tracked;
         }
 
         async function seedCloudContentIfNeeded() {
@@ -1317,7 +1346,10 @@
         // JSON Export & Import funkcie
         function exportJsonData() {
             if (!requireAdmin()) return;
+            const now = new Date();
             const data = {
+                backupVersion: 1,
+                exportedAt: now.toISOString(),
                 sections: sectionsDatabase,
                 varieties: varietyDatabase,
                 blog: blogDatabase,
@@ -1327,10 +1359,12 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'herba_fructus_backup.json';
+            a.download = 'herba_fructus_zaloha_' + now.toISOString().slice(0, 16).replace(/:/g, '-') + '.json';
+            document.body.appendChild(a);
             a.click();
+            a.remove();
             URL.revokeObjectURL(url);
-            showToast('📤 Dáta boli úspešne exportované do JSON!');
+            showToast('📦 Záloha Herba et Fructus bola stiahnutá.');
         }
 
         function triggerImportJson() {
