@@ -17,6 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="./catalogue-ui.css">
+    <link rel="stylesheet" href="./garden-calendar.css">
     <style>
         :root {
             --primary-color: #2C5530;
@@ -187,6 +188,14 @@
             margin: 0 auto;
             color: var(--text-muted);
         }
+
+        .hero-links { display:flex; justify-content:center; flex-wrap:wrap; gap:12px; margin-top:25px; }
+        .hero-links button { padding:12px 18px; border-radius:9px; border:1px solid #94b398; font:inherit; font-weight:700; cursor:pointer; background:#2c5530; color:white; }
+        .hero-links button:nth-child(2) { color:#2c5530; background:white; }
+        .hero-links button:nth-child(3) { color:#2c5530; background:#e8f1e5; }
+        .hero-links button:hover, .hero-links button:focus-visible { box-shadow:0 0 0 3px rgba(52,106,63,.14); }
+        .hero-advantages { margin:24px auto 0; display:flex; justify-content:center; gap:10px 24px; flex-wrap:wrap; font-size:.84rem; color:#49634e; }
+        .hero-advantages span::before { content:'✓ '; color:#297442; font-weight:800; }
 
         main {
             max-width: 1200px;
@@ -967,11 +976,124 @@
     <div class="hero">
         <h1 id="heroTitle">Herba et Fructus</h1>
         <p id="heroDesc">Zberateľské paradajky, tekvice, vlastné semená a príbehy zo záhrady. Objavujte odrody a praktické návody na pestovanie.</p>
+        <div class="hero-links" aria-label="Kam sa pozrieť ďalej">
+            <button type="button" onclick="switchSection('paradajky')">Prezrieť odrody paradajok</button>
+            <button type="button" onclick="switchSection('blog')">Pestovateľské články</button>
+            <button type="button" onclick="switchSection('kalendar')">Pestovateľský kalendár</button>
+        </div>
+        <div class="hero-advantages" aria-label="O našom katalógu">
+            <span>Zberateľské odrody a ich opisy</span>
+            <span>Praktické návody</span>
+            <span>Nezáväzný dopyt po semenách</span>
+        </div>
     </div>
 
     <main id="mainContainer">
         <!-- Dynamické karty / sekcie sa vykreslia sem -->
     </main>
+
+    <!-- PRAKTICKÝ KALENDÁR: samostatná sekcia bez prepísania obsahu Supabase -->
+    <section id="gardenCalendarSection" class="garden-calendar" style="display:none;" aria-labelledby="gardenCalendarTitle">
+        <header class="garden-calendar-header">
+            <span class="garden-calendar-tag">Rok v záhrade</span>
+            <h2 id="gardenCalendarTitle">Pestovateľský kalendár od semienka po úrodu</h2>
+            <p>Praktický orientačný plán pre slovenské podmienky. Kalendár nie je pevný termínový rozpis: medzi teplou nížinou a chladnejšou podhorskou záhradou býva rozdiel niekoľko týždňov. Pred výsadbou sledujte predpoveď, stav pôdy a nočné teploty.</p>
+        </header>
+        <section class="garden-season">
+            <h3>Zima – plánovanie a osivo</h3>
+            <div class="garden-month-grid">
+                <article class="garden-month">
+                    <h4>Január</h4>
+                    <p>Urobte inventúru semien, poznačte si rok zberu a pripravte plán výsevu. Staršiu zásobu overte jednoduchou skúškou klíčivosti.</p>
+                    <p><strong>Praktický tip:</strong> Záhradný denník pomôže udržať poriadok aj pri veľkej zbierke.</p>
+                </article>
+                <article class="garden-month">
+                    <h4>Február</h4>
+                    <p>Vyberte odrody pre záhon, nádobu či skleník. Skontrolujte výsevné nádoby, svetlo a priestor na predpestovanie. V teplej izbe bez dostatku svetla sa sadeničky vyťahujú.</p>
+                    <p><strong>Praktický tip:</strong> S výsevom sa neunáhlite: dôležitý je plánovaný dátum výsadby.</p>
+                </article>
+                <article class="garden-month">
+                    <h4>Marec</h4>
+                    <p>V mnohých podmienkach nastáva vhodný čas na výsev paradajok pre májovú až júnovú výsadbu. Semená udržiavajte primerane vlhké a po vzídení doprajte rastlinám dostatok svetla.</p>
+                    <p><strong>Praktický tip:</strong> Čas výsevu upravte podľa nadmorskej výšky, počasia a toho, či máte skleník.</p>
+                </article>
+            </div>
+        </section>
+        <section class="garden-season">
+            <h3>Jar – predpestovanie a výsadba</h3>
+            <div class="garden-month-grid">
+                <article class="garden-month">
+                    <h4>Apríl</h4>
+                    <p>Pikírujte mladé rastliny, kontrolujte korene a pripravujte opory. Substrát má byť vlhký, nie premočený. Počas priaznivých dní začnite s postupným otužovaním.</p>
+                    <p><strong>Praktický tip:</strong> Citlivé sadeničky nenechávajte na nočnom chlade.</p>
+                </article>
+                <article class="garden-month">
+                    <h4>Máj</h4>
+                    <p>Sledujte predpoveď a riziko prízemných mrazov. Paradajky vysádzajte až po bezpečnom oteplení, na slnečné a vzdušné miesto. Pripravte zálievku, opory a mulč.</p>
+                    <p><strong>Praktický tip:</strong> V chladnejších oblastiach Slovenska môže byť bezpečný termín až neskôr.</p>
+                </article>
+                <article class="garden-month">
+                    <h4>Jún</h4>
+                    <p>Vyväzujte kolíkové paradajky, kontrolujte zálistky podľa typu odrody a zavlažujte ku koreňom. Pri tekviciach sledujte vlahu a rast. Zaznamenávajte rozdiely medzi odrodami.</p>
+                    <p><strong>Praktický tip:</strong> Rovnomerná zálievka pomáha obmedziť praskanie plodov.</p>
+                </article>
+            </div>
+        </section>
+        <section class="garden-season">
+            <h3>Leto – rast, úroda a zdravie rastlín</h3>
+            <div class="garden-month-grid">
+                <article class="garden-month">
+                    <h4>Júl</h4>
+                    <p>Priebežne zbierajte dozreté plody a kontrolujte listy aj stonky. Pri teple dávajte pozor na presychanie pôdy v nádobách. Choré alebo netypické rastliny nepoužívajte ako hlavný zdroj osiva.</p>
+                    <p><strong>Praktický tip:</strong> Pri odrodách si zapisujte prvý zber, chuť a približnú hmotnosť plodov.</p>
+                </article>
+                <article class="garden-month">
+                    <h4>August</h4>
+                    <p>Vrcholí zber mnohých paradajok. Na osivo vyberajte plne vyzreté plody zo zdravých a typických rastlín. Každú odrodu označte ešte pred odberom semien.</p>
+                    <p><strong>Praktický tip:</strong> Semená po fermentácii dobre prepláchnite a dosušte.</p>
+                </article>
+                <article class="garden-month">
+                    <h4>September</h4>
+                    <p>Pokračujte v zbere a spracovaní plodov. Pri zimných tekviciach sledujte vyzretie šupky a stopky a chráňte ich pred mrazom. Zapisujte si úspechy aj problémy sezóny.</p>
+                    <p><strong>Praktický tip:</strong> Termín ukončenia sezóny sa podľa lokality výrazne líši.</p>
+                </article>
+            </div>
+        </section>
+        <section class="garden-season">
+            <h3>Jeseň – pôda, archivácia a príprava ďalšej sezóny</h3>
+            <div class="garden-month-grid">
+                <article class="garden-month">
+                    <h4>Október</h4>
+                    <p>Po skončení úrody odstráňte napadnuté zvyšky, vyčistite opory a pripravte pôdu. Zvážte kompost a krytie povrchu. Semená označte a premiestnite do suchého skladu.</p>
+                    <p><strong>Praktický tip:</strong> Pred dlhodobým uložením osiva skontrolujte jeho vysušenie.</p>
+                </article>
+                <article class="garden-month">
+                    <h4>November</h4>
+                    <p>Zrekapitulujte odrody, vytrieďte fotky plodov a doplňte záznamy o úrode. Zimné mesiace využite na porovnanie vlastností odrôd a plán budúceho výsevu.</p>
+                    <p><strong>Praktický tip:</strong> Vytvorte si zoznam odrôd, ktoré sa osvedčili v konkrétnej záhrade.</p>
+                </article>
+                <article class="garden-month">
+                    <h4>December</h4>
+                    <p>Skontrolujte uchovávané osivo, evidenciu a skladovací priestor. Naplánujte skúšky klíčivosti, výmeny stanovíšť a skúmanie ďalších odrôd.</p>
+                    <p><strong>Praktický tip:</strong> Najväčšou hodnotou je semeno spolu so spoľahlivým názvom a údajom o pôvode.</p>
+                </article>
+            </div>
+        </section>
+        <aside class="garden-note"><strong>Pozor na termíny:</strong> Odrody, spôsob pestovania a lokálne podmienky sa líšia. Údaje v kalendári sú všeobecné pestovateľské odporúčania, nie prísľub úrody ani presná klimatická predpoveď.</aside>
+        <section class="garden-faq" aria-labelledby="gardenFaqTitle">
+            <h3 id="gardenFaqTitle">Často kladené otázky</h3>
+            <details><summary>Kedy mám vysievať paradajky?</summary><p>Približne päť až šesť týždňov pred plánovanou výsadbou na trvalé stanovište. Bez dobrého osvetlenia je príliš skorý výsev často nevýhodný. Riaďte sa predpokladaným posledným mrazom a skutočným počasím.</p></details>
+            <details><summary>Môžem si uchovať semená z každej paradajky?</summary><p>Pri ustálenej odrode sa často podarí získať podobné potomstvo, ak nedošlo ku kríženiu. Pri hybride F1 sa znaky ďalšej generácie môžu štiepiť. Semená z chorých či atypických rastlín si neodkladajte ako odrodovo reprezentatívne.</p></details>
+            <details><summary>Čo je rozdiel medzi determinantnou a indeterminantnou odrodou?</summary><p>Determinantná rastlina má obmedzenejší rast a často rodí sústredenejšie. Indeterminantná pokračuje v raste a spravidla potrebuje vysokú oporu. Cherry alebo multiflora sú iné charakteristiky a samy rastový typ neurčujú.</p></details>
+            <details><summary>Čo znamená hmotnosť plodu v katalógu?</summary><p>Je orientačná. Jedna odroda môže mať rozdielne veľké plody podľa svetla, teploty, výživy, veľkosti strapca a celkovej kondície rastliny.</p></details>
+            <details><summary>Môže sa Hokkaido krížiť s cuketou?</summary><p>Hokkaido je spravidla tekvica druhu Cucurbita maxima, bežná cuketa patrí do C. pepo. Medzidruhové kríženie je nezvyčajné, ale rôzne odrody rovnakého druhu sa môžu krížiť. Pri semenárstve sa riaďte presným botanickým druhom odrody.</p></details>
+            <details><summary>Zmení sa sklad hneď po odoslaní formulára?</summary><p>Nie. Formulár slúži na nezáväzný dopyt. Dostupnosť a konečné podmienky potvrdíme odpoveďou e-mailom; sklad upravujeme až po ručnom vybavení objednávky.</p></details>
+            <details><summary>Prečo ešte pri niektorých odrodách nie je fotografia?</summary><p>Prednosť majú autentické zábery konkrétnej odrody. Nechceme zameniť fotografie podobných, ale odlišných paradajok. Fotografie priebežne doplníme po identifikácii a spracovaní vlastných podkladov.</p></details>
+        </section>
+        <div class="garden-note" style="background:#edf5ea;border-left-color:#4b8154;">
+            <strong>Viac do hĺbky:</strong> K postupom nájdete články o výseve, semenárstve, krížení tekvíc a zdravotnom stave paradajok v časti <button type="button" class="garden-link" onclick="switchSection('blog')">Blog &amp; rady</button>.
+        </div>
+    </section>
 
     <!-- AKO OBJEDNAŤ: nezáväzný dopyt na semienka -->
     <section id="podmienkySection" style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: none;">
@@ -1968,6 +2090,14 @@
                 li.appendChild(btn);
                 navUl.appendChild(li);
             });
+            const calendarLi = document.createElement('li');
+            const calendarButton = document.createElement('button');
+            calendarButton.type = 'button';
+            calendarButton.textContent = 'Pestovateľský kalendár';
+            if (currentActiveSection === 'kalendar') calendarButton.classList.add('active-tab');
+            calendarButton.onclick = () => switchSection('kalendar');
+            calendarLi.appendChild(calendarButton);
+            navUl.appendChild(calendarLi);
         }
 
         function switchSection(secId) {
@@ -1980,8 +2110,10 @@
 
             const contactSec = document.getElementById('kontaktSection');
             const podmienkySec = document.getElementById('podmienkySection');
+            const calendarSec = document.getElementById('gardenCalendarSection');
+            if (calendarSec) calendarSec.style.display = secId === 'kalendar' ? 'block' : 'none';
 
-            if (secId === 'domov') {
+            if (secId === 'domov' || secId === 'kalendar') {
                 contactSec.style.display = 'none';
                 podmienkySec.style.display = 'none';
             } else if (secId === 'podmienky') {
