@@ -8,6 +8,7 @@
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[c]));
     const compareNames = [];
+    const previousSort = new Map();
     const collator = new Intl.Collator('sk', { sensitivity:'base', numeric:true });
     let focusBeforeOverlay = null;
 
@@ -217,20 +218,27 @@
             card.style.display=match?'flex':'none';
             if(match) shown++;
         }
-        if(sort!=='default') {
-            cards.sort((a,b)=>{
-                if(sort==='name') return collator.compare(a.dataset.name||'',b.dataset.name||'');
-                const desc=sort.endsWith('desc');
-                const ka=sortKey(a,sort),kb=sortKey(b,sort);
-                if(typeof ka==='number' && typeof kb==='number') {
-                    if(!Number.isFinite(ka))return 1;
-                    if(!Number.isFinite(kb))return -1;
-                    return desc ? kb-ka : ka-kb;
-                }
-                return collator.compare(format(ka),format(kb));
-            });
-        } else cards.sort((a,b)=>Number(a.dataset.originalOrder)-Number(b.dataset.originalOrder));
-        for(const card of cards) grid.appendChild(card);
+        // Sorting may move tens/hundreds of DOM nodes. Only do it if the selected
+        // ordering changes; text search and stock filters should change visibility only.
+        if(previousSort.get(sectionId)!==sort) {
+            if(sort!=='default') {
+                cards.sort((a,b)=>{
+                    if(sort==='name') return collator.compare(a.dataset.name||'',b.dataset.name||'');
+                    const desc=sort.endsWith('desc');
+                    const ka=sortKey(a,sort),kb=sortKey(b,sort);
+                    if(typeof ka==='number' && typeof kb==='number') {
+                        if(!Number.isFinite(ka))return 1;
+                        if(!Number.isFinite(kb))return -1;
+                        return desc ? kb-ka : ka-kb;
+                    }
+                    return collator.compare(format(ka),format(kb));
+                });
+            } else {
+                cards.sort((a,b)=>Number(a.dataset.originalOrder)-Number(b.dataset.originalOrder));
+            }
+            for(const card of cards) grid.appendChild(card);
+            previousSort.set(sectionId,sort);
+        }
         const counter=$('filterCount_' + sectionId);
         if(counter) counter.textContent='Zobrazených ' + shown + ' z ' + cards.length + ' odrôd';
     }
