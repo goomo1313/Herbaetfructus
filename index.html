@@ -6,9 +6,9 @@
     <title>Herba et Fructus - Rodinná semenná farma</title>
     
     <!-- SEO a Open Graph Meta Tagy pre sociálne siete -->
-    <meta name="description" content="Domáce pestovanie, zber semienok a udržiavanie vzácnych aj tradičných odrôd zeleniny a ovocia.">
+    <meta name="description" content="Herba et Fructus – zberateľské paradajky, tekvice a vlastné semená. Praktické návody na pestovanie, získavanie semien a starostlivosť o záhradu.">
     <meta property="og:title" content="Herba et Fructus - Rodinná semenná farma">
-    <meta property="og:description" content="Domáce pestovanie, zber semienok a udržiavanie vzácnych aj tradičných odrôd zeleniny a ovocia.">
+    <meta property="og:description" content="Herba et Fructus – zberateľské paradajky, tekvice a vlastné semená. Praktické návody na pestovanie, získavanie semien a starostlivosť o záhradu.">
     <meta property="og:type" content="website">
 
     <!-- Moderné Google Fonty -->
@@ -965,7 +965,7 @@
 
     <div class="hero">
         <h1 id="heroTitle">Herba et Fructus</h1>
-        <p id="heroDesc">Domáce pestovanie, zber semienok a udržiavanie vzácnych aj tradičných odrôd zeleniny a ovocia.</p>
+        <p id="heroDesc">Zberateľské paradajky, tekvice, vlastné semená a príbehy zo záhrady. Objavujte odrody a praktické návody na pestovanie.</p>
     </div>
 
     <main id="mainContainer">
@@ -1695,7 +1695,12 @@
             const prepared = blogDatabase.map(post => ({ ...post }));
             const alreadyExists = new Set(prepared.map(post => post.id).filter(Boolean));
             for (const legacy of originalDemoArticles) {
-                const index = prepared.findIndex(post => post.title === legacy.title && String(post.content || '').includes(legacy.phrase));
+                const index = prepared.findIndex(post => {
+                    const text = String(post.content || '');
+                    return post.title === legacy.title &&
+                        text.includes(legacy.phrase) &&
+                        text.length < (legacy.id === 'hf-deti-v-zahrade' ? 700 : 200);
+                });
                 if (index < 0 || alreadyExists.has(legacy.id)) continue;
                 const replacement = editorialPosts.find(post => post.id === legacy.id);
                 if (!replacement) continue;
