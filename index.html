@@ -2369,6 +2369,13 @@
         }
 
         function switchSection(secId) {
+            const sectionChanged = currentActiveSection !== secId;
+            if (sectionChanged) {
+                // Pomology and color choices belong to the section being viewed.
+                // Avoid inheriting an unavailable tomato type when opening pumpkins.
+                currentCategory = 'all';
+                currentColor = 'all';
+            }
             currentActiveSection = secId;
             renderNav();
             
@@ -2377,8 +2384,19 @@
             if (target) {
                 target.classList.add('active-section');
                 const grid = target.querySelector('[data-section-grid]');
+                if (sectionChanged) {
+                    for (const id of ['filterChips_', 'colorChips_']) {
+                        const chips = document.getElementById(id + secId);
+                        if (!chips) continue;
+                        const buttons = chips.querySelectorAll('button.chip');
+                        buttons.forEach((button, index) => button.classList.toggle('active', index === 0));
+                    }
+                    updateCategoryInfoBox(secId);
+                }
                 if (grid && grid.dataset.rendered !== 'true') {
                     renderVarietyGridForSection(secId);
+                } else if (grid && window.HERBA_IMPROVEMENTS && sectionChanged) {
+                    window.HERBA_IMPROVEMENTS.applyFilters(secId);
                 }
             }
 
