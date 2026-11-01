@@ -2805,6 +2805,32 @@
             }
         }
 
+        // Rýchla úprava výberu bez nutnosti otvárať celý zoznam 52 odrôd.
+        function changeSummaryQty(selectorIndex, delta) {
+            const items = document.querySelectorAll('#formTomatoSelector .selector-item');
+            const item = items[selectorIndex];
+            if (!item) return;
+            const cb = item.querySelector('input[type="checkbox"]');
+            const input = item.querySelector('.form-qty-input');
+            if (!cb || !cb.checked || !input || cb.disabled) return;
+            const max = Math.max(1, Number.parseInt(input.dataset.max, 10) || 1);
+            const qty = Number.parseInt(input.value, 10) || 1;
+            input.value = Math.min(max, Math.max(1, qty + (delta > 0 ? 1 : -1)));
+            updateSelectionCounter();
+        }
+
+        function removeSummaryVariety(selectorIndex) {
+            const items = document.querySelectorAll('#formTomatoSelector .selector-item');
+            const item = items[selectorIndex];
+            if (!item) return;
+            const cb = item.querySelector('input[type="checkbox"]');
+            const qty = item.querySelector('.form-qty-input');
+            if (!cb) return;
+            cb.checked = false;
+            if (qty) qty.value = '1';
+            updateSelectionCounter();
+        }
+
         function updateSelectionCounter() {
             const selectorItems = document.querySelectorAll('#formTomatoSelector .selector-item');
             let totalCount = 0;
@@ -2812,43 +2838,58 @@
             let selectedItemsList = [];
             let cartSummaryHtml = '';
 
-            selectorItems.forEach(item => {
+            selectorItems.forEach((item, index) => {
                 const cb = item.querySelector('input[type="checkbox"]');
                 if (cb && cb.checked) {
                     const qtyInput = item.querySelector('.form-qty-input');
-                    const qty = parseInt(qtyInput.value) || 1;
+                    const qty = Math.max(1, Number.parseInt(qtyInput?.value, 10) || 1);
                     const price = parseFloat(cb.dataset.price) || 0;
                     totalCount += qty;
                     totalPrice += price * qty;
-                    
                     const itemTotal = (price * qty).toFixed(2);
+                    const safeName = escapeHtml(cb.value);
                     selectedItemsList.push(`${cb.value} (počet: ${qty} bal.)`);
-                    cartSummaryHtml += `<div class="cart-line"><span>${escapeHtml(cb.value)} – ${qty} × bal.</span><strong>${itemTotal} €</strong></div>`;
+                    cartSummaryHtml += `
+                        <div class="cart-line">
+                            <span class="cart-line-title">${safeName}</span>
+                            <div class="cart-line-actions">
+                                <button type="button" onclick="changeSummaryQty(${index}, -1)" aria-label="Znížiť počet balení odrody ${safeName}">−</button>
+                                <strong>${qty} bal.</strong>
+                                <button type="button" onclick="changeSummaryQty(${index}, 1)" aria-label="Zvýšiť počet balení odrody ${safeName}">+</button>
+                                <button class="cart-remove" type="button" onclick="removeSummaryVariety(${index})" aria-label="Odstrániť odrodu ${safeName} z výberu">Odstrániť</button>
+                            </div>
+                            <strong class="cart-line-price">${itemTotal} €</strong>
+                        </div>`;
                 }
             });
 
             const counterEl = document.getElementById('floatingCounter');
-            if (totalCount > 0) {
-                counterEl.style.display = 'flex';
-                counterEl.querySelector('.count').innerText = totalCount;
-                counterEl.querySelector('.totalPrice').innerText = totalPrice.toFixed(2) + ' €';
-            } else {
-                counterEl.style.display = 'none';
+            if (counterEl) {
+                if (totalCount > 0) {
+                    counterEl.style.display = 'flex';
+                    counterEl.querySelector('.count').innerText = totalCount;
+                    counterEl.querySelector('.totalPrice').innerText = totalPrice.toFixed(2) + ' €';
+                } else {
+                    counterEl.style.display = 'none';
+                }
             }
 
             const cartSummaryContent = document.getElementById('cartSummaryContent');
             if (cartSummaryContent) {
                 if (totalCount > 0) {
-                    cartSummaryContent.innerHTML = `<div class="cart-total-meta">Vybrané odrody: ${selectedItemsList.length} · Počet balení: ${totalCount}</div>` + cartSummaryHtml + `<div style="margin-top: 10px; font-weight: 700; color: var(--primary-color);">Orientačná suma: ${totalPrice.toFixed(2)} €</div><div class="cart-total-meta">Cena dopravy nie je zahrnutá. Konečné podmienky potvrdíme po prijatí dopytu.</div>`;
+                    cartSummaryContent.innerHTML = `<div class="cart-total-meta">Vybrané odrody: ${selectedItemsList.length} · Počet balení: ${totalCount}</div>` +
+                        cartSummaryHtml +
+                        `<div style="margin-top: 10px; font-weight: 700; color: var(--primary-color);">Orientačná hodnota výberu: ${totalPrice.toFixed(2)} €</div>` +
+                        `<div class="cart-total-meta">Suma nezahŕňa prípadné doručenie. Nejde o potvrdenú objednávku ani rezerváciu.</div>`;
                 } else {
-                    cartSummaryContent.innerHTML = 'Zatiaľ nemáte vybrané žiadne položky.';
+                    cartSummaryContent.innerHTML = 'Zatiaľ nemáte vybrané žiadne odrody. V katalógu stlačte „Pridať do výberu“, alebo otvorte úpravu výberu pod týmto súhrnom.';
                 }
             }
 
             const orderSummary = document.getElementById('orderSummary');
             if (orderSummary) {
                 orderSummary.value = totalCount > 0
-                    ? selectedItemsList.join('\n') + `\nCelkový počet balíčkov: ${totalCount}\nOrientačná suma: ${totalPrice.toFixed(2)} €`
+                    ? selectedItemsList.join('\n') + `\nCelkový počet balíčkov: ${totalCount}\nOrientačná hodnota výberu: ${totalPrice.toFixed(2)} €`
                     : 'Bez výberu odrôd';
             }
         }
