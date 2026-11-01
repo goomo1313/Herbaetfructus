@@ -303,6 +303,63 @@ priamo u poskytovateľa formulára.
 Automatické kontroly v `tests/form-pause.mjs` overujú ukladanie stavu,
 zobrazenie, odmietnutie odoslania a návrat pri chybe cloudu.
 
+## Bezpečná údržba a úpravy z 1. 11. 2026
+
+Tieto vylepšenia boli vykonané v GitHube bez zápisu do živých dát Supabase.
+Všetky existujúce názvy, fotografie, ceny, sklad, stav formulára a vlastné
+články správcu ostávajú zachované.
+
+### Bezpečnejšie úpravy v administrácii
+- Zmazanie odrody, článku či karty, zmena poradia a skrytie karty sa
+  lokálne prejavia až po potvrdenom uložení na Supabase. Pri chybe
+  sieťového spojenia sa zmeny nepredstierajú ako uložené.
+- Kartu s existujúcimi odrodami nemožno zmazať, kým sa odrody
+  nepremiestnia. Základné systémové karty majú ochranu proti zmazaniu.
+- Vykresľovanie hodnôt v administračnej tabuľke používa HTML escapovanie.
+- HTML článkov je pri zobrazení filtrované. Ponechávajú sa bežné
+  bloky, odseky, nadpisy, zoznamy, externé HTTPS odkazy, obrázky
+  a bezpečné zarovnanie; nebezpečné značky a udalostné atribúty sa
+  nedostanú do aktívneho HTML.
+
+### Používanie na mobile a klávesnici
+- Pomocný súbor `site-polish.css` zlepšuje medzery, ovládacie
+  plochy tlačidiel, vodorovne posúvateľné menu a modálne okná.
+- Výška hornej administračnej lišty sa meria podľa skutočného
+  zalomenia na mobile. Lišta sa tak nemá prekrývať s navigáciou.
+- Pribudol odkaz **Preskočiť na hlavný obsah**, kontrastné zvýraznenie
+  klávesnicového fokusu a šetrné nastavenie pre preferované
+  obmedzenie animácií.
+
+### Overiť cloud (bez prepisovania)
+Pôvodné ručné tlačidlo **Uložiť do cloudu** by mohlo na jednom zariadení
+prepísať novšie zmeny, ktoré medzitým prišli z druhého zariadenia.
+Nahradilo ho **☁️ Overiť cloud**. Teraz:
+1. počká na dokončenie automaticky bežiacich zápisov;
+2. prečíta štyri záznamy `sections`, `varieties`, `blog`, `settings`;
+3. porovná obsah a upozorní na chýbajúce alebo odlišné údaje;
+4. **neodosiela žiadny zápis ani nič nemaže**.
+
+Ak sa údaje líšia, najprv stiahni **Zálohovať JSON** a až potom obnov stránku.
+Nemení sa spôsob automatického uloženia po bežnej úprave v admin režime.
+
+### Vyhľadávače a zdieľanie
+Pridané sú `sitemap.xml`, `robots.txt`, kanonická URL pre súčasné
+GitHub Pages, Open Graph obrázok z Nášho príbehu a meta údaje na zdieľanie.
+Mapa webu aktuálne obsahuje iba skutočnú hlavnú URL, pretože
+dynamické detailné okná `#odroda=...` nie sú samostatné HTML dokumenty.
+**`robots.txt` v podpriečinku GitHub Pages nie je pravidlom na úrovni
+koreňa domény**. Pre budúcu vlastnú doménu treba súbory a URL znova
+aktualizovať. Samostatné indexovateľné stránky jednotlivých odrôd
+zatiaľ nie sú vytvorené, aby sa nesprávne neduplikovali alebo neoddelili
+od živých dát Supabase.
+
+### Automatické testy
+Pridané sú `tests/maintenance-safety.mjs` a `tests/polish-smoke.mjs`.
+Overujú návrat pri neúspešnom cloude, mazanie a poradie sekcií,
+základnú sanitizáciu článkov, čítanie cloudu bez zápisu, rozlíšenie
+nezhodných dát na inom zariadení, pohyblivú výšku administračnej lišty
+a základné súbory pre SEO.
+
 ## Poznámky
 
 - **Fotografie:** správca môže vkladať URL alebo nahrávať súbory priamo pri kartách aj odrodách. Galérie odrôd majú vlastný editor a zmenšovanie obrázkov. Fotografie blogu sa zatiaľ nastavujú cez HTTPS URL. Bucket `site-images` musí mať bezpečné RLS politiky.
