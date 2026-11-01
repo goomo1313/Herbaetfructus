@@ -1,0 +1,59 @@
+
+/* Herba et Fructus: detail odrody a fotogaléria bez externých závislostí. */
+.variety-more {
+    border: 1px solid #b8d3b5; color: #295833; background: #f3f8f0;
+    border-radius: 9px; padding: 10px 13px; font: inherit; font-weight: 700;
+    cursor: pointer; width: 100%; text-align: center; margin-top: 13px;
+}
+.variety-more:hover, .variety-more:focus-visible { background: #e2efdd; border-color: #4b8252; }
+.product-detail-overlay {
+    display: none; position: fixed; z-index: 25000;
+    inset: 0; padding: clamp(12px, 3vw, 32px); overflow-y: auto;
+    background: rgba(17, 34, 22, .76); align-items: center; justify-content: center;
+}
+.product-detail-overlay.active { display: flex; }
+.product-detail-dialog {
+    max-height: min(94vh, 1000px); overflow-y: auto;
+    width: min(100%, 960px); background: #fff; color: #304238;
+    border-radius: 17px; box-shadow: 0 25px 80px rgba(0,0,0,.23);
+    position: relative; padding: clamp(18px, 3vw, 32px);
+}
+.product-detail-header { display: flex; justify-content: space-between; align-items: start; gap: 16px; margin-bottom: 22px; }
+.product-detail-eyebrow { font-size: .75rem; letter-spacing: 1.6px; text-transform: uppercase; color: #4c7656; font-weight: 700; }
+.product-detail-header h2 { font-family: 'Playfair Display', Georgia, serif; font-size: clamp(1.55rem,3vw,2.2rem); color: #264e30; margin: 6px 0 0; }
+.product-detail-close { border: 1px solid #d0dcd0; background: #f5f8f4; border-radius: 50%; width: 42px; height: 42px; flex-shrink: 0; font-size: 24px; cursor: pointer; color: #34553b; }
+.product-detail-layout { display: grid; grid-template-columns: minmax(220px, .9fr) minmax(0,1.15fr); gap: clamp(20px,4vw,42px); }
+.product-detail-photo { width: 100%; aspect-ratio: 4 / 4.2; border-radius: 13px; border: 1px solid #dde7da; overflow: hidden; background: #eef4ea; display: flex; align-items: center; justify-content: center; }
+.product-detail-photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.product-detail-placeholder { display:flex; flex-direction:column; gap: 10px; padding: 25px; align-items:center; justify-content:center; color: #55735b; text-align:center; line-height: 1.6; }
+.product-detail-placeholder span { font-size: 3rem; }
+.product-detail-thumbs { display:flex; gap:9px; flex-wrap:wrap; margin-top: 11px; }
+.product-detail-thumbs button { padding: 3px; border: 2px solid #dae6d8; border-radius: 8px; background: #fff; width: 66px; height: 66px; cursor:pointer; }
+.product-detail-thumbs button[aria-pressed="true"] { border-color: #327446; box-shadow: 0 0 0 2px #d5e7d6; }
+.product-detail-thumbs img { width:100%; height:100%; object-fit:cover; border-radius: 4px; }
+.product-detail-description { color: #425447; line-height: 1.8; margin: 0 0 18px; }
+.product-detail-properties { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 11px; margin: 0 0 20px; }
+.product-detail-properties > div { border: 1px solid #e1e9de; border-radius: 9px; padding: 11px; background: #f9fbf8; }
+.product-detail-properties dt { color: #617363; font-size: .77rem; margin-bottom: 4px; }
+.product-detail-properties dd { font-weight: 700; font-size: .95rem; overflow-wrap:anywhere; }
+.product-detail-price { font-size: 1.42rem; color: #2c6037; font-weight: 800; margin-bottom: 6px; }
+.product-detail-price small { font-size: .78rem; font-weight: 400; color: #536959; }
+.product-detail-info { font-size: .82rem; line-height: 1.6; color: #68786b; margin: 0 0 16px; }
+.product-detail-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+.product-detail-buttons button { border: 1px solid #b4c9b2; border-radius: 9px; padding: 11px 15px; font:inherit; cursor:pointer; font-weight: 700; }
+#detailAdd { background: #2c5530; color: white; border-color: #2c5530; flex: 1; }
+#detailAdd:disabled { background: #aebdae; border-color:#aebdae; cursor: not-allowed; }
+#detailShare { background: white; color:#2c5530; }
+#detailOrder { background:#edf4ea; color:#2c5530; }
+.product-detail-availability { display: block; margin: 0 0 10px; font-size: .87rem; font-weight: 600; }
+.product-detail-availability.out { color: #a43434; }
+.product-detail-quantity { display:flex; align-items:center; gap: 10px; margin: 0 0 15px; }
+.product-detail-quantity input { width: 74px; padding: 8px; border: 1px solid #b9cbb8; border-radius:7px; font:inherit; }
+@media (max-width: 720px) {
+    .product-detail-overlay { align-items: flex-start; }
+    .product-detail-dialog { max-height: none; }
+    .product-detail-layout { grid-template-columns: 1fr; }
+    .product-detail-photo { aspect-ratio: 16 / 12; }
+    .product-detail-properties { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { .product-detail-overlay *, .product-detail-overlay *::before { scroll-behavior: auto !important; } }
