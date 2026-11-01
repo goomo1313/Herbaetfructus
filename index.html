@@ -785,7 +785,6 @@
             <button class="admin-btn" style="background: #D97706;" onclick="openFormSettingsModal()">✉️ E-mail</button>
             <button class="admin-btn" style="background: var(--primary-color);" onclick="openVarietyModal()">+ Odroda</button>
             <button class="admin-btn" style="background: #805AD5;" onclick="openBlogModal()">+ Blog</button>
-            <button class="admin-btn" style="background: #276749;" onclick="openStoryModal()">🌿 Príbeh a fotografie</button>
             <button class="admin-btn" style="background: #3182CE;" onclick="exportJsonData()">📦 Zálohovať JSON</button>
             <button class="admin-btn" style="background: #D69E2E;" onclick="triggerImportJson()">📥 Import JSON</button>
             <input type="file" id="importJsonFile" accept=".json" style="display: none;" onchange="importDatabase(event)">
@@ -1014,12 +1013,33 @@
 
     <!-- MODÁLNE OKNO - PRIDANIE / ÚPRAVA KARTY -->
     <div class="modal-overlay" id="sectionModal">
-        <div class="modal-box">
+        <div class="modal-box" style="max-width:820px;max-height:90vh;overflow-y:auto;">
             <h3 id="modalSectionTitle" style="color: var(--primary-color); margin-bottom: 15px;">Pridať novú kartu</h3>
             <input type="hidden" id="editSectionIndex" value="-1">
             <div style="margin-bottom: 15px;"><label>ID (napr. 'bylinky') *</label><input type="text" id="secId"></div>
             <div style="margin-bottom: 15px;"><label>Názov v menu *</label><input type="text" id="secName"></div>
-            <div style="margin-bottom: 20px;"><label>Popis</label><textarea id="secDesc" rows="3"></textarea></div>
+            <div style="margin-bottom: 14px;"><label>Krátky popis pod názvom</label><textarea id="secDesc" rows="3"></textarea></div>
+            <div style="border-top:1px solid #ddd;padding-top:16px;margin:16px 0;">
+                <h4 style="margin:0 0 10px;color:var(--primary-color);">Obsah karty – text a obrázok</h4>
+                <label for="secContent">Textové bloky a odseky</label>
+                <textarea id="secContent" rows="9" placeholder="Napíš text. Prázdny riadok oddeľuje odseky.&#10;# Nadpis&#10;## Menší nadpis" style="width:100%;"></textarea>
+                <small style="display:block;margin:5px 0 16px;color:#64748b;">Prázdnym riadkom vytvoríš nový odsek. Nadpis začni #, menší nadpis ##. Bežný text môže mať viac riadkov.</small>
+                <label for="secImage">Adresa obrázka (HTTPS)</label>
+                <input type="url" id="secImage" placeholder="https://..." style="width:100%;margin-bottom:10px;">
+                <label for="secImageFile">Alebo nahrať obrázok z počítača / mobilu</label>
+                <input type="file" id="secImageFile" accept="image/*" style="width:100%;margin-bottom:10px;">
+                <small style="display:block;margin-bottom:14px;color:#64748b;">Maximálne 5 MB. Nahrávanie využíva existujúce úložisko Supabase „site-images“.</small>
+                <label for="secImagePosition">Umiestnenie obrázka</label>
+                <select id="secImagePosition" style="width:100%;padding:10px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+                    <option value="right">Vpravo od textu</option>
+                    <option value="left">Vľavo od textu</option>
+                    <option value="top">Nad textom</option>
+                    <option value="bottom">Pod textom</option>
+                </select>
+                <label for="secImageAlt">Popis obrázka (pre prístupnosť)</label>
+                <input type="text" id="secImageAlt" placeholder="Napr. Naše paradajky v záhrade" style="width:100%;">
+                <div id="secUploadStatus" role="status" style="font-size:.9rem;margin-top:8px;color:#475569;"></div>
+            </div>
             <div style="display: flex; gap: 10px;">
                 <button class="admin-btn" style="flex: 1; padding: 12px;" onclick="saveSection()">Uložiť</button>
                 <button class="admin-btn" style="flex: 1; background: #CBD5E0; color: #2D3748;" onclick="closeSectionModal()">Zrušiť</button>
@@ -1153,27 +1173,6 @@
             <div style="display: flex; gap: 10px;">
                 <button class="admin-btn" style="flex: 1; padding: 12px;" onclick="saveBlogPost()">Uložiť článok</button>
                 <button class="admin-btn" style="flex: 1; background: #CBD5E0; color: #2D3748;" onclick="closeBlogModal()">Zrušiť</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="storyModal">
-        <div class="modal-content" style="max-width:760px;">
-            <h2>Upraviť príbeh a fotografie</h2>
-            <p style="color:var(--text-muted);margin-bottom:16px;">Text a fotografia sa uložia do online databázy. Fotografie sa nahrávajú do úložiska Supabase.</p>
-            <div class="form-group"><label for="storyAdminEyebrow">Malý nadpis</label><input id="storyAdminEyebrow" type="text"></div>
-            <div class="form-group"><label for="storyAdminTitle">Hlavný nadpis</label><input id="storyAdminTitle" type="text"></div>
-            <div class="form-group"><label for="storyAdminP1">Prvý odsek</label><textarea id="storyAdminP1" rows="4"></textarea></div>
-            <div class="form-group"><label for="storyAdminP2">Druhý odsek</label><textarea id="storyAdminP2" rows="4"></textarea></div>
-            <div class="form-group"><label for="storyAdminP3">Tretí odsek</label><textarea id="storyAdminP3" rows="4"></textarea></div>
-            <div class="form-group"><label for="storyAdminButton">Text tlačidla</label><input id="storyAdminButton" type="text"></div>
-            <div class="form-group"><label for="storyAdminPhotoFile">Nahrať fotografiu z počítača alebo mobilu</label><input id="storyAdminPhotoFile" type="file" accept="image/*"><small>Odporúčame fotografiu na šírku. Maximálna veľkosť súboru je 5 MB.</small></div>
-            <div class="form-group"><label for="storyAdminPhotoUrl">Alebo adresa fotografie (URL)</label><input id="storyAdminPhotoUrl" type="url" placeholder="https://..."></div>
-            <div class="form-group"><label for="storyAdminPhotoAlt">Popis fotografie</label><input id="storyAdminPhotoAlt" type="text"></div>
-            <div id="storyUploadStatus" style="font-size:.9rem;margin:8px 0;"></div>
-            <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px;">
-                <button class="admin-btn" style="background:#718096;" onclick="closeStoryModal()">Zrušiť</button>
-                <button class="admin-btn" style="background:var(--primary-color);" onclick="saveStoryContent()">Uložiť príbeh</button>
             </div>
         </div>
     </div>
@@ -1540,88 +1539,9 @@
             reader.readAsText(file);
         }
 
-        function renderStorySection() {
-            const eyebrow = document.getElementById('storyEyebrow');
-            const title = document.getElementById('storyTitle');
-            const paragraphs = document.getElementById('storyParagraphs');
-            const button = document.getElementById('storyButton');
-            const photo = document.getElementById('storyPhoto');
-            const placeholder = document.getElementById('storyPhotoPlaceholder');
-            if (!eyebrow || !title || !paragraphs || !button) return;
-            const safe = value => String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-            eyebrow.textContent = storyContent.eyebrow || '';
-            title.textContent = storyContent.title || '';
-            paragraphs.innerHTML = (storyContent.paragraphs || []).filter(Boolean).map(p => '<p>' + safe(p).replace(/\n/g,'<br>') + '</p>').join('');
-            button.textContent = storyContent.button || 'Vybrať si semená';
-            if (storyContent.photo) {
-                photo.src = storyContent.photo;
-                photo.alt = storyContent.photoAlt || 'Fotografia Herba et Fructus';
-                photo.style.display = 'block';
-                placeholder.style.display = 'none';
-            } else {
-                photo.removeAttribute('src');
-                photo.style.display = 'none';
-                placeholder.style.display = 'flex';
-            }
-        }
-
-        function openStoryModal() {
-            if (!requireAdmin()) return;
-            document.getElementById('storyAdminEyebrow').value = storyContent.eyebrow || '';
-            document.getElementById('storyAdminTitle').value = storyContent.title || '';
-            document.getElementById('storyAdminP1').value = (storyContent.paragraphs || [])[0] || '';
-            document.getElementById('storyAdminP2').value = (storyContent.paragraphs || [])[1] || '';
-            document.getElementById('storyAdminP3').value = (storyContent.paragraphs || [])[2] || '';
-            document.getElementById('storyAdminButton').value = storyContent.button || '';
-            document.getElementById('storyAdminPhotoUrl').value = storyContent.photo || '';
-            document.getElementById('storyAdminPhotoAlt').value = storyContent.photoAlt || '';
-            document.getElementById('storyAdminPhotoFile').value = '';
-            document.getElementById('storyUploadStatus').textContent = '';
-            document.getElementById('storyModal').classList.add('active');
-        }
-        function closeStoryModal() { document.getElementById('storyModal').classList.remove('active'); }
-
-        async function saveStoryContent() {
-            if (!requireAdmin()) return;
-            const status = document.getElementById('storyUploadStatus');
-            const file = document.getElementById('storyAdminPhotoFile').files[0];
-            let photoUrl = document.getElementById('storyAdminPhotoUrl').value.trim();
-            if (file) {
-                if (file.size > 5 * 1024 * 1024) { status.textContent = 'Fotografia je väčšia ako 5 MB.'; return; }
-                if (!file.type.startsWith('image/')) { status.textContent = 'Vyberte obrazový súbor.'; return; }
-                if (!adminSupabase) { status.textContent = 'Supabase nie je dostupný. Skontrolujte konfiguráciu.'; return; }
-                status.textContent = 'Nahrávam fotografiu…';
-                const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-                const path = 'story/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + extension;
-                const { error } = await adminSupabase.storage.from('site-images').upload(path, file, { upsert: true, contentType: file.type });
-                if (error) { status.textContent = 'Nahratie zlyhalo: ' + error.message + '. Skontrolujte bucket site-images a jeho pravidlá.'; return; }
-                const { data } = adminSupabase.storage.from('site-images').getPublicUrl(path);
-                photoUrl = data.publicUrl;
-            }
-            if (photoUrl && !/^https:\/\//i.test(photoUrl)) { status.textContent = 'Adresa fotografie musí začínať https://'; return; }
-            storyContent = {
-                eyebrow: document.getElementById('storyAdminEyebrow').value.trim(),
-                title: document.getElementById('storyAdminTitle').value.trim(),
-                paragraphs: [
-                    document.getElementById('storyAdminP1').value.trim(),
-                    document.getElementById('storyAdminP2').value.trim(),
-                    document.getElementById('storyAdminP3').value.trim()
-                ],
-                button: document.getElementById('storyAdminButton').value.trim(),
-                photo: photoUrl,
-                photoAlt: document.getElementById('storyAdminPhotoAlt').value.trim()
-            };
-            const saved = await queueCloudSave('story', storyContent);
-            if (!saved) { status.textContent = 'Text sa nepodarilo uložiť. Skúste to znova.'; return; }
-            renderStorySection();
-            closeStoryModal();
-            showToast('Príbeh a fotografie boli uložené.');
-        }
-
         function renderAll() {
             renderNav();
             renderMainContent();
-            renderStorySection();
             renderFormTomatoCheckboxes();
             updateFormAction();
         }
@@ -1693,22 +1613,7 @@
                 sectionDiv.className = `content-section ${sec.id === currentActiveSection ? 'active-section' : ''}`;
                 if (sec.hidden) sectionDiv.style.opacity = '0.6';
 
-                let html = sec.id === 'domov' ? `
-                    <section id="storySection" class="story-section">
-                        <div class="story-inner">
-                            <div class="story-copy">
-                                <div class="story-kicker" id="storyEyebrow">NÁŠ PRÍBEH</div>
-                                <h2 id="storyTitle">Od jednej paradajky k stovke odrôd</h2>
-                                <div id="storyParagraphs"></div>
-                                <a class="story-link" id="storyButton" href="#kontaktSection" onclick="switchSection('kontaktSection')">Vybrať si semená</a>
-                            </div>
-                            <div class="story-photo-wrap" id="storyPhotoWrap">
-                                <div class="story-photo-placeholder" id="storyPhotoPlaceholder">📷<span>Miesto pre fotografie z našej záhrady a pestovania</span></div>
-                                <img id="storyPhoto" alt="Fotografia pestovania Herba et Fructus" style="display:none;">
-                            </div>
-                        </div>
-                    </section>
-                    ` : '';
+                let html = '';
                 html += `
                     <div class="section-header">
                         <div>
@@ -1727,15 +1632,27 @@
 
                 if (sec.content || sec.image) {
                     const safeBlock = value => String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-                    const blocks = String(sec.content || '').split(String.fromCharCode(10)).map(t => t.trim()).filter(Boolean);
-                    const textHtml = blocks.map((t, i) => i === 0 && blocks.length > 1 ? '<h3>' + safeBlock(t) + '</h3>' : '<p>' + safeBlock(t) + '</p>').join('');
-                    const imageHtml = sec.image && String(sec.image).toLowerCase().startsWith('https://') ? '<img src="' + safeBlock(sec.image) + '" alt="' + safeBlock(sec.imageAlt || '') + '" style="width:100%;max-height:480px;object-fit:cover;border-radius:12px;">' : '';
-                    const pos = sec.imagePosition || 'right';
-                    const contentGrid = pos === 'top' || pos === 'bottom'
-                        ? (pos === 'top' ? imageHtml + textHtml : textHtml + imageHtml)
-                        : '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;align-items:center;">' + (pos === 'left' ? imageHtml + textHtml : textHtml + imageHtml) + '</div>';
-                    html += '<div class="variety-card" style="padding:24px;margin:20px 0;">' + contentGrid + '</div>';
-                } else if (sec.id === 'domov') {
+                    const paragraphs = String(sec.content || '').replace(/\\r/g, '').split(/\\n\\s*\\n/).map(t => t.trim()).filter(Boolean);
+                    const textHtml = paragraphs.map(t => {
+                        if (t.startsWith('## ')) return '<h4>' + safeBlock(t.slice(3)) + '</h4>';
+                        if (t.startsWith('# ')) return '<h3>' + safeBlock(t.slice(2)) + '</h3>';
+                        return '<p>' + safeBlock(t).replace(/\\n/g, '<br>') + '</p>';
+                    }).join('');
+                    const validImage = sec.image && /^https:\\/\\//i.test(String(sec.image).trim());
+                    const imageHtml = validImage ? '<img src="' + safeBlock(String(sec.image).trim()) + '" alt="' + safeBlock(sec.imageAlt || '') + '" loading="lazy" style="width:100%;max-height:480px;object-fit:contain;border-radius:12px;">' : '';
+                    const position = ['left', 'right', 'top', 'bottom'].includes(sec.imagePosition) ? sec.imagePosition : 'right';
+                    const textBox = '<div style="min-width:0;line-height:1.75;">' + textHtml + '</div>';
+                    let contentLayout = textBox || '';
+                    if (imageHtml && textHtml) {
+                        if (position === 'top') contentLayout = imageHtml + textBox;
+                        else if (position === 'bottom') contentLayout = textBox + imageHtml;
+                        else contentLayout = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:24px;align-items:center;">'
+                            + (position === 'left' ? imageHtml + textBox : textBox + imageHtml) + '</div>';
+                    } else if (imageHtml) contentLayout = imageHtml;
+                    html += '<div class="variety-card" style="padding:24px;margin:20px 0;">' + contentLayout + '</div>';
+                }
+
+                if (sec.id === 'domov') {                } else if (sec.id === 'domov') {
                     html += `
                         <div class="variety-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
                             <div class="variety-card" style="padding: 2rem;">
@@ -2321,41 +2238,89 @@
 
         function openSectionModal() {
             if (!requireAdmin()) return;
+            document.getElementById('modalSectionTitle').textContent = 'Pridať novú kartu';
             document.getElementById('editSectionIndex').value = -1;
             document.getElementById('secId').value = '';
+            document.getElementById('secId').disabled = false;
             document.getElementById('secName').value = '';
             document.getElementById('secDesc').value = '';
+            document.getElementById('secContent').value = '';
+            document.getElementById('secImage').value = '';
+            document.getElementById('secImageFile').value = '';
+            document.getElementById('secImagePosition').value = 'right';
+            document.getElementById('secImageAlt').value = '';
+            document.getElementById('secUploadStatus').textContent = '';
             document.getElementById('sectionModal').classList.add('active');
         }
         function openSectionModalForEdit(idx) {
             if (!requireAdmin()) return;
-            const s = sectionsDatabase[idx];
+            const section = sectionsDatabase[idx];
+            if (!section) return;
+            document.getElementById('modalSectionTitle').textContent = 'Upraviť kartu: ' + section.name;
             document.getElementById('editSectionIndex').value = idx;
-            document.getElementById('secId').value = s.id;
-            document.getElementById('secName').value = s.name;
-            document.getElementById('secDesc').value = s.desc;
+            document.getElementById('secId').value = section.id;
+            document.getElementById('secId').disabled = true;
+            document.getElementById('secName').value = section.name || '';
+            document.getElementById('secDesc').value = section.desc || '';
+            document.getElementById('secContent').value = section.content || '';
+            document.getElementById('secImage').value = section.image || '';
+            document.getElementById('secImageFile').value = '';
+            document.getElementById('secImagePosition').value = ['left','right','top','bottom'].includes(section.imagePosition) ? section.imagePosition : 'right';
+            document.getElementById('secImageAlt').value = section.imageAlt || '';
+            document.getElementById('secUploadStatus').textContent = '';
             document.getElementById('sectionModal').classList.add('active');
         }
         function closeSectionModal() { document.getElementById('sectionModal').classList.remove('active'); }
 
-        function saveSection() {
+        async function saveSection() {
             if (!requireAdmin()) return;
-            const idx = parseInt(document.getElementById('editSectionIndex').value);
+            const idx = Number(document.getElementById('editSectionIndex').value);
             const id = document.getElementById('secId').value.trim().toLowerCase();
             const name = document.getElementById('secName').value.trim();
             const desc = document.getElementById('secDesc').value.trim();
-            if(!id || !name) { alert('Vyplňte ID a názov!'); return; }
-
-            if (idx === -1) {
-                sectionsDatabase.push({ id, name, desc, hidden: false });
-            } else {
-                sectionsDatabase[idx].name = name;
-                sectionsDatabase[idx].desc = desc;
+            const content = document.getElementById('secContent').value.trim();
+            const imageAlt = document.getElementById('secImageAlt').value.trim();
+            const imagePosition = document.getElementById('secImagePosition').value;
+            const imageFile = document.getElementById('secImageFile').files[0];
+            const status = document.getElementById('secUploadStatus');
+            const saveButton = document.querySelector('#sectionModal button[onclick="saveSection()"]');
+            let image = document.getElementById('secImage').value.trim();
+            if (!id || !name) { alert('Vyplňte ID a názov!'); return; }
+            if (idx === -1 && sectionsDatabase.some(item => item.id === id)) { alert('Karta s týmto ID už existuje.'); return; }
+            if (image && !/^https:\/\//i.test(image)) { status.textContent = 'Adresa obrázka musí začínať https://'; return; }
+            if (imageFile) {
+                if (!imageFile.type.startsWith('image/')) { status.textContent = 'Vyber obrazový súbor.'; return; }
+                if (imageFile.size > 5 * 1024 * 1024) { status.textContent = 'Obrázok môže mať maximálne 5 MB.'; return; }
+                if (!adminSupabase) { status.textContent = 'Úložisko Supabase nie je dostupné.'; return; }
             }
-            try { queueCloudSave('sections', sectionsDatabase); } catch(e){}
-            closeSectionModal();
-            renderAll();
-            showToast('✅ Karta uložená!');
+            if (saveButton) saveButton.disabled = true;
+            try {
+                if (imageFile) {
+                    status.textContent = 'Nahrávam obrázok…';
+                    const extension = (imageFile.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+                    const uploadPath = 'sections/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + extension;
+                    const { error } = await adminSupabase.storage.from('site-images').upload(uploadPath, imageFile, { upsert: false, contentType: imageFile.type });
+                    if (error) throw error;
+                    const { data } = adminSupabase.storage.from('site-images').getPublicUrl(uploadPath);
+                    image = data.publicUrl;
+                }
+                const updated = { id, name, desc, content, image, imagePosition, imageAlt };
+                if (idx === -1) {
+                    sectionsDatabase.push({ ...updated, hidden: false });
+                } else {
+                    sectionsDatabase[idx] = { ...sectionsDatabase[idx], ...updated };
+                }
+                const saved = await queueCloudSave('sections', sectionsDatabase);
+                if (!saved) { status.textContent = 'Zmena sa nepodarila uložiť do online databázy. Skús znova.'; return; }
+                closeSectionModal();
+                renderAll();
+                showToast('✅ Karta uložená!');
+            } catch (error) {
+                console.error('Uloženie karty zlyhalo:', error);
+                status.textContent = 'Uloženie zlyhalo: ' + (error.message || 'neznáma chyba');
+            } finally {
+                if (saveButton) saveButton.disabled = false;
+            }
         }
 
         function toggleSectionVisibility(idx) {
