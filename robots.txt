@@ -1,0 +1,5 @@
+# Herba et Fructus – useful primarily after connecting a custom domain.
+# GitHub Pages project sites are subject to the domain-root robots.txt.
+User-agent: *
+Allow: /
+Sitemap: https://goomo1313.github.io/Herbaetfructus/sitemap.xml
