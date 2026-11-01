@@ -277,6 +277,32 @@ Nové automatické testy `tests/inquiry-legal.mjs` overujú poradie
 súhrnu a voliteľného editora, zmeny množstva, výmaz položiek,
 minimalizáciu údajov a odkaz na potvrdzovaciu stránku.
 
+## Pozastavenie a obnovenie nezáväzného formulára
+
+Po prihlásení správcu sa v hornej administračnej lište zobrazuje tlačidlo
+**⏸ Pozastaviť formulár**. Po stlačení sa stav uloží do existujúceho záznamu
+`site_content.settings` v Supabase ako `orderFormPaused: true`.
+Tlačidlo sa zmení na **▶ Obnoviť formulár**; jeho opätovným stlačením sa
+uloží `orderFormPaused: false`.
+
+Keď je formulár pozastavený, návštevníkom sa nezobrazuje celá sekcia
+nezáväzného dopytu ani plávajúci košík. Na kartách odrôd sa namiesto tlačidiel
+na pridanie balení zobrazí informácia o dočasnom pozastavení. V detailoch
+odrôd sa deaktivujú tlačidlá pre výber a prechod k dopytu, ale samotný
+katalóg, fotografie, články a kalendár ostávajú dostupné. Bežné odoslanie
+formulára web navyše kontroluje a odmieta pri pozastavenom stave.
+
+Prepínač funguje iba v prihlásenom režime správcu a stav sa zmení až
+po potvrdenom zápise do Supabase. Ak databáza nie je dostupná alebo uloženie
+zlyhá, zostane pôvodný stav zachovaný. Pri ďalšom načítaní webu sa obnoví
+uložené nastavenie. **Pozastavenie je ovládanie webového rozhrania**;
+nie je to blokovanie priameho externého endpointu FormSubmit na jeho serveri.
+Ak chceš úplne zastaviť príjem správ aj mimo webu, treba ho obmedziť
+priamo u poskytovateľa formulára.
+
+Automatické kontroly v `tests/form-pause.mjs` overujú ukladanie stavu,
+zobrazenie, odmietnutie odoslania a návrat pri chybe cloudu.
+
 ## Poznámky
 
 - **Fotografie:** správca môže vkladať URL alebo nahrávať súbory priamo pri kartách aj odrodách. Galérie odrôd majú vlastný editor a zmenšovanie obrázkov. Fotografie blogu sa zatiaľ nastavujú cez HTTPS URL. Bucket `site-images` musí mať bezpečné RLS politiky.
