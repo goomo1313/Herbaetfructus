@@ -379,6 +379,23 @@ po načítaní webu; **trvalé uloženie do Supabase** prebehne pri ďalšom
 úspešnom prihlásení oprávneného správcu. Po tomto uložení ho možno v
 administrácii upraviť či zmazať bez automatického obnovenia.
 
+## Presun sprievodcu tekvicami do blogu
+
+Dlhý úvod pri katalógu **Tekvice a cukety** je nahradený stručným odkazom.
+Obsah je rozpracovaný do článku **Od letnej cukety po zimnú tekvicu:
+pestovanie, zber a skladovanie** v rubrike *Tekvice a cukety*. Rozoberá
+výber druhu, pestovateľské podmienky, zber mladých cukiet, vyzretie zimných
+tekvíc, skladovanie a zásady získavania vlastných semien. Nenahrádza
+existujúci samostatný článok o krížení tekvicovitých.
+
+Redakčné vydanie `editorial-2026-11-01-v3` je kompatibilné s databázami,
+ktoré majú uložené vydanie `v1` alebo `v2`. Ak má správca uložené `v2`,
+doplní iba tento nový článok; ak `v1`, doplní oba nové sprievodcovské
+články. Žiadne staršie články ručne zmazané po prvom vydaní sa pri
+prechode nepridajú späť. Trvalé uloženie do Supabase nastane po ďalšom
+úspešnom prihlásení správcu, dovtedy je nový článok dostupný verejne
+ako súčasť redakčného súboru.
+
 ## Poznámky
 
 - **Fotografie:** správca môže vkladať URL alebo nahrávať súbory priamo pri kartách aj odrodách. Galérie odrôd majú vlastný editor a zmenšovanie obrázkov. Fotografie blogu sa zatiaľ nastavujú cez HTTPS URL. Bucket `site-images` musí mať bezpečné RLS politiky.
