@@ -778,6 +778,18 @@
             .cart-line-actions { width:100%; }
         }
 
+        .form-pause-note {
+            padding: 12px;
+            border: 1px solid #e1d8c1;
+            border-radius: 9px;
+            background: #fff9eb;
+            color: #755827;
+            font-size: .9rem;
+            font-weight: 600;
+            line-height: 1.5;
+            text-align: center;
+        }
+
         /* Kontaktný formulár & Košík */
         .contact-container {
             background: var(--surface-color);
@@ -1031,6 +1043,7 @@
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openTableManagerModal()">📊 Tabuľka odrôd & Sklad</button>
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openSectionTableModal()">📂 Správa kariet</button>
             <button class="admin-btn" style="background: #D97706;" onclick="openFormSettingsModal()">✉️ E-mail</button>
+            <button class="admin-btn" id="toggleOrderFormBtn" type="button" style="background: #9B2C2C;" aria-pressed="false" title="Dočasne skryť formulár návštevníkom" onclick="toggleOrderFormPaused()">⏸ Pozastaviť formulár</button>
             <button class="admin-btn" style="background: var(--primary-color);" onclick="openVarietyModal()">+ Odroda</button>
             <button class="admin-btn" style="background: #805AD5;" onclick="openBlogModal()">+ Blog</button>
             <button class="admin-btn" style="background: #3182CE;" onclick="exportJsonData()">📦 Zálohovať JSON</button>
@@ -1223,7 +1236,7 @@
     </section>
 
     <!-- SEKCIA KONTAKT -->
-    <section id="kontaktSection" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+    <section id="kontaktSection" style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: none;">
         <div class="contact-container">
             <div class="section-header" style="border:none; margin-bottom: 0;">
                 <h2>Nezáväzný dopyt o zberateľské semená</h2>
@@ -2182,6 +2195,65 @@
             renderMainContent();
             renderFormTomatoCheckboxes();
             updateFormAction();
+            updateOrderFormVisibility();
+        }
+
+        function isOrderFormPaused() {
+            return farmSettings.orderFormPaused === true;
+        }
+
+        // Stav formulára je súčasťou existujúceho záznamu settings v Supabase.
+        // Kým sa nastavenia načítajú, formulár zostáva skrytý v HTML.
+        function updateOrderFormVisibility() {
+            const paused = isOrderFormPaused();
+            const button = document.getElementById('toggleOrderFormBtn');
+            if (button) {
+                button.textContent = paused ? '▶ Obnoviť formulár' : '⏸ Pozastaviť formulár';
+                button.style.background = paused ? '#276749' : '#9B2C2C';
+                button.setAttribute('aria-pressed', String(paused));
+                button.title = paused
+                    ? 'Formulár je skrytý; kliknutím ho znovu zapneš'
+                    : 'Formulár je aktívny; kliknutím ho skryješ návštevníkom';
+            }
+            const contact = document.getElementById('kontaktSection');
+            if (contact) {
+                const visibleSection = !['domov', 'kalendar', 'podmienky'].includes(currentActiveSection);
+                contact.style.display = !paused && visibleSection ? 'block' : 'none';
+            }
+            const submit = document.querySelector('#contactForm button[type="submit"]');
+            if (submit) submit.disabled = paused;
+            const counter = document.getElementById('floatingCounter');
+            if (paused && counter) counter.style.display = 'none';
+        }
+
+        async function toggleOrderFormPaused() {
+            if (!requireAdmin()) return false;
+            if (!cloudDatabaseReady) {
+                alert('Databáza Supabase nie je pripravená. Zmena stavu formulára sa nedá bezpečne uložiť.');
+                return false;
+            }
+            const button = document.getElementById('toggleOrderFormBtn');
+            if (button) button.disabled = true;
+            try {
+                const nextPaused = !isOrderFormPaused();
+                const nextSettings = { ...farmSettings, orderFormPaused: nextPaused };
+                const saved = await queueCloudSave('settings', nextSettings);
+                if (!saved) {
+                    alert('Nastavenie formulára sa nepodarilo uložiť. Predchádzajúci stav zostal zachovaný.');
+                    return false;
+                }
+                farmSettings = nextSettings;
+                renderAll();
+                showToast(nextPaused
+                    ? '⏸ Formulár je pozastavený a návštevníkom sa nezobrazuje.'
+                    : '▶ Formulár je opäť aktívny.');
+                return true;
+            } catch (error) {
+                alert('Zmena formulára zlyhala: ' + (error.message || 'neznáma chyba'));
+                return false;
+            } finally {
+                if (button) button.disabled = false;
+            }
         }
 
         function updateFormAction() {
@@ -2220,6 +2292,10 @@
         }
 
         function openOrderForm() {
+            if (isOrderFormPaused()) {
+                showToast('⏸ Nezáväzné dopyty sú momentálne pozastavené.');
+                return;
+            }
             const valid = sectionsDatabase.some(section => section.id === currentActiveSection &&
                 !section.hidden && section.id !== 'domov' && section.id !== 'podmienky' &&
                 section.id !== 'blog');
@@ -2256,9 +2332,10 @@
                 contactSec.style.display = 'none';
                 podmienkySec.style.display = 'block';
             } else {
-                contactSec.style.display = 'block';
+                contactSec.style.display = isOrderFormPaused() ? 'none' : 'block';
                 podmienkySec.style.display = 'none';
             }
+            updateOrderFormVisibility();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -2563,7 +2640,7 @@
                         ${t.weight ? `<div class="weight-info">⚖️ Hmotnosť: <span>${escapeHtml(t.weight)}</span></div>` : ''}
                         <p class="info">${escapeHtml(t.info)}</p>
                         
-                        ${!isSoldOut && !t.hidden ? `
+                        ${isOrderFormPaused() ? '<div class="form-pause-note" role="status">⏸ Nezáväzné dopyty sú dočasne pozastavené.</div>' : !isSoldOut && !t.hidden ? `
                             <div class="card-actions-row">
                                 <div class="quantity-selector">
                                     <button class="qty-btn" type="button" onclick="changeCardQty(this, -1)">-</button>
@@ -2765,6 +2842,7 @@
 
         // Jednotné sčítavanie balení z karty aj z podrobného detailu odrody.
         function addVarietyQuantityToForm(varietyName, quantity) {
+            if (isOrderFormPaused()) return false;
             const qtyToAdd = Math.max(1, Number.parseInt(quantity, 10) || 1);
             let targetCheckbox = null;
             let targetQtyInput = null;
@@ -2884,7 +2962,7 @@
 
             const counterEl = document.getElementById('floatingCounter');
             if (counterEl) {
-                if (totalCount > 0) {
+                if (totalCount > 0 && !isOrderFormPaused()) {
                     counterEl.style.display = 'flex';
                     counterEl.querySelector('.count').innerText = totalCount;
                     counterEl.querySelector('.totalPrice').innerText = totalPrice.toFixed(2) + ' €';
@@ -2914,6 +2992,11 @@
         }
 
         function handleFormSubmit(event) {
+            if (isOrderFormPaused()) {
+                event.preventDefault();
+                alert('Formulár je momentálne pozastavený. Nezáväzné dopyty teraz neprijímame.');
+                return false;
+            }
             const recipientEmail = String(farmSettings.email || '').trim();
             if (!recipientEmail || recipientEmail === 'tvojemail@priklad.sk') {
                 event.preventDefault();
