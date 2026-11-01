@@ -360,6 +360,25 @@ základnú sanitizáciu článkov, čítanie cloudu bez zápisu, rozlíšenie
 nezhodných dát na inom zariadení, pohyblivú výšku administračnej lišty
 a základné súbory pre SEO.
 
+
+## Presun sprievodcu „Odroda má svoj charakter“ do blogu
+
+Pôvodný dvojstĺpcový informačný blok v katalógu **Paradajky** bol nahradený
+jednoriadkovým odkazom na praktický článok v časti **Blog & rady**:
+**Odroda má svoj charakter: ako si vybrať paradajky do svojej záhrady**.
+Článok obsahuje výber podľa využitia plodov, miesta, rastu, prípravy semien
+aj realistické očakávania pri odlišných podmienkach pestovania. Používa
+autentickú fotografiu uloženú v `assets/nas-pribeh-paradajky.jpg`.
+Starší odborný článok o typoch paradajok zostal zachovaný, pretože vysvetľuje
+iné, podrobnejšie rozdelenie.
+
+Redakčná migrácia `editorial-2026-11-01-v2` doplní jeden nový článok
+do existujúcej cloudovej databázy bez opätovného vytvárania zmazaných článkov
+z predchádzajúceho vydania `v1`. Nový článok je návštevníkom viditeľný
+po načítaní webu; **trvalé uloženie do Supabase** prebehne pri ďalšom
+úspešnom prihlásení oprávneného správcu. Po tomto uložení ho možno v
+administrácii upraviť či zmazať bez automatického obnovenia.
+
 ## Poznámky
 
 - **Fotografie:** správca môže vkladať URL alebo nahrávať súbory priamo pri kartách aj odrodách. Galérie odrôd majú vlastný editor a zmenšovanie obrázkov. Fotografie blogu sa zatiaľ nastavujú cez HTTPS URL. Bucket `site-images` musí mať bezpečné RLS politiky.
