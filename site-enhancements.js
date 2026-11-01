@@ -172,6 +172,14 @@
         const empty = $('enhancedDashboardEmpty');
         if (empty) empty.hidden = matches > 0;
     }
+    function colorMatches(raw, selected) {
+        if(selected==='all') return true;
+        const color=format(raw).toLocaleLowerCase('sk');
+        if(selected==='žltá') return color.includes('žlt') || color.includes('oranž');
+        if(selected==='čierna') return color.includes('čier') || color.includes('tmav') || color.includes('fialov');
+        if(selected==='pásikavá') return ['pásik','pestr','pruh','bicolor','dvojfareb'].some(v=>color.includes(v));
+        return color.includes(selected);
+    }
     function weightMatches(value, band) {
         if (!band || band === 'all') return true;
         const w = grams(value);
@@ -208,7 +216,7 @@
             const stock=Number(card.dataset.stock)||0;
             const matchText=format(card.dataset.search).includes(query);
             const matchType=category==='all' || card.dataset.type===category;
-            const matchColor=color==='all' || format(card.dataset.color).includes(color);
+            const matchColor=colorMatches(card.dataset.color,color);
             const matchWeight=weightMatches(card.dataset.weightText,weight);
             const matchAvailability=availability==='all'
                 || (availability==='stock' && stock>0 && card.dataset.hidden!=='true')
@@ -365,7 +373,7 @@
     }
     window.HERBA_IMPROVEMENTS = {
         dashboardOpen,dashboardClose,dashboardRender,dashboardFilter,diagnostics,
-        validPhoto,hasMissingFields,grams,weightMatches,applyFilters,
+        validPhoto,hasMissingFields,grams,weightMatches,colorMatches,applyFilters,
         bindCompareCard,toggleCompare,renderTray,compareOpen,compareClose,resetCompare,
         selected:()=>compareNames.slice()
     };
