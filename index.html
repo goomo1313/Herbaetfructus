@@ -1238,6 +1238,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./config.js"></script>
+    <script src="./editorial-content.js"></script>
     <script>
         // Prihlásenie správcu overuje Supabase Auth; v tomto súbore nie je heslo.
         const adminAuthConfig = window.HERBA_CONFIG || {};
@@ -1306,6 +1307,7 @@
                 }
                 applyHomeStoryMigration();
                 applyCatalogReviewIfNeeded();
+                applyEditorialRelease();
                 cloudDatabaseReady = true;
                 cloudContentLoaded = true;
             } catch (error) {
@@ -1417,10 +1419,14 @@
             "cuketa": { title: "Cuketa", text: "Všestranná zelenina s rýchlym rastom a bohatou úrodou." }
         };
 
-        const defaultBlogPosts = [
-            { title: "Malí Semenári: Ako učíme deti pestovať", date: "28. Október 2026", img: "", video: "", content: "<h4>🌿 Láska k prírode od malička</h4><p>S láskou učíme deti tajomstvám semenárstva a pestovania. Zber najzdravších plodov, čistenie semien a jarná výsadba sú pre ne obrovským zážitkom.</p><div style='background:#E8F0E9; padding:12px; border-left:4px solid #2C5530; margin:10px 0;'>💡 <b>Tip pre rodičov:</b> Dajte deťom vlastný malý záhon, kde si môžu samé posadiť svoje obľúbené odrody!</div>" },
-            { title: "Ako správne odoberať semienka paradajok", date: "24. Október 2026", img: "", video: "", content: "Zber semienok je krásny proces. Vyberte tie najzdravšie plody, oddeľte dužinu a nechajte ich fermentovať..." },
-            { title: "Príprava záhona na jarnú výsadbu", date: "15. Október 2026", img: "", video: "", content: "Kvalitný kompost a správne vrstvenie pôdy sú základom bohatej úrody v novej sezóne..." }
+        // Odborné články sú samostatne spravované v editorial-content.js.
+        // Pri výpadku dátového súboru ostáva dostupný pôvodný obsah blogu.
+        const editorialPosts = Array.isArray(window.HERBA_EDITORIAL_POSTS)
+            ? window.HERBA_EDITORIAL_POSTS.map(post => ({ ...post }))
+            : [];
+        const defaultBlogPosts = editorialPosts.length ? editorialPosts.map(post => ({ ...post })) : [
+            { title: "Malí semenári", date: "Október 2026", img: "", video: "", content: "<p>Objavovanie rastlín začína zvedavosťou a malým záhonom.</p>" },
+            { title: "Zber semien paradajok", date: "Október 2026", img: "", video: "", content: "<p>Semená vyberáme zo zdravých, typických a dobre vyzretých plodov.</p>" }
         ];
 
         const defaultVarieties = [
@@ -1557,6 +1563,50 @@
             if (!home.imagePosition) { home.imagePosition = 'left'; changed = true; }
             if (!home.imageAlt) { home.imageAlt = 'Naše pestovanie paradajok'; changed = true; }
             if (changed) homeStoryMigrationPending = true;
+        }
+
+
+        // Publikovanie odborných článkov bez zásahu do existujúcich cien, skladu alebo vlastných príspevkov.
+        // Návštevníci vidia články hneď; správca ich po prihlásení jednorazovo uloží do Supabase.
+        const editorialReleaseId = 'editorial-2026-11-01-v1';
+        let editorialReleasePending = false;
+        const originalDemoArticles = [
+            { title: 'Malí Semenári: Ako učíme deti pestovať', phrase: 'S láskou učíme deti tajomstvám semenárstva', id: 'hf-deti-v-zahrade' },
+            { title: 'Ako správne odoberať semienka paradajok', phrase: 'Zber semienok je krásny proces.', id: 'hf-ako-odobrat-semena' },
+            { title: 'Príprava záhona na jarnú výsadbu', phrase: 'Kvalitný kompost a správne vrstvenie pôdy', id: 'hf-zahon-jarny-plan' }
+        ];
+        function applyEditorialRelease() {
+            if (!editorialPosts.length || !Array.isArray(blogDatabase)) return;
+            if (farmSettings && farmSettings.editorialReleaseId === editorialReleaseId) return;
+            const prepared = blogDatabase.map(post => ({ ...post }));
+            const alreadyExists = new Set(prepared.map(post => post.id).filter(Boolean));
+            for (const legacy of originalDemoArticles) {
+                const index = prepared.findIndex(post => post.title === legacy.title && String(post.content || '').includes(legacy.phrase));
+                if (index < 0 || alreadyExists.has(legacy.id)) continue;
+                const replacement = editorialPosts.find(post => post.id === legacy.id);
+                if (!replacement) continue;
+                prepared[index] = { ...replacement };
+                alreadyExists.add(legacy.id);
+            }
+            const newArticles = editorialPosts.filter(post =>
+                !alreadyExists.has(post.id) &&
+                !prepared.some(existing => existing.title === post.title)
+            ).map(post => ({ ...post }));
+            // New articles first; any personally authored, older articles remain unchanged.
+            blogDatabase = [...newArticles, ...prepared];
+            editorialReleasePending = true;
+        }
+        async function persistEditorialReleaseIfNeeded() {
+            if (!editorialReleasePending || !adminAuthenticated || !cloudDatabaseReady) return;
+            const blogSaved = await queueCloudSave('blog', blogDatabase);
+            if (!blogSaved) return;
+            const nextSettings = { ...farmSettings, editorialReleaseId };
+            const settingsSaved = await queueCloudSave('settings', nextSettings);
+            if (settingsSaved) {
+                farmSettings = nextSettings;
+                editorialReleasePending = false;
+                showToast('📚 Nové odborné články sú uložené aj v databáze.');
+            }
         }
 
         let currentActiveSection = 'domov';
@@ -2362,6 +2412,7 @@
                 enableAdminMode(true);
                 await seedCloudContentIfNeeded();
                 await persistCatalogReviewIfNeeded();
+                await persistEditorialReleaseIfNeeded();
             } catch (error) {
                 console.error('Prihlásenie správcu zlyhalo:', error);
                 alert(error && error.message ? error.message : 'Prihlásenie sa nepodarilo. Skontrolujte údaje a skúste znova.');
@@ -2385,6 +2436,7 @@
                 enableAdminMode(false);
                 await seedCloudContentIfNeeded();
                 await persistCatalogReviewIfNeeded();
+                await persistEditorialReleaseIfNeeded();
             } catch (error) {
                 console.warn('Obnovenie relácie správcu sa nepodarilo.', error);
             }
