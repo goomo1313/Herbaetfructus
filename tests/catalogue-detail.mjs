@@ -200,3 +200,25 @@ test('photo-fit selections are available in the admin and written to Supabase da
     assert.match(html, /Zobraziť celú – bez orezania/);
     assert.match(html, /Vyplniť rámik – možné orezanie okrajov/);
 });
+
+
+test('paused inquiry form disables order controls in the individual product detail', () => {
+    const {vm, controls} = site();
+    runInContext("farmSettings.orderFormPaused = true", vm);
+    const name = runInContext('varietyDatabase[0].name', vm);
+    assert.equal(vm.window.HERBA_CATALOGUE.open(name, true), true,
+        'Visitors can still read product information while the form is paused');
+    assert.equal(controls.get('detailAdd').disabled, true);
+    assert.equal(controls.get('detailOrder').disabled, true);
+    assert.equal(controls.get('detailQuantity').disabled, true);
+    assert.match(controls.get('detailAvailability').textContent, /pozastavené/);
+    const addListener = controls.get('detailAdd').listeners.click;
+    const orderListener = controls.get('detailOrder').listeners.click;
+    assert.doesNotThrow(() => addListener());
+    assert.doesNotThrow(() => orderListener());
+    assert.equal(controls.get('productDetailOverlay').classList.contains('active'), true);
+    runInContext("farmSettings.orderFormPaused = false", vm);
+    assert.equal(vm.window.HERBA_CATALOGUE.open(name, true), true);
+    assert.equal(controls.get('detailAdd').disabled, false);
+    assert.equal(controls.get('detailOrder').disabled, false);
+});
