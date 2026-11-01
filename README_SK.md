@@ -124,8 +124,69 @@ Kontroluje počet článkov, ich štruktúru, HTTPS odborné odkazy,
 zachovanie existujúcich príspevkov pri migrácii a filtre vyhľadávania.
 Testy nenahrádzajú manuálnu kontrolu vizuálneho zobrazenia na mobile.
 
+
+## 9. Detail odrody, fotografie a mobilná administrácia
+
+V katalógu má každá odroda tlačidlo **Detail odrody a fotografie**.
+Podrobné okno zobrazí pôvodný opis, názov, rastový typ, farbu, orientačnú
+hmotnosť, cenu, počet semien v balení a aktuálne skladové zásoby.
+Fotografie sa zobrazujú iba vtedy, keď je k odrode priradená platná HTTPS
+adresa; systém **nenahrádza chýbajúce fotografie cudzími odrodami**.
+U jednej odrody možno mať najviac 8 odkazov na fotografie vrátane hlavnej.
+
+**Zdieľanie konkrétnej odrody:** tlačidlo **Zdieľať odrodu** vytvorí odkaz
+v tvare `https://.../#odroda=...`. Funguje na aktuálnom GitHub Pages
+hostingu aj pri budúcej vlastnej doméne, ak sa zachová príslušný web.
+Ide o klientsky odkaz v rámci jednej HTML stránky, nie o samostatnú
+statickú podstránku indexovanú vyhľadávačmi.
+
+**Pridávanie fotografií bez kódu:** Prihlásenie správcu → Úprava odrody.
+Vyplň hlavný HTTPS obrázok, zoznam ďalších HTTPS URL (každú na samostatný
+riadok) alebo vyber z mobilu naraz až šesť fotografií (JPG, PNG, WebP).
+Ak hlavná fotografia chýba, prvá nahratá sa nastaví ako hlavná.
+Fotografie do 2 MB vo formáte JPEG sa uložia priamo; väčšie alebo iné
+podporované formáty sa podľa schopností prehliadača prevádzajú na JPEG
+s maximálnym rozmerom 1 800 px. Súbory nad 20 MB, nepodporované
+formáty alebo nahrávanie pri nenakonfigurovanom úložisku sa odmietnu.
+Počas nahrávania nechaj modálne okno otvorené.
+
+**Supabase:** musí existovať verejný bucket `site-images`, v ktorom
+je čítanie verejné a zápis povoľujú správne Storage RLS politiky
+len oprávnenému správcovi. Práva sa nesmú otvárať anonymným návštevníkom.
+Ak bucket alebo RLS nie je nakonfigurovaný, fotografie nepôjde nahrať;
+HTML formulár a výber URL však zostanú dostupné. Nikdy nezadávaj
+`service_role` kľúč do `config.js`.
+
+Ceny, názvy a skladové zásoby sa pri obyčajnom otvorení detailu nemenia.
+
+## 10. Pestovateľský kalendár a FAQ
+
+V navigácii pribudla samostatná sekcia **Pestovateľský kalendár** s dvanástimi
+mesačnými odporúčaniami a siedmimi často kladenými otázkami.
+Je pripravená priamo v HTML, nezasahuje do existujúcich záznamov
+`site_content` a po publikovaní funguje bez prihlásenia správcu.
+
+Kalendár je orientačný pre Slovensko: posledné mrazy, nočné teploty,
+nadmorská výška a spôsob pestovania môžu termíny významne posunúť.
+V úvode sú aj tlačidlá na katalóg, blog a kalendár.
+
+Plávajúce tlačidlo **Môj výber** vedie priamo k nezáväznému objednávkovému
+formuláru a je dostupné aj z klávesnice.
+
+## 11. Automatické kontroly rozšírených funkcií
+
+Okrem pôvodných testov boli pridané:
+- `tests/catalogue-detail.mjs`: zobrazovanie detailu, galérie, skladové
+  obmedzenia, kontroly administratívneho nahrávania a ochrana údajov;
+- `tests/calendar-smoke.mjs`: 12 mesiacov, 7 otázok, navigácia a objednávka.
+
+Testy spúšťa workflow `test-web.yml` pomocou `node --test tests/*.mjs`.
+Nesimuluje skutočné nahrávanie fotografií do Supabase ani plný
+vizuálny test v mobilnom prehliadači; tie treba overiť pri doplnení
+prvých fotografií.
+
 ## Poznámky
 
-- **Fotografie kariet:** v administrácii kariet možno vložiť HTTPS adresu alebo nahrať súbor do Supabase Storage (bucket `site-images`, najviac 5 MB). Bucket musí existovať a mať bezpečne nastavené politiky pre zápis prihláseného správcu; bez toho nahrávanie neprejde. Fotografie jednotlivých odrôd a blogu sa zatiaľ nastavujú cez URL.
+- **Fotografie:** správca môže vkladať URL alebo nahrávať súbory priamo pri kartách aj odrodách. Galérie odrôd majú vlastný editor a zmenšovanie obrázkov. Fotografie blogu sa zatiaľ nastavujú cez HTTPS URL. Bucket `site-images` musí mať bezpečné RLS politiky.
 - Objednávkový formulár naďalej používa existujúce nastavenie FormSubmit. Databázové ukladanie objednávok zatiaľ nie je súčasťou tejto úpravy.
 - Pri prvom spustení sa do cloudu prenesú údaje dostupné v prehliadači, z ktorého sa správca prvýkrát prihlási. Ak ste v minulosti upravovali obsah iba v inom prehliadači alebo zariadení, najprv z neho vyexportujte JSON a použite Import JSON po nastavení databázy.
