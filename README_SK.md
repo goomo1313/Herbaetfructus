@@ -70,7 +70,7 @@ Ak používate GitHub Pages, v repozitári otvorte **Settings → Pages** a skon
 ## 6. Automatická kontrola kvality
 
 V repozitári je súbor `.github/workflows/test-web.yml` a sada testov `tests/site-smoke.mjs`.
-GitHub Actions pri každom nahratí nového kódu do `main` overí:
+GitHub Actions pri každom nahratí nového kódu do `main` overí obe sady testov (`tests/site-smoke.mjs` a `tests/editorial-smoke.mjs`):
 
 - syntaktickú správnosť hlavného JavaScriptu a jedinečnosť identifikátorov v HTML,
 - zachovanie všetkých 52 pôvodných produktov, ich predvolených cien, 2 balení na sklade a 10 semien v balení,
@@ -91,6 +91,38 @@ a nevykonávajú prihlásenie reálneho správcu do Supabase.
 - Revízia katalógu zo dňa 1. 11. 2026 nastavila východiskovú zásobu na **2 balenia** a obsah balenia na **10 semien**. Pri existujúcej databáze sa jednorazová úprava trvalo uloží až po prihlásení oprávneného správcu. Neskoršie zmeny skladu sa už vykonávajú bežne v administrácii.
 - Predvolené nové odrody majú zásobu 2 balenia a 10 semien. Administrácia teraz overuje duplicity názvov, kladnú cenu, celé nezáporné zásoby a bezpečnú adresu fotografie.
 - **Objednávka je nezáväzný dopyt**, ktorý sa posiela cez FormSubmit. Odoslanie neodpočítava sklad; zásoby sa upravujú ručne po vybavení objednávky.
+
+## 8. Redakčný obsah a odborné články (november 2026)
+
+Web obsahuje samostatný súbor `editorial-content.js` s desiatimi tematickými článkami.
+Každý článok obsahuje názov, rubriku, krátky úvod (perex), orientačný čas čítania,
+nadpisy, postupy, upozornenia a odkazy na odborné zdroje. Obsah zahŕňa:
+
+- odoberanie, fermentáciu, sušenie a uchovávanie semien paradajok,
+- výsev a predpestovanie paradajok, rastové typy a výber vhodnej odrody,
+- hnilobu kvetného konca, praskanie plodov a pleseň zemiakovú,
+- kríženie tekvíc a cukiet, pestovanie čučoriedok v nádobách,
+- prípravu pôdy, záhradný denník, pestovanie s deťmi a hybridy F1.
+
+**Zverejnenie bez straty údajov:** články sa pri návšteve doplnia aj vtedy,
+keď Supabase obsahuje staršie články. Pôvodné ukážkové články sa nahradia len
+vtedy, keď zodpovedajú starému krátkemu vzoru. Iné a upravené príspevky ostávajú.
+Po najbližšom prihlásení oprávneného správcu web nové články jednorazovo uloží
+do riadka `site_content.blog` a aktualizuje `settings.editorialReleaseId`.
+Až po tomto potvrdenom cloudovom zápise je možné články v administrácii
+trvalo editovať alebo odstraňovať bez ich opätovného dopĺňania z vydania.
+Ak ukladanie zlyhá, web zobrazuje pôvodný obsah spolu s dočasne doplnenými článkami,
+ale nepredstiera dokončený zápis.
+
+**Editácia:** Administrácia → Blog → Upraviť. Okrem hlavného HTML obsahu
+možno zmeniť rubriku, úvodný text a čas čítania. Pôvodné ID vydania a dátum
+sa pri bežnej úprave zachovajú. Na verejnej stránke je vyhľadávanie,
+filtrovanie podľa rubriky a rozbalenie celého článku.
+
+Na GitHube sa spúšťa automatická sada `tests/editorial-smoke.mjs`.
+Kontroluje počet článkov, ich štruktúru, HTTPS odborné odkazy,
+zachovanie existujúcich príspevkov pri migrácii a filtre vyhľadávania.
+Testy nenahrádzajú manuálnu kontrolu vizuálneho zobrazenia na mobile.
 
 ## Poznámky
 
