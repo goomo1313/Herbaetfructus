@@ -127,3 +127,16 @@ test('stock and pack sizes are never changed by opening detail', () => {
     const after = runInContext("varietyDatabase.map(v => ({name:v.name,price:v.price,stock:v.stock,seeds:v.seedsPerPack}))",vm);
     assert.deepEqual(Array.from(after, v => ({...v})),Array.from(before, v => ({...v})));
 });
+
+test('catalogue and story photos fit fully without clipping', () => {
+    const catalogueStyle = html.match(/\.card-img-placeholder img\s*\{([^}]+)\}/);
+    assert.ok(catalogueStyle, 'The product photo style must exist');
+    assert.match(catalogueStyle[1], /object-fit:\s*contain\s*;/);
+    assert.match(catalogueStyle[1], /object-position:\s*center center\s*;/);
+    assert.ok(!html.includes('.card-img-placeholder:hover img { transform: scale(1.05); }'),
+        'Hover zoom would clip the fitted photo again');
+
+    const storyStyle = html.match(/\.home-story-media img\s*\{([^}]+)\}/);
+    assert.ok(storyStyle);
+    assert.match(storyStyle[1], /object-fit:\s*contain\s*;/);
+});
