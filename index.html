@@ -1189,7 +1189,7 @@
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div><label>Počet semien v balíčku</label><input type="text" id="varSeedsPerPack" placeholder="10 ks"></div>
-                <div><label>Skladové zásoby (balíčky)</label><input type="number" id="varStock" placeholder="20" min="0" value="10"></div>
+                <div><label>Skladové zásoby (balíčky)</label><input type="number" id="varStock" placeholder="2" min="0" step="1" value="2"></div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div><label>Hmotnosť plodu</label><input type="text" id="varWeight" placeholder="20-30g"></div>
@@ -2697,8 +2697,9 @@
             document.getElementById('varCustomType').value = '';
             document.getElementById('customTypeWrapper').style.display = 'none';
             document.getElementById('varPrice').value = '';
+            document.getElementById('varColor').value = 'Červená';
             document.getElementById('varSeedsPerPack').value = '10 ks';
-            document.getElementById('varStock').value = '10';
+            document.getElementById('varStock').value = '2';
             document.getElementById('varWeight').value = '';
             document.getElementById('varImg').value = '';
             document.getElementById('varInfo').value = '';
@@ -2745,7 +2746,7 @@
             document.getElementById('varStock').value = typeof t.stock === 'number' ? t.stock : 10;
             document.getElementById('varWeight').value = t.weight || '';
             document.getElementById('varImg').value = t.img || '';
-            document.getElementById('varInfo').value = t.info;
+            document.getElementById('varInfo').value = t.info || '';
             document.getElementById('varMultiflora').checked = t.multiflora;
             document.getElementById('varHidden').checked = t.hidden || false;
 
@@ -2758,42 +2759,73 @@
         }
         function closeVarietyModal() { document.getElementById('varietyModal').classList.remove('active'); }
 
-        function saveVariety() {
+        async function saveVariety() {
             if (!requireAdmin()) return;
-            const idx = parseInt(document.getElementById('editIndex').value);
+            const idx = parseInt(document.getElementById('editIndex').value, 10);
             const section = document.getElementById('varSectionSelect').value;
             const name = document.getElementById('varName').value.trim();
-            
             let type = document.getElementById('varType').value.trim();
-            if (type === 'Ďalší') {
-                type = document.getElementById('varCustomType').value.trim();
-                if (!type) {
-                    alert('Zadajte vlastný typ / pomológiu!');
-                    return;
-                }
-            }
+            if (type === 'Ďalší') type = document.getElementById('varCustomType').value.trim();
 
             const color = document.getElementById('varColor').value.trim();
-            const price = document.getElementById('varPrice').value.trim().replace('€', '');
+            const priceInput = document.getElementById('varPrice').value.trim().replace('€', '').replace(',', '.');
+            const priceValue = Number(priceInput);
             const seedsPerPack = document.getElementById('varSeedsPerPack').value.trim();
-            const stock = parseInt(document.getElementById('varStock').value) || 0;
+            const stockInput = document.getElementById('varStock').value.trim();
+            const stock = Number(stockInput);
             const weight = document.getElementById('varWeight').value.trim();
             const img = document.getElementById('varImg').value.trim();
             const info = document.getElementById('varInfo').value.trim();
             const multiflora = document.getElementById('varMultiflora').checked;
             const hidden = document.getElementById('varHidden').checked;
 
-            if(!name) { alert('Zadajte názov odrody!'); return; }
+            if (!name || !type || !section) { alert('Vyplň názov, typ a sekciu odrody.'); return; }
+            if (varietyDatabase.some((v, i) => i !== idx && String(v.name || '').trim().toLocaleLowerCase('sk') === name.toLocaleLowerCase('sk'))) {
+                alert('Odroda s týmto názvom už existuje. Použi jedinečný názov.'); return;
+            }
+            if (!Number.isFinite(priceValue) || priceValue <= 0 || priceValue > 1000) {
+                alert('Zadaj platnú cenu za balenie (napríklad 1,50).'); return;
+            }
+            if (!Number.isInteger(stock) || stock < 0 || stock > 100000) {
+                alert('Sklad musí byť nezáporné celé číslo.'); return;
+            }
+            if (!/^\d+\s*ks$/i.test(seedsPerPack) || parseInt(seedsPerPack, 10) < 1) {
+                alert('Počet semien uveď vo formáte „10 ks“.'); return;
+            }
+            if (img && !safeImageUrl(img)) {
+                alert('Obrázok musí mať bezpečnú adresu https://'); return;
+            }
+
             const previousData = idx >= 0 && varietyDatabase[idx] ? varietyDatabase[idx] : {};
-            const obj = { ...previousData, name, section, type, color, price, seedsPerPack, stock, weight, img, info, multiflora, hidden };
+            const item = {
+                ...previousData, name, section, type, color,
+                price: priceValue.toFixed(2),
+                seedsPerPack: parseInt(seedsPerPack, 10) + ' ks',
+                stock, weight, img, info, multiflora, hidden
+            };
+            const originalDatabase = varietyDatabase;
+            varietyDatabase = idx === -1
+                ? [...varietyDatabase, item]
+                : varietyDatabase.map((v, i) => i === idx ? item : v);
 
-            if (idx === -1) varietyDatabase.push(obj);
-            else varietyDatabase[idx] = obj;
-
-            try { queueCloudSave('varieties', varietyDatabase); } catch(e){}
-            closeVarietyModal();
-            renderAll();
-            showToast('✅ Odroda uložená!');
+            const saveButton = document.querySelector('#varietyModal button[onclick="saveVariety()"]');
+            if (saveButton) saveButton.disabled = true;
+            try {
+                const saved = await queueCloudSave('varieties', varietyDatabase);
+                if (!saved) {
+                    varietyDatabase = originalDatabase;
+                    alert('Odroda sa nepodarila uložiť do Supabase. Skontroluj stav cloudu a skús znova.');
+                    return;
+                }
+                closeVarietyModal();
+                renderAll();
+                showToast('✅ Odroda uložená v online databáze.');
+            } catch (error) {
+                varietyDatabase = originalDatabase;
+                alert('Ukladanie odrody zlyhalo: ' + (error.message || 'neznáma chyba'));
+            } finally {
+                if (saveButton) saveButton.disabled = false;
+            }
         }
 
         function deleteVariety(idx) {
