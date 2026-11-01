@@ -1058,7 +1058,7 @@
             <button class="admin-btn" style="background: #3182CE;" onclick="exportJsonData()">📦 Zálohovať JSON</button>
             <button class="admin-btn" style="background: #D69E2E;" onclick="triggerImportJson()">📥 Import JSON</button>
             <input type="file" id="importJsonFile" accept=".json" style="display: none;" onchange="importDatabase(event)">
-            <button class="admin-btn" style="background: #319795;" onclick="downloadSiteCode()">💾 ☁️ Uložiť do cloudu</button>
+            <button class="admin-btn" style="background: #319795;" onclick="downloadSiteCode()" title="Overí, či sú lokálne údaje zhodné so Supabase, bez prepisovania databázy">☁️ Overiť cloud</button>
             <button class="admin-btn" style="background: #4A5568;" onclick="logoutAdmin()">Odhlásiť</button>
         </div>
     </div>
@@ -4096,19 +4096,62 @@
             return true;
         }
 
+        // Read-only verification: do not overwrite newer changes saved from another device.
+        // Automatic editing actions already write each updated record to Supabase.
+        function stableCloudJson(value) {
+            if (Array.isArray(value)) return '[' + value.map(stableCloudJson).join(',') + ']';
+            if (value && typeof value === 'object') {
+                return '{' + Object.keys(value).sort()
+                    .filter(key => value[key] !== undefined)
+                    .map(key => JSON.stringify(key) + ':' + stableCloudJson(value[key]))
+                    .join(',') + '}';
+            }
+            return JSON.stringify(value === undefined ? null : value);
+        }
+
         async function downloadSiteCode() {
-            if (!requireAdmin()) return;
+            if (!requireAdmin()) return false;
+            if (!adminSupabase || !cloudDatabaseReady) {
+                showToast('⚠️ Supabase nie je dostupná. Skús to po obnovení pripojenia.');
+                return false;
+            }
+            const status = document.getElementById('cloudSaveStatus');
             try {
-                await Promise.all([
-                    persistCloudContent('sections', sectionsDatabase),
-                    persistCloudContent('varieties', varietyDatabase),
-                    persistCloudContent('blog', blogDatabase),
-                    persistCloudContent('settings', farmSettings)
+                setCloudSaveStatus('☁️ Overujem stav údajov…', '#FDE68A');
+                // First allow local save queues to finish. Never submit stale local values.
+                const pending = await Promise.all(Object.values(cloudSaveQueues));
+                if (pending.some(saved => saved === false)) {
+                    throw new Error('Niektoré predchádzajúce zmeny sa neuložili.');
+                }
+                const { data, error } = await adminSupabase
+                    .from(cloudContentTable).select('id, content');
+                if (error) throw error;
+                const remote = new Map((data || []).map(row => [row.id, row.content]));
+                const local = new Map([
+                    ['sections', sectionsDatabase], ['varieties', varietyDatabase],
+                    ['blog', blogDatabase], ['settings', farmSettings]
                 ]);
-                showToast('☁️ Všetky údaje sú uložené v online databáze. HTML už netreba sťahovať.');
+                const missing = [];
+                const different = [];
+                for (const [id, content] of local) {
+                    if (!remote.has(id)) missing.push(id);
+                    else if (stableCloudJson(remote.get(id)) !== stableCloudJson(content)) different.push(id);
+                }
+                if (missing.length || different.length) {
+                    setCloudSaveStatus('⚠️ Skontroluj synchronizáciu', '#FEB2B2');
+                    alert('Údaje v cloude sa líšia od tejto otvorenej stránky.\n'
+                        + (missing.length ? 'Chýbajúce záznamy: ' + missing.join(', ') + '.\n' : '')
+                        + (different.length ? 'Odlišné záznamy: ' + different.join(', ') + '.\n' : '')
+                        + 'Ak si upravoval údaje na inom zariadení, najprv si tu urob JSON zálohu a potom obnov stránku. Nič sa automaticky neprepísalo.');
+                    return false;
+                }
+                setCloudSaveStatus('✓ Cloud a stránka sú synchronizované', '#C6F6D5');
+                showToast('✅ Všetky štyri oblasti sú zhodné so Supabase.');
+                return true;
             } catch (error) {
-                console.error('Kontrola cloud uloženia zlyhala:', error);
-                showToast('❌ Cloud uloženie zlyhalo: ' + (error.message || 'neznáma chyba'));
+                setCloudSaveStatus('⚠️ Overenie cloudu zlyhalo', '#FEB2B2');
+                showToast('❌ Kontrola Supabase zlyhala: ' + (error.message || 'skontroluj pripojenie'));
+                return false;
             }
         }
 
