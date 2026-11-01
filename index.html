@@ -349,6 +349,42 @@
             .catalogue-intro { grid-template-columns: 1fr; padding: 18px; }
         }
 
+
+        /* Fotografický režim a náhľady pre správcu. */
+        .image-fit-setting { margin: 12px 0 15px; }
+        .image-fit-setting > label { display:block; color:var(--primary-color); font-weight:700; margin-bottom:7px; }
+        .image-fit-setting select, .gallery-fit-row select {
+            width:100%; padding:10px 12px; border:1px solid #bdcfbd;
+            border-radius:8px; background:white; font:inherit; color:#263c2b;
+        }
+        .image-fit-hint { color:#5d7261; line-height:1.55; font-size:.84rem; display:block; margin:8px 0; }
+        .image-fit-preview {
+            min-height:190px; height:230px; width:100%; max-width:440px; overflow:hidden;
+            display:flex; align-items:center; justify-content:center;
+            border:1px solid #d5e4d3; background:#eff4eb; border-radius:10px; margin: 10px 0 16px;
+        }
+        .image-fit-preview img { width:100%; height:100%; display:block; object-position:center; }
+        .image-fit-preview-empty { padding:20px; text-align:center; color:#677d6c; font-size:.9rem; }
+        .gallery-fit-editor { display:grid; gap:12px; margin:9px 0 15px; }
+        .gallery-fit-row {
+            display:grid; grid-template-columns:84px minmax(0,1fr);
+            align-items:center; gap:12px; border:1px solid #dce7da; border-radius:10px;
+            padding:10px; background:#f8faf7;
+        }
+        .gallery-fit-row img {
+            width:84px; height:80px; object-fit:contain; background:#edf3e8; border-radius:7px;
+        }
+        .gallery-fit-row label { font-size:.85rem; display:block; margin-bottom:5px; }
+        .gallery-fit-row small { color:#526756; overflow-wrap:anywhere; display:block; margin-top:5px; }
+        .home-story-media img.story-image-cover {
+            height:min(430px, 60vw); max-height:430px; object-fit:cover;
+        }
+        @media (max-width:600px) {
+            .gallery-fit-row { grid-template-columns:72px minmax(0,1fr); }
+            .gallery-fit-row img { width:72px; height:80px; }
+            .home-story-media img.story-image-cover { height:320px; }
+        }
+
         /* Filtrovací panel */
         .filters-wrapper {
             background: var(--surface-color);
@@ -1352,9 +1388,9 @@
                 <textarea id="secContent" rows="9" placeholder="Napíš text. Prázdny riadok oddeľuje odseky.&#10;# Nadpis&#10;## Menší nadpis" style="width:100%;"></textarea>
                 <small style="display:block;margin:5px 0 16px;color:#64748b;">Prázdnym riadkom vytvoríš nový odsek. Nadpis začni #, menší nadpis ##. Bežný text môže mať viac riadkov.</small>
                 <label for="secImage">Adresa obrázka (HTTPS)</label>
-                <input type="url" id="secImage" placeholder="https://..." style="width:100%;margin-bottom:10px;">
+                <input type="url" id="secImage" placeholder="https://..." oninput="updateImageFitPreview('secImage','secImageFile','secImageFit','secImageFitPreview')" style="width:100%;margin-bottom:10px;">
                 <label for="secImageFile">Alebo nahrať obrázok z počítača / mobilu</label>
-                <input type="file" id="secImageFile" accept="image/*" style="width:100%;margin-bottom:10px;">
+                <input type="file" id="secImageFile" accept="image/*" onchange="updateImageFitPreview('secImage','secImageFile','secImageFit','secImageFitPreview')" style="width:100%;margin-bottom:10px;">
                 <small style="display:block;margin-bottom:14px;color:#64748b;">Maximálne 5 MB. Nahrávanie využíva existujúce úložisko Supabase „site-images“.</small>
                 <label for="secImagePosition">Umiestnenie obrázka</label>
                 <select id="secImagePosition" style="width:100%;padding:10px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
@@ -1363,6 +1399,14 @@
                     <option value="top">Nad textom</option>
                     <option value="bottom">Pod textom</option>
                 </select>
+                <div class="image-fit-setting">
+                    <label for="secImageFit">Zobrazenie obrázka v sekcii</label>
+                    <select id="secImageFit" onchange="updateImageFitPreview('secImage','secImageFile','secImageFit','secImageFitPreview')">
+                        <option value="contain">Zobraziť celú – bez orezania</option>
+                        <option value="cover">Vyplniť rámik – možné orezanie okrajov</option>
+                    </select>
+                    <div id="secImageFitPreview" class="image-fit-preview" aria-label="Náhľad obrázka sekcie"></div>
+                </div>
                 <label for="secImageAlt">Popis obrázka (pre prístupnosť)</label>
                 <input type="text" id="secImageAlt" placeholder="Napr. Naše paradajky v záhrade" style="width:100%;">
                 <div id="secUploadStatus" role="status" style="font-size:.9rem;margin-top:8px;color:#475569;"></div>
@@ -1461,15 +1505,26 @@
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div><label>Hmotnosť plodu</label><input type="text" id="varWeight" placeholder="20-30g"></div>
-                <div><label for="varImg">Hlavná fotografia (HTTPS)</label><input type="url" id="varImg" placeholder="https://.../paradajka.jpg"></div>
+                <div><label for="varImg">Hlavná fotografia (HTTPS)</label><input type="url" id="varImg" placeholder="https://.../paradajka.jpg" oninput="updateImageFitPreview('varImg','varPhotoFiles','varImageFit','varMainPhotoPreview')"></div>
+            </div>
+            <div class="image-fit-setting">
+                <label for="varImageFit">Zobrazenie hlavnej fotografie</label>
+                <select id="varImageFit" onchange="updateImageFitPreview('varImg','varPhotoFiles','varImageFit','varMainPhotoPreview')">
+                    <option value="contain">Zobraziť celú – bez orezania</option>
+                    <option value="cover">Vyplniť rámik – možné orezanie okrajov</option>
+                </select>
+                <small class="image-fit-hint">Pri voľbe „Zobraziť celú“ môžu zostať okraje rámika voľné. Fotografia sa nedeformuje.</small>
+                <div id="varMainPhotoPreview" class="image-fit-preview" aria-label="Náhľad hlavnej fotografie"></div>
             </div>
             <div style="margin-bottom: 15px;">
                 <label for="varGalleryUrls">Ďalšie fotografie do galérie (jedna HTTPS adresa na riadok)</label>
-                <textarea id="varGalleryUrls" rows="3" placeholder="https://.../plod.jpg&#10;https://.../rez.jpg&#10;https://.../rastlina.jpg"></textarea>
+                <textarea id="varGalleryUrls" rows="3" placeholder="https://.../plod.jpg&#10;https://.../rez.jpg&#10;https://.../rastlina.jpg" oninput="renderVarietyGalleryFitControls()"></textarea>
+                <small class="image-fit-hint">Pre každú fotografiu z galérie si môžeš zvoliť zobrazenie osobitne. Zmena sa prejaví v detailnom náhľade odrody.</small>
+                <div id="varGalleryFitControls" class="gallery-fit-editor"></div>
             </div>
             <div style="margin-bottom: 15px; border: 1px solid #dce7d8; background: #f6faf5; padding: 14px; border-radius: 10px;">
                 <label for="varPhotoFiles">Alebo nahraj viac fotografií priamo z mobilu</label>
-                <input type="file" id="varPhotoFiles" accept="image/jpeg,image/png,image/webp" multiple style="width:100%;margin-bottom:10px;">
+                <input type="file" id="varPhotoFiles" accept="image/jpeg,image/png,image/webp" multiple onchange="updateImageFitPreview('varImg','varPhotoFiles','varImageFit','varMainPhotoPreview')" style="width:100%;margin-bottom:10px;">
                 <small style="display:block;line-height:1.6;color:#516658;">Môžeš vybrať najviac 6 fotografií naraz (JPG, PNG alebo WebP). Veľké snímky sa pred nahraním zmenšia, aby šetrili dáta. Ak hlavná fotografia ešte nie je vyplnená, prvá nahratá sa nastaví automaticky. Fotografie sa ukladajú do existujúceho úložiska Supabase „site-images“.</small>
                 <div id="varPhotoUploadStatus" role="status" aria-live="polite" style="margin-top:9px;font-size:.87rem;color:#42634b;"></div>
             </div>
@@ -2261,7 +2316,7 @@
                     }).join('');
                     const validStoryPhoto = sec.image && /^https:\/\//i.test(String(sec.image).trim());
                     const storyPhoto = validStoryPhoto
-                        ? '<img src="' + escapeStory(String(sec.image).trim()) + '" alt="' + escapeStory(sec.imageAlt || 'Naše pestovanie paradajok') + '" loading="lazy">'
+                        ? '<img class="' + (normalizedImageFit(sec.imageFit) === 'cover' ? 'story-image-cover' : '') + '" src="' + escapeStory(String(sec.image).trim()) + '" alt="' + escapeStory(sec.imageAlt || 'Naše pestovanie paradajok') + '" loading="lazy">'
                         : '<div class="home-story-placeholder" role="img" aria-label="Miesto na fotografiu z našej záhrady">' +
                             '<span class="home-story-placeholder-icon" aria-hidden="true">📷</span>' +
                             '<strong>Fotografia z našej záhrady</strong>' +
@@ -2280,7 +2335,8 @@
                         return '<p>' + safeBlock(t).replace(/\n/g, '<br>') + '</p>';
                     }).join('');
                     const validImage = sec.image && /^https:\/\//i.test(String(sec.image).trim());
-                    const imageHtml = validImage ? '<img src="' + safeBlock(String(sec.image).trim()) + '" alt="' + safeBlock(sec.imageAlt || '') + '" loading="lazy" style="width:100%;max-height:480px;object-fit:contain;border-radius:12px;">' : '';
+                    const sectionFit = normalizedImageFit(sec.imageFit);
+                    const imageHtml = validImage ? '<img src="' + safeBlock(String(sec.image).trim()) + '" alt="' + safeBlock(sec.imageAlt || '') + '" loading="lazy" style="width:100%;height:' + (sectionFit === 'cover' ? '380px' : 'auto') + ';max-height:480px;object-fit:' + sectionFit + ';border-radius:12px;">' : '';
                     const position = ['left', 'right', 'top', 'bottom'].includes(sec.imagePosition) ? sec.imagePosition : 'right';
                     const textBox = '<div style="min-width:0;line-height:1.75;">' + textHtml + '</div>';
                     let contentLayout = textBox || '';
@@ -2438,7 +2494,7 @@
                 const hasPhoto = safeImageUrl(t.img);
 
                 card.innerHTML = `
-                    <div class="card-img-placeholder${hasPhoto ? ' has-photo' : ''}">${hasPhoto ? `<img src="${escapeHtml(t.img)}" alt="${escapeHtml(t.name)}" loading="lazy">` : ''}</div>
+                    <div class="card-img-placeholder${hasPhoto ? ' has-photo' : ''}">${hasPhoto ? `<img src="${escapeHtml(t.img)}" alt="${escapeHtml(t.name)}" loading="lazy" style="object-fit:${normalizedImageFit(t.imageFit)}">` : ''}</div>
                     <div class="card-content">
                         <div class="badges-wrapper">
                             ${t.isFlagship ? '<span class="badge multiflora">🌟 Vlajková</span>' : ''}
@@ -3019,6 +3075,8 @@
             document.getElementById('secImage').value = '';
             document.getElementById('secImageFile').value = '';
             document.getElementById('secImagePosition').value = 'right';
+            document.getElementById('secImageFit').value = 'contain';
+            updateImageFitPreview('secImage','secImageFile','secImageFit','secImageFitPreview');
             document.getElementById('secImageAlt').value = '';
             document.getElementById('secUploadStatus').textContent = '';
             document.getElementById('sectionModal').classList.add('active');
@@ -3037,6 +3095,8 @@
             document.getElementById('secImage').value = section.image || '';
             document.getElementById('secImageFile').value = '';
             document.getElementById('secImagePosition').value = ['left','right','top','bottom'].includes(section.imagePosition) ? section.imagePosition : 'right';
+            document.getElementById('secImageFit').value = normalizedImageFit(section.imageFit);
+            updateImageFitPreview('secImage','secImageFile','secImageFit','secImageFitPreview');
             document.getElementById('secImageAlt').value = section.imageAlt || '';
             document.getElementById('secUploadStatus').textContent = '';
             document.getElementById('sectionModal').classList.add('active');
@@ -3052,6 +3112,7 @@
             const content = document.getElementById('secContent').value.trim();
             const imageAlt = document.getElementById('secImageAlt').value.trim();
             const imagePosition = document.getElementById('secImagePosition').value;
+            const imageFit = normalizedImageFit(document.getElementById('secImageFit').value);
             const imageFile = document.getElementById('secImageFile').files[0];
             const status = document.getElementById('secUploadStatus');
             const saveButton = document.querySelector('#sectionModal button[onclick="saveSection()"]');
@@ -3076,7 +3137,7 @@
                     const { data } = adminSupabase.storage.from('site-images').getPublicUrl(uploadPath);
                     image = data.publicUrl;
                 }
-                const updated = { id, name, desc, content, image, imagePosition, imageAlt };
+                const updated = { id, name, desc, content, image, imagePosition, imageFit, imageAlt };
                 const previousSections = sectionsDatabase;
                 sectionsDatabase = idx === -1
                     ? [...sectionsDatabase, { ...updated, hidden: false }]
@@ -3257,6 +3318,90 @@
             }
         }
 
+        // Zobrazenie obrázka je vlastnosťou odrody / konkrétnej fotografie, nie samotného súboru.
+        function normalizedImageFit(value) {
+            return value === 'cover' ? 'cover' : 'contain';
+        }
+
+        const imageFitPreviewBlobUrls = new Map();
+        function updateImageFitPreview(urlInputId, fileInputId, fitInputId, previewId) {
+            const host = document.getElementById(previewId);
+            if (!host) return;
+            const oldBlobUrl = imageFitPreviewBlobUrls.get(previewId);
+            if (oldBlobUrl && typeof URL !== 'undefined' && URL.revokeObjectURL) {
+                URL.revokeObjectURL(oldBlobUrl);
+            }
+            imageFitPreviewBlobUrls.delete(previewId);
+            host.replaceChildren();
+            const file = document.getElementById(fileInputId)?.files?.[0];
+            const rawUrl = document.getElementById(urlInputId)?.value.trim() || '';
+            const fit = normalizedImageFit(document.getElementById(fitInputId)?.value);
+            let src = safeImageUrl(rawUrl) ? rawUrl : '';
+            if (file && file.type.startsWith('image/') && typeof URL !== 'undefined' && URL.createObjectURL) {
+                src = URL.createObjectURL(file);
+                imageFitPreviewBlobUrls.set(previewId, src);
+            }
+            if (!src) {
+                const message = document.createElement('span');
+                message.className = 'image-fit-preview-empty';
+                message.textContent = 'Po vložení HTTPS adresy alebo výbere súboru sa tu zobrazí náhľad.';
+                host.appendChild(message);
+                return;
+            }
+            const photo = document.createElement('img');
+            photo.src = src;
+            photo.alt = 'Náhľad fotografie pred uložením';
+            photo.style.objectFit = fit;
+            host.appendChild(photo);
+        }
+
+        let varietyGalleryFitDraft = Object.create(null);
+        function renderVarietyGalleryFitControls() {
+            const host = document.getElementById('varGalleryFitControls');
+            const field = document.getElementById('varGalleryUrls');
+            if (!host || !field) return;
+            host.replaceChildren();
+            const urls = [...new Set(field.value.split(/\r?\n/).map(value => value.trim()).filter(safeImageUrl))];
+            for (const [index, url] of urls.entries()) {
+                const row = document.createElement('div');
+                row.className = 'gallery-fit-row';
+                const thumb = document.createElement('img');
+                thumb.src = url;
+                thumb.alt = '';
+                thumb.loading = 'lazy';
+                thumb.style.objectFit = normalizedImageFit(varietyGalleryFitDraft[url]);
+                const options = document.createElement('div');
+                const label = document.createElement('label');
+                const select = document.createElement('select');
+                label.textContent = 'Fotografia ' + (index + 1) + ': zobrazenie';
+                const selectId = 'galleryImageFit_' + index;
+                select.id = selectId;
+                label.htmlFor = selectId;
+                for (const [value, caption] of [
+                    ['contain', 'Zobraziť celú – bez orezania'],
+                    ['cover', 'Vyplniť rámik – orezanie okrajov']
+                ]) {
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = caption;
+                    select.appendChild(option);
+                }
+                select.value = normalizedImageFit(varietyGalleryFitDraft[url]);
+                select.addEventListener('change', () => {
+                    varietyGalleryFitDraft[url] = normalizedImageFit(select.value);
+                    thumb.style.objectFit = varietyGalleryFitDraft[url];
+                });
+                const description = document.createElement('small');
+                description.textContent = url.length > 85 ? url.slice(0, 82) + '…' : url;
+                options.appendChild(label);
+                options.appendChild(select);
+                options.appendChild(description);
+                row.appendChild(thumb);
+                row.appendChild(options);
+                host.appendChild(row);
+            }
+        }
+
         function openVarietyModal() {
             if (!requireAdmin()) return;
             document.getElementById('editIndex').value = -1;
@@ -3270,12 +3415,16 @@
             document.getElementById('varStock').value = '2';
             document.getElementById('varWeight').value = '';
             document.getElementById('varImg').value = '';
+            document.getElementById('varImageFit').value = 'contain';
             document.getElementById('varGalleryUrls').value = '';
+            varietyGalleryFitDraft = Object.create(null);
+            renderVarietyGalleryFitControls();
             document.getElementById('varPhotoFiles').value = '';
             document.getElementById('varPhotoUploadStatus').textContent = '';
             document.getElementById('varInfo').value = '';
             document.getElementById('varMultiflora').checked = false;
             document.getElementById('varHidden').checked = false;
+            updateImageFitPreview('varImg', 'varPhotoFiles', 'varImageFit', 'varMainPhotoPreview');
 
             const sel = document.getElementById('varSectionSelect');
             sel.innerHTML = '';
@@ -3317,12 +3466,16 @@
             document.getElementById('varStock').value = typeof t.stock === 'number' ? t.stock : 10;
             document.getElementById('varWeight').value = t.weight || '';
             document.getElementById('varImg').value = t.img || '';
+            document.getElementById('varImageFit').value = normalizedImageFit(t.imageFit);
             document.getElementById('varGalleryUrls').value = Array.isArray(t.gallery) ? t.gallery.join('\n') : '';
+            varietyGalleryFitDraft = Object.assign(Object.create(null), t.galleryImageFits || {});
+            renderVarietyGalleryFitControls();
             document.getElementById('varPhotoFiles').value = '';
             document.getElementById('varPhotoUploadStatus').textContent = '';
             document.getElementById('varInfo').value = t.info || '';
             document.getElementById('varMultiflora').checked = t.multiflora;
             document.getElementById('varHidden').checked = t.hidden || false;
+            updateImageFitPreview('varImg', 'varPhotoFiles', 'varImageFit', 'varMainPhotoPreview');
 
             const sel = document.getElementById('varSectionSelect');
             sel.innerHTML = '';
@@ -3383,6 +3536,7 @@
             const stock = Number(document.getElementById('varStock').value.trim());
             const weight = document.getElementById('varWeight').value.trim();
             let img = document.getElementById('varImg').value.trim();
+            const imageFit = normalizedImageFit(document.getElementById('varImageFit').value);
             const info = document.getElementById('varInfo').value.trim();
             const multiflora = document.getElementById('varMultiflora').checked;
             const hidden = document.getElementById('varHidden').checked;
@@ -3436,11 +3590,15 @@
 
                 const previousData = idx >= 0 && varietyDatabase[idx] ? varietyDatabase[idx] : {};
                 const gallery = [...new Set(galleryUrls.filter(url => url !== img))];
+                const galleryImageFits = Object.fromEntries(gallery.map(url =>
+                    [url, normalizedImageFit(varietyGalleryFitDraft[url])]
+                ));
                 const item = {
                     ...previousData, name, section, type, color,
                     price: priceValue.toFixed(2),
                     seedsPerPack: parseInt(seedsPerPack, 10) + ' ks',
-                    stock, weight, img, gallery, info, multiflora, hidden
+                    stock, weight, img, imageFit, gallery, galleryImageFits,
+                    info, multiflora, hidden
                 };
                 const originalDatabase = varietyDatabase;
                 varietyDatabase = idx === -1
