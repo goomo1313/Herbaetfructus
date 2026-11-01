@@ -201,6 +201,50 @@ Nesimuluje skutočné nahrávanie fotografií do Supabase ani plný
 vizuálny test v mobilnom prehliadači; tie treba overiť pri doplnení
 prvých fotografií.
 
+## 12. Zjednodušený dopytový formulár a pravidlá pre zberateľské osivo
+
+V závere katalógu návštevník už **nemusí prezerať druhý dlhý zoznam odrôd**.
+Najprv vidí svoje vybrané odrody, počet balení, orientačnú hodnotu,
+tlačidlá **+ / − / Odstrániť**, potom jednoduchý nezáväzný formulár.
+
+Pôvodný zoznam odrôd zostal funkčný ako **voliteľne rozbaľovacia**
+možnosť „Chcem upraviť výber alebo pridať ďalšiu odrodu“.
+Výber z katalógových kariet a detailov sa zachováva; pri zmenách sa
+overuje sklad a odosiela sa aktualizovaný súhrn.
+
+Aby formulár vopred nezhromažďoval nepotrebné údaje, vyžaduje
+iba meno a e-mail, umožňuje nepovinnú správu a nežiada
+doručovaciu adresu ani preferovanú platbu.
+Zavádzajúci „povinný GDPR súhlas“ bol nahradený informačným textom.
+Formulár naďalej používa FormSubmit, čo vyžaduje osobitné overenie
+informačnej povinnosti a nastavenia ochrany osobných údajov.
+
+Odoslanie na FormSubmit presmeruje na reálne existujúcu stránku
+`dakujeme.html` (zostáva v podpriečinku GitHub Pages alebo webhostingu).
+Tá výslovne uvádza, že ide len o nezáväzný dopyt, nie o zaplatenú
+alebo potvrdenú objednávku.
+
+**Právne podklady a otvorené povinnosti:**
+`PRAVNE_OVERENIE_PRE_SPRAVCU.md` obsahuje oficiálne odkazy,
+otázky na ÚKSÚP, rozlíšenie príležitostných príjmov od podnikania,
+upozornenia k ochrane spotrebiteľa a k GDPR.
+Je pripravený aj návrh otázky na ÚKSÚP.
+
+**Dôležité:**
+- Zberateľský charakter semien *sám osebe neznamená výnimku*
+  z pravidiel uvádzania osiva zelenín na trh.
+- Daňové oslobodenie vybraných príležitostných príjmov do 500 €
+  *nie je automatické povolenie na pravidelný predaj bez oprávnenia*.
+- Bez odpovede ÚKSÚP, posúdenia druhu činnosti a doplnenia
+  skutočných údajov prevádzkovateľa nemožno web označiť za
+  plne právne pripravený na sústavný komerčný predaj.
+- Nebol pridaný fiktívny obchodník, vymyslené IČO, vyhlásenie
+  o certifikácii osiva ani nepravdivé podmienky reklamácií.
+
+Nové automatické testy `tests/inquiry-legal.mjs` overujú poradie
+súhrnu a voliteľného editora, zmeny množstva, výmaz položiek,
+minimalizáciu údajov a odkaz na potvrdzovaciu stránku.
+
 ## Poznámky
 
 - **Fotografie:** správca môže vkladať URL alebo nahrávať súbory priamo pri kartách aj odrodách. Galérie odrôd majú vlastný editor a zmenšovanie obrázkov. Fotografie blogu sa zatiaľ nastavujú cez HTTPS URL. Bucket `site-images` musí mať bezpečné RLS politiky.
