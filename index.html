@@ -1276,10 +1276,19 @@
 
     <!-- MODÁLNE OKNO - BLOG -->
     <div class="modal-overlay" id="blogModal">
-        <div class="modal-box" style="max-width: 650px;">
+        <div class="modal-box" style="max-width: 790px; max-height: 90vh; overflow-y: auto;">
             <h3 id="modalBlogTitle" style="color: var(--primary-color); margin-bottom: 15px;">Pridať článok do blogu</h3>
             <input type="hidden" id="editBlogIndex" value="-1">
-            <div style="margin-bottom: 15px;"><label>Nadpis článku *</label><input type="text" id="blogTitle" placeholder="Napr. Ako správne odoberať semienka..."></div>
+            <div style="margin-bottom: 15px;"><label for="blogTitle">Nadpis článku *</label><input type="text" id="blogTitle" placeholder="Napr. Ako správne odoberať semienka..."></div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(100px, 150px); gap: 15px; margin-bottom: 15px;">
+                <div><label for="blogCategoryInput">Rubrika článku</label><input type="text" id="blogCategoryInput" placeholder="Semenárstvo, Pestovanie, Tekvice..."></div>
+                <div><label for="blogReadTime">Dĺžka čítania</label><input type="text" id="blogReadTime" placeholder="5 min"></div>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="blogExcerpt">Úvodný text na kartičke (perex)</label>
+                <textarea id="blogExcerpt" rows="3" placeholder="Krátky pútavý úvod. Kliknutím na kartičke sa potom zobrazí celý článok."></textarea>
+                <small style="color:#64748b;">Ak necháš perex prázdny, zobrazí sa článok bez rozbaľovacieho bloku.</small>
+            </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div><label>Obrázok URL (voliteľné)</label><input type="text" id="blogImg" placeholder="https://..."></div>
                 <div><label>Video URL / YouTube Embed (voliteľné)</label><input type="text" id="blogVideo" placeholder="https://www.youtube.com/embed/..."></div>
@@ -1294,7 +1303,7 @@
                     <button type="button" class="admin-btn" style="background: #2B6CB0; padding: 4px 8px;" onclick="insertBlogFilePrompt()">📎 Vložiť súbor</button>
                     <button type="button" class="admin-btn" style="background: #D97706; padding: 4px 8px;" onclick="insertBlogTipBox()">💡 Tip Box</button>
                 </div>
-                <textarea id="blogContent" rows="8" placeholder="Obsah článku... Môžete písať text alebo použiť tlačidlá vyššie."></textarea>
+                <textarea id="blogContent" rows="14" placeholder="Článok rozdeľuj pomocou nadpisov, odsekov a zoznamov. Tlačidlá vyššie vkladajú HTML značky."></textarea>
             </div>
             <div style="display: flex; gap: 10px;">
                 <button class="admin-btn" style="flex: 1; padding: 12px;" onclick="saveBlogPost()">Uložiť článok</button>
@@ -3065,8 +3074,12 @@
 
         function openBlogModal() {
             if (!requireAdmin()) return;
+            document.getElementById('modalBlogTitle').textContent = 'Pridať nový článok';
             document.getElementById('editBlogIndex').value = -1;
             document.getElementById('blogTitle').value = '';
+            document.getElementById('blogCategoryInput').value = '';
+            document.getElementById('blogReadTime').value = '';
+            document.getElementById('blogExcerpt').value = '';
             document.getElementById('blogImg').value = '';
             document.getElementById('blogVideo').value = '';
             document.getElementById('blogContent').value = '';
@@ -3075,12 +3088,17 @@
 
         function editBlogPost(idx) {
             if (!requireAdmin()) return;
-            const p = blogDatabase[idx];
+            const post = blogDatabase[idx];
+            if (!post) return;
+            document.getElementById('modalBlogTitle').textContent = 'Upraviť článok: ' + post.title;
             document.getElementById('editBlogIndex').value = idx;
-            document.getElementById('blogTitle').value = p.title;
-            document.getElementById('blogImg').value = p.img || '';
-            document.getElementById('blogVideo').value = p.video || '';
-            document.getElementById('blogContent').value = p.content;
+            document.getElementById('blogTitle').value = post.title || '';
+            document.getElementById('blogCategoryInput').value = post.category || '';
+            document.getElementById('blogReadTime').value = post.readTime || '';
+            document.getElementById('blogExcerpt').value = post.excerpt || '';
+            document.getElementById('blogImg').value = post.img || '';
+            document.getElementById('blogVideo').value = post.video || '';
+            document.getElementById('blogContent').value = post.content || '';
             document.getElementById('blogModal').classList.add('active');
         }
 
@@ -3132,25 +3150,49 @@
             textarea.focus();
         }
 
-        function saveBlogPost() {
+        async function saveBlogPost() {
             if (!requireAdmin()) return;
-            const idx = parseInt(document.getElementById('editBlogIndex').value);
+            const idx = parseInt(document.getElementById('editBlogIndex').value, 10);
             const title = document.getElementById('blogTitle').value.trim();
+            const category = document.getElementById('blogCategoryInput').value.trim();
+            const readTime = document.getElementById('blogReadTime').value.trim();
+            const excerpt = document.getElementById('blogExcerpt').value.trim();
             const img = document.getElementById('blogImg').value.trim();
             const video = document.getElementById('blogVideo').value.trim();
             const content = document.getElementById('blogContent').value.trim();
-            const date = new Date().toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' });
 
-            if(!title || !content) { alert('Vyplňte nadpis a text článku!'); return; }
-            const obj = { title, date, img, video, content };
+            if (!title || !content) { alert('Vyplň nadpis a text článku.'); return; }
+            if (img && !safeImageUrl(img)) { alert('Adresa fotografie musí začínať https://'); return; }
+            if (video && !safeImageUrl(video)) { alert('Adresa videa musí začínať https://'); return; }
+            if (blogDatabase.some((post, i) => i !== idx && post.title.trim().toLocaleLowerCase('sk') === title.toLocaleLowerCase('sk'))) {
+                alert('Článok s týmto názvom už existuje.'); return;
+            }
+            const original = idx >= 0 ? blogDatabase[idx] : {};
+            const date = original.date || new Date().toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' });
+            const updated = { ...original, title, date, img, video, content, category, readTime, excerpt };
+            const previousDatabase = blogDatabase;
+            blogDatabase = idx === -1
+                ? [updated, ...blogDatabase]
+                : blogDatabase.map((post, i) => i === idx ? updated : post);
 
-            if (idx === -1) blogDatabase.unshift(obj);
-            else blogDatabase[idx] = obj;
-
-            try { queueCloudSave('blog', blogDatabase); } catch(e){}
-            closeBlogModal();
-            renderAll();
-            showToast('✅ Článok v blogu uložený!');
+            const button = document.querySelector('#blogModal button[onclick="saveBlogPost()"]');
+            if (button) button.disabled = true;
+            try {
+                const saved = await queueCloudSave('blog', blogDatabase);
+                if (!saved) {
+                    blogDatabase = previousDatabase;
+                    alert('Článok sa nepodarilo uložiť do Supabase. Skús to znovu.');
+                    return;
+                }
+                closeBlogModal();
+                renderAll();
+                showToast('✅ Článok uložený.');
+            } catch (error) {
+                blogDatabase = previousDatabase;
+                alert('Uloženie článku zlyhalo: ' + (error.message || 'neznáma chyba'));
+            } finally {
+                if (button) button.disabled = false;
+            }
         }
 
         function deleteBlogPost(idx) {
