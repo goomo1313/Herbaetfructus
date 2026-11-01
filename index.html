@@ -837,7 +837,12 @@
             z-index: 1999;
             cursor: pointer;
             font-weight: 600;
+            border: 0;
+            font-family: inherit;
+            font-size: .92rem;
         }
+
+        .floating-selection:focus-visible { outline: 3px solid #2c5530; outline-offset: 3px; }
 
         .toast {
             position: fixed;
@@ -1224,9 +1229,9 @@
         <p>&copy; Herba et Fructus. Všetky práva vyhradené. | <a onclick="openLoginModal()">Prihlásenie správcu</a></p>
     </footer>
 
-    <div class="floating-selection" id="floatingCounter" onclick="switchSection('kontaktSection')">
+    <button type="button" class="floating-selection" id="floatingCounter" onclick="openOrderForm()" aria-label="Prejsť na vybrané semená a nezáväzný dopyt">
         🛒 Môj výber: <span class="count">0</span> bal. | Spolu: <span class="totalPrice">0.00 €</span>
-    </div>
+    </button>
 
     <div class="toast" id="toast">Akcia prebehla úspešne!</div>
 
@@ -2098,6 +2103,23 @@
             calendarButton.onclick = () => switchSection('kalendar');
             calendarLi.appendChild(calendarButton);
             navUl.appendChild(calendarLi);
+        }
+
+        function openOrderForm() {
+            const valid = sectionsDatabase.some(section => section.id === currentActiveSection &&
+                !section.hidden && section.id !== 'domov' && section.id !== 'podmienky' &&
+                section.id !== 'blog');
+            if (!valid) {
+                const suitable = sectionsDatabase.find(section => !section.hidden &&
+                    varietyDatabase.some(variety => variety.section === section.id));
+                if (suitable) switchSection(suitable.id);
+                else switchSection('paradajky');
+            }
+            const contact = document.getElementById('kontaktSection');
+            if (contact) {
+                contact.style.display = 'block';
+                contact.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         function switchSection(secId) {
