@@ -61,7 +61,7 @@ test('comparison keeps a maximum of three distinct names and can remove one',()=
     const names=Array.from(runInContext('varietyDatabase.slice(0,4).map(v=>v.name)',context));
     for (let i=0;i<3;i++) assert.equal(window.HERBA_IMPROVEMENTS.toggleCompare(names[i]),true);
     assert.equal(window.HERBA_IMPROVEMENTS.toggleCompare(names[3]),false);
-    assert.deepEqual(window.HERBA_IMPROVEMENTS.selected(),names.slice(0,3));
+    assert.deepEqual(Array.from(window.HERBA_IMPROVEMENTS.selected()),names.slice(0,3));
     assert.equal(window.HERBA_IMPROVEMENTS.toggleCompare(names[1]),true);
     assert.equal(window.HERBA_IMPROVEMENTS.selected().length,2);
     window.HERBA_IMPROVEMENTS.resetCompare();
