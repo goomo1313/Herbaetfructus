@@ -1,0 +1,129 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { Script, createContext, runInContext } from 'node:vm';
+import test from 'node:test';
+
+const html = readFileSync('index.html', 'utf8');
+const catalogueCode = readFileSync('catalogue-ui.js', 'utf8');
+const catalogueCss = readFileSync('catalogue-ui.css', 'utf8');
+const inlineCode = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
+    .map(match => match[1]).filter(Boolean).join('\n');
+
+function element() {
+    const attributes = {};
+    const listeners = {};
+    const classes = new Set();
+    return {
+        dataset: {}, style: {}, innerHTML: '', textContent: '', value: '', max: '',
+        disabled: false, children: [], attrs: attributes, listeners,
+        classList: {
+            add(name) { classes.add(name); },
+            remove(name) { classes.delete(name); },
+            contains(name) { return classes.has(name); },
+            toggle(name, enabled) { if (enabled) classes.add(name); else classes.delete(name); }
+        },
+        setAttribute(name, value) { attributes[name] = value; },
+        getAttribute(name) { return attributes[name]; },
+        appendChild(child) { this.children.push(child); return child; },
+        querySelectorAll() { return this.children; },
+        addEventListener(name, fn) { listeners[name] = fn; },
+        focus() {}
+    };
+}
+
+function site() {
+    const controls = new Map();
+    for (const id of ['productDetailOverlay','detailHero','detailThumbs','detailCategory',
+        'detailTitle','detailDescription','detailProperties','detailPrice','detailAvailability',
+        'detailQuantity','detailAdd','detailOrder','detailShare','detailClose']) {
+        controls.set(id, element());
+    }
+    const document = {
+        body: {classList: {contains() { return false; }}},
+        activeElement: element(),
+        getElementById(id) { return controls.get(id) || null; },
+        createElement() { return element(); },
+        addEventListener() {}
+    };
+    const window = {
+        HERBA_CONFIG: {}, location: {hash: '', pathname: '/Herbaetfructus/', search: '', href: 'https://example.org/Herbaetfructus/'},
+        history: {pushState() {}, replaceState() {}},
+        addEventListener() {}
+    };
+    const vm = createContext({
+        window, document, console: {warn() {},error() {},info() {}},
+        localStorage: {getItem() {return null;}}, setTimeout() {}
+    });
+    runInContext(inlineCode, vm);
+    runInContext(catalogueCode, vm);
+    return {vm, controls, window};
+}
+
+test('detail code and HTML have correct modal structure and links', () => {
+    assert.doesNotThrow(() => new Script(catalogueCode));
+    assert.match(catalogueCss, /\.product-detail-layout/);
+    assert.match(html, /id="productDetailOverlay"/);
+    assert.match(html, /src="\.\/catalogue-ui\.js"/);
+    assert.match(html, /href="\.\/catalogue-ui\.css"/);
+    assert.match(html, /class="variety-more"/);
+    const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
+    assert.equal(ids.length, new Set(ids).size, 'Static element IDs must be unique');
+});
+
+test('photo gallery contains only distinct HTTPS photos', () => {
+    const {vm} = site();
+    const images = runInContext(
+        "window.HERBA_CATALOGUE.imagesFor({img:'https://a.example/img.jpg',gallery:['http://invalid','javascript:alert(1)','https://a.example/img.jpg','https://b.example/rez.jpg']})",
+        vm
+    );
+    assert.deepEqual(Array.from(images), ['https://a.example/img.jpg','https://b.example/rez.jpg']);
+    assert.equal(runInContext("window.HERBA_CATALOGUE.imagesFor({img:''}).length", vm), 0);
+});
+
+test('the product detail opens even when photography is missing', () => {
+    const {vm, controls} = site();
+    const name = runInContext('varietyDatabase[0].name',vm);
+    const opened = vm.window.HERBA_CATALOGUE.open(name, true);
+    assert.equal(opened, true);
+    assert.equal(controls.get('detailTitle').textContent, name);
+    assert.equal(controls.get('productDetailOverlay').classList.contains('active'), true);
+    assert.match(controls.get('detailProperties').innerHTML, /Obsah balenia/);
+    assert.match(controls.get('detailHero').innerHTML, /Fotografiu tejto odrody pripravujeme/);
+    assert.equal(controls.get('detailQuantity').max, '2');
+    assert.equal(controls.get('detailAdd').disabled, false);
+    vm.window.HERBA_CATALOGUE.close(false);
+    assert.equal(controls.get('productDetailOverlay').classList.contains('active'), false);
+});
+
+test('hidden varieties are not publicly opened; out-of-stock varieties cannot be added', () => {
+    const {vm, controls} = site();
+    runInContext("varietyDatabase[0].hidden = true;",vm);
+    const name = runInContext('varietyDatabase[0].name',vm);
+    assert.equal(vm.window.HERBA_CATALOGUE.open(name, true), false);
+    runInContext("varietyDatabase[0].hidden = false; varietyDatabase[0].stock = 0;",vm);
+    assert.equal(vm.window.HERBA_CATALOGUE.open(name, true), true);
+    assert.equal(controls.get('detailAdd').disabled,true);
+    assert.equal(controls.get('detailQuantity').disabled,true);
+});
+
+test('admin photo fields and cloud upload have size and type guards', async () => {
+    const {vm} = site();
+    assert.match(html, /id="varGalleryUrls"/);
+    assert.match(html, /id="varPhotoFiles"/);
+    assert.match(html, /id="varPhotoUploadStatus"/);
+    assert.match(html, /storage\.from\('site-images'\)\.upload/);
+    assert.match(html, /async function prepareVarietyPhoto\(file\)/);
+    const basic = {size: 1_000_000, type:'image/jpeg'};
+    const result = await runInContext('prepareVarietyPhoto',vm)(basic);
+    assert.equal(result,basic);
+    await assert.rejects(runInContext('prepareVarietyPhoto',vm)({size:1200,type:'text/html'}),/JPG, PNG alebo WebP/);
+    await assert.rejects(runInContext('prepareVarietyPhoto',vm)({size:21_000_000,type:'image/jpeg'}),/20 MB/);
+});
+
+test('stock and pack sizes are never changed by opening detail', () => {
+    const {vm} = site();
+    const before = runInContext("varietyDatabase.map(v => ({name:v.name,price:v.price,stock:v.stock,seeds:v.seedsPerPack}))",vm);
+    vm.window.HERBA_CATALOGUE.open(before[0].name,true);
+    const after = runInContext("varietyDatabase.map(v => ({name:v.name,price:v.price,stock:v.stock,seeds:v.seedsPerPack}))",vm);
+    assert.deepEqual(Array.from(after, v => ({...v})),Array.from(before, v => ({...v})));
+});
