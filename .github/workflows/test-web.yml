@@ -16,9 +16,9 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Stiahnuť kód
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Pripraviť Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
       - name: Spustiť automatické kontroly
