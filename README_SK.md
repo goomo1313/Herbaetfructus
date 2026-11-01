@@ -66,8 +66,34 @@ Kód je v GitHub repozitári `goomo1313/Herbaetfructus`. Pri každej zmene kódu
 
 Ak používate GitHub Pages, v repozitári otvorte **Settings → Pages** a skontrolujte, že sa publikuje branch `main` z koreňového priečinka.
 
+
+## 6. Automatická kontrola kvality
+
+V repozitári je súbor `.github/workflows/test-web.yml` a sada testov `tests/site-smoke.mjs`.
+GitHub Actions pri každom nahratí nového kódu do `main` overí:
+
+- syntaktickú správnosť hlavného JavaScriptu a jedinečnosť identifikátorov v HTML,
+- zachovanie všetkých 52 pôvodných produktov, ich predvolených cien, 2 balení na sklade a 10 semien v balení,
+- dostupnosť sekcie Náš príbeh,
+- správne blokovanie prázdnych objednávok a množstiev nad zásobami,
+- sčítavanie balení, obmedzenie počtu balení a obnovu JSON bez nepovoleného záznamu `story`.
+
+Výsledok je v **GitHub → Actions → Kontrola webu Herba et Fructus**. Úspešný test kódu ešte
+nezaručuje, že je nová verzia zverejnená; samostatne skontrolujte aj úlohu
+**pages build and deployment**. Automatické testy neodosielajú skutočné objednávky
+a nevykonávajú prihlásenie reálneho správcu do Supabase.
+
+## 7. Dôležité pravidlá pri správe dát
+
+- **Pred väčšími zmenami** v administrácii kliknite na **Zálohovať JSON**. Záloha obsahuje karty, odrody, sklad, blog a nastavenia.
+- Import JSON nahrádza štyri podporované časti databázy: `sections`, `varieties`, `blog` a `settings`. Staré pole `story` sa pri importe ignoruje, pretože príbeh je dnes súčasťou karty `domov`.
+- Ak zápis niektorej časti importu zlyhá, web sa pokúsi vrátiť predchádzajúce údaje. Supabase z prehliadača **neposkytuje jednu atómovú transakciu pre celý import**; pri prerušení pripojenia preto vždy skontrolujte výsledok.
+- Revízia katalógu zo dňa 1. 11. 2026 nastavila východiskovú zásobu na **2 balenia** a obsah balenia na **10 semien**. Pri existujúcej databáze sa jednorazová úprava trvalo uloží až po prihlásení oprávneného správcu. Neskoršie zmeny skladu sa už vykonávajú bežne v administrácii.
+- Predvolené nové odrody majú zásobu 2 balenia a 10 semien. Administrácia teraz overuje duplicity názvov, kladnú cenu, celé nezáporné zásoby a bezpečnú adresu fotografie.
+- **Objednávka je nezáväzný dopyt**, ktorý sa posiela cez FormSubmit. Odoslanie neodpočítava sklad; zásoby sa upravujú ručne po vybavení objednávky.
+
 ## Poznámky
 
-- Obrázky sa zatiaľ ukladajú ako existujúce URL adresy v údajoch odrôd a článkov. Samostatné nahrávanie fotografií do Supabase Storage môžeme doplniť ako ďalšiu etapu.
+- **Fotografie kariet:** v administrácii kariet možno vložiť HTTPS adresu alebo nahrať súbor do Supabase Storage (bucket `site-images`, najviac 5 MB). Bucket musí existovať a mať bezpečne nastavené politiky pre zápis prihláseného správcu; bez toho nahrávanie neprejde. Fotografie jednotlivých odrôd a blogu sa zatiaľ nastavujú cez URL.
 - Objednávkový formulár naďalej používa existujúce nastavenie FormSubmit. Databázové ukladanie objednávok zatiaľ nie je súčasťou tejto úpravy.
 - Pri prvom spustení sa do cloudu prenesú údaje dostupné v prehliadači, z ktorého sa správca prvýkrát prihlási. Ak ste v minulosti upravovali obsah iba v inom prehliadači alebo zariadení, najprv z neho vyexportujte JSON a použite Import JSON po nastavení databázy.
