@@ -56,6 +56,16 @@ test('size filtering uses approximate range midpoint without fabricating mass',(
     assert.equal(weightMatches('neznáma','small'),false);
 });
 
+test('yellow and orange, dark and striped color descriptions match their category labels',()=>{
+    const {window}=makeEnvironment();
+    const matches=window.HERBA_IMPROVEMENTS.colorMatches;
+    assert.equal(matches('Oranžová', 'žltá'),true);
+    assert.equal(matches('Žltá', 'žltá'),true);
+    assert.equal(matches('Tmavofialová', 'čierna'),true);
+    assert.equal(matches('Červeno-žltá pásikavá', 'pásikavá'),true);
+    assert.equal(matches('Červená', 'žltá'),false);
+});
+
 test('comparison keeps a maximum of three distinct names and can remove one',()=>{
     const {context,window}=makeEnvironment();
     const names=Array.from(runInContext('varietyDatabase.slice(0,4).map(v=>v.name)',context));
