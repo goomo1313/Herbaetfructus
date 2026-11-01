@@ -313,6 +313,31 @@
         }
         body.admin-mode .admin-section-actions { display: flex; }
 
+        /* Edukačné úvodné bloky katalógov bez vymyslených parametrov odrôd. */
+        .catalogue-intro {
+            margin: 0 0 22px; padding: clamp(20px, 3vw, 28px);
+            border-radius: 14px; border: 1px solid #d8e4d6;
+            background: linear-gradient(125deg, #f4f8f1, #fffdf8);
+            display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+            gap: clamp(20px, 4vw, 42px); align-items: start;
+        }
+        .catalogue-kicker { font-size: .73rem; text-transform: uppercase; letter-spacing: 1.8px; color: #507b55; font-weight: 700; }
+        .catalogue-intro h3 { color: var(--primary-color); font-size: 1.36rem; margin: 6px 0 12px; }
+        .catalogue-intro p { color: #42574a; line-height: 1.77; margin-bottom: 11px; }
+        .catalogue-intro ul { margin: 6px 0 0 20px; line-height: 1.65; color: #405548; }
+        .catalogue-intro li { margin: 0 0 9px; }
+        .catalogue-intro button {
+            margin-top: 12px; font: inherit; color: var(--primary-color);
+            font-weight: 700; border: 1px solid #aac6aa; border-radius: 8px;
+            padding: 10px 13px; background: white; cursor: pointer; text-align: left;
+        }
+        .catalogue-intro button:hover, .catalogue-intro button:focus-visible {
+            background: #e6f1e5; border-color: #5c9161;
+        }
+        @media (max-width: 720px) {
+            .catalogue-intro { grid-template-columns: 1fr; padding: 18px; }
+        }
+
         /* Filtrovací panel */
         .filters-wrapper {
             background: var(--surface-color);
@@ -1896,6 +1921,72 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+
+        function catalogueIntroForSection(sectionId) {
+            if (sectionId === 'paradajky') {
+                return `
+                    <section class="catalogue-intro" aria-label="Ako si vybrať paradajky">
+                        <div>
+                            <span class="catalogue-kicker">Odroda má svoj charakter</span>
+                            <h3>Paradajky pre chuť, pestovanie aj vlastné semená</h3>
+                            <p>Za každým názvom je odlišný rast, tvar plodu, chuť a využitie. Cherry paradajky potešia pri priamom zbere, mäsité typy sa hodia na krájanie a pevnejšie omáčkové odrody na spracovanie. Vyberajte podľa toho, čo chcete zo svojej záhrady získať.</p>
+                            <p>Uvedené hmotnosti sú orientačné. Skutočná veľkosť aj chuť plodov závisia od počasia, pestovania a zrelosti. Pri vzácnych alebo menej známych odrodách je dôležitý tiež pôvod osiva.</p>
+                            <button type="button" onclick="openEditorialArticle('hf-typy-paradajok')">Ako sa vyznať v typoch paradajok →</button>
+                        </div>
+                        <div>
+                            <span class="catalogue-kicker">Rýchly sprievodca výberom</span>
+                            <ul>
+                                <li><strong>Kolíková vs. kríčková:</strong> spôsob rastu a potreba opory.</li>
+                                <li><strong>Cherry, šalátová, omáčková:</strong> veľkosť a využitie plodov.</li>
+                                <li><strong>Multiflora:</strong> neobvykle bohaté rozvetvené strapce.</li>
+                                <li><strong>F1 hybrid:</strong> semená z vlastného zberu nemusia zachovať vlastnosti rodičov.</li>
+                            </ul>
+                        </div>
+                    </section>
+                `;
+            }
+            if (sectionId === 'tekvice') {
+                return `
+                    <section class="catalogue-intro" aria-label="Ako pestovať tekvice a cukety">
+                        <div>
+                            <span class="catalogue-kicker">Tekvice a cukety</span>
+                            <h3>Od letnej cukety po zimnú tekvicu</h3>
+                            <p>Tekvicovitá zelenina ukazuje veľkú rozmanitosť: mladé cukety zbierame priebežne, zimné tekvice nechávame vyzrieť a pri vhodnom skladovaní ich využívame aj po skončení sezóny. Hokkaido je obľúbené na pečenie a krémové polievky.</p>
+                            <p>Ak si odkladáte vlastné semená, sledujte aj botanický druh. Cukety, patizóny a niektoré tekvice sa môžu krížiť. Zmena sa pritom typicky prejaví až v ďalšej generácii pestovanej z odložených semien.</p>
+                            <button type="button" onclick="openEditorialArticle('hf-tekvice-krizenie')">Prečítať sprievodcu krížením →</button>
+                        </div>
+                        <div>
+                            <span class="catalogue-kicker">Na čo nezabudnúť</span>
+                            <ul>
+                                <li><strong>Stanovište:</strong> slnečné, teplé a s dostatkom priestoru.</li>
+                                <li><strong>Voda:</strong> rovnomerná vlhkosť počas rastu a tvorby plodov.</li>
+                                <li><strong>Zber:</strong> mladá cuketa a vyzretá zimná tekvica majú odlišný termín.</li>
+                                <li><strong>Osivo:</strong> pri zachovávaní odrody chráňte kvety pred nechceným krížením.</li>
+                            </ul>
+                        </div>
+                    </section>
+                `;
+            }
+            return '';
+        }
+
+        function openEditorialArticle(articleId) {
+            const target = blogDatabase.find(post => post.id === articleId);
+            if (!target) { switchSection('blog'); return; }
+            switchSection('blog');
+            const search = document.getElementById('blogSearch');
+            if (search) search.value = '';
+            const category = document.getElementById('blogCategory');
+            if (category) category.value = '';
+            filterBlogPosts();
+            const article = [...document.querySelectorAll('#blogGridContainer .blog-card')]
+                .find(card => card.dataset.postId === articleId);
+            if (!article) return;
+            const details = article.querySelector('details.blog-details');
+            if (details) details.open = true;
+            article.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        }
+
         function renderMainContent() {
             const container = document.getElementById('mainContainer');
             if (!container) return;
@@ -1989,6 +2080,7 @@
                     `;
                 } else if (sec.id !== 'domov') {
                     html += `
+                        ${catalogueIntroForSection(sec.id)}
                         <div class="filters-wrapper">
                             <div class="search-box">
                                 <input type="text" id="searchInput_${sec.id}" placeholder="🔍 Hľadať odrodu, farbu..." onkeyup="applyFilters('${sec.id}')">
@@ -2201,6 +2293,7 @@
                 const card = document.createElement('article');
                 card.className = 'blog-card';
                 card.dataset.topic = String(post.category || '');
+                card.dataset.postId = String(post.id || '');
                 card.dataset.search = [post.title, post.excerpt, post.category, post.content]
                     .map(value => String(value || '').replace(/<[^>]*>/g, ' ').toLocaleLowerCase('sk')).join(' ');
                 let mediaHtml = '';
