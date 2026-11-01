@@ -1,0 +1,58 @@
+
+/* Herba et Fructus – katalógový porovnávač, filtre a prehľad pre správcu. */
+.enhanced-filters { display:flex; flex-wrap:wrap; align-items:flex-end; gap:12px; margin:15px 0 10px; padding:14px; background:#f4f8f2; border:1px solid #d9e5d6; border-radius:12px; }
+.enhanced-filters label { display:grid; gap:6px; color:#31513b; font-weight:600; font-size:.83rem; flex:1 1 150px; }
+.enhanced-filters select { width:100%; min-height:42px; border:1px solid #b8cbbb; border-radius:8px; padding:8px 10px; background:white; color:#203d2a; font:inherit; }
+.enhanced-filter-counter { margin:0 0 16px; color:#536d58; font-size:.88rem; min-height:20px; }
+.enhanced-compare-btn { margin-top:8px; border:1px solid #8eb496; background:#f0f7ed; color:#275a35; font:inherit; font-size:.85rem; font-weight:700; padding:9px 12px; border-radius:9px; cursor:pointer; width:100%; }
+.enhanced-compare-btn[aria-pressed="true"] { color:white; background:#2c6840; }
+.enhanced-compare-btn:focus-visible { outline:3px solid #b56b18; outline-offset:2px; }
+.enhanced-compare-tray { display:none; position:fixed; left:14px; bottom:15px; z-index:17000; gap:8px; align-items:center; max-width:min(460px, calc(100vw - 28px)); background:#fefefe; border:1px solid #88ae8d; box-shadow:0 10px 35px rgba(16,35,20,.22); border-radius:12px; padding:12px; color:#224d30; font-size:.88rem; }
+.enhanced-compare-tray.active { display:flex; flex-wrap:wrap; }
+.enhanced-compare-tray button { border-radius:8px; min-height:38px; padding:7px 11px; border:1px solid #b2c8b5; background:#ecf4e9; font-weight:700; color:#245331; cursor:pointer; }
+.enhanced-compare-tray button:first-of-type { color:white; background:#275936; }
+.enhanced-compare-tray button:disabled { opacity:.5; cursor:not-allowed; }
+.enhanced-overlay { display:none; position:fixed; inset:0; z-index:30000; background:rgba(15,30,18,.78); padding:clamp(8px,2.5vw,25px); overflow-y:auto; align-items:flex-start; justify-content:center; }
+.enhanced-overlay.active { display:flex; }
+.enhanced-dialog { background:#fff; width:min(100%,1100px); margin:auto; max-height:calc(100dvh - 30px); overflow:auto; border-radius:16px; box-shadow:0 25px 70px rgba(0,0,0,.27); padding:clamp(18px,3vw,30px); }
+.enhanced-dialog-head { display:flex; align-items:start; justify-content:space-between; gap:15px; margin-bottom:18px; }
+.enhanced-dialog-head h2 { font-family:'Playfair Display',Georgia,serif; color:#265536; font-size:clamp(1.45rem,2.8vw,2rem); margin:0 0 7px; }
+.enhanced-dialog-head p { font-size:.85rem; color:#516457; line-height:1.6; margin:0; }
+.enhanced-close { background:#eef3ec; border:1px solid #bbcebd; border-radius:9px; min-width:42px; min-height:42px; font-size:1.4rem; cursor:pointer; }
+.enhanced-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); gap:12px; margin-bottom:21px; }
+.enhanced-stat { background:#f0f6ed; border:1px solid #d7e6d3; padding:14px; border-radius:11px; }
+.enhanced-stat strong { display:block; font-size:1.65rem; color:#2a5c35; }
+.enhanced-stat span { font-size:.8rem; line-height:1.35; color:#4a5b4e; }
+.enhanced-admin-actions { display:flex; flex-wrap:wrap; gap:9px; margin:16px 0; }
+.enhanced-admin-actions button, .enhanced-admin-filters button { min-height:40px; padding:9px 13px; border:1px solid #abc5ac; background:#eef5ec; color:#245731; font:inherit; font-weight:700; border-radius:8px; cursor:pointer; }
+.enhanced-admin-filters { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin:14px 0 10px; }
+.enhanced-admin-filters input, .enhanced-admin-filters select { min-height:42px; padding:9px 12px; border:1px solid #b9ceba; border-radius:9px; background:white; color:#213e2b; font:inherit; }
+.enhanced-admin-filters input { flex:2 1 230px; }
+.enhanced-admin-filters select { flex:1 1 180px; }
+.enhanced-admin-count { font-size:.86rem; color:#556d5c; margin:0 0 10px; }
+.enhanced-table-scroll { overflow-x:auto; border:1px solid #d6e4d6; border-radius:9px; max-height:47vh; overflow-y:auto; }
+.enhanced-data-table { width:100%; border-collapse:collapse; font-size:.86rem; text-align:left; }
+.enhanced-data-table th { position:sticky; top:0; background:#284f32; color:white; padding:11px; white-space:nowrap; z-index:2; }
+.enhanced-data-table td { padding:10px 11px; border-bottom:1px solid #e4ebe3; vertical-align:middle; }
+.enhanced-data-table tr:nth-child(even) { background:#f9fbf9; }
+.enhanced-data-table td button { border:1px solid #b2ccb5; padding:6px 9px; min-height:34px; border-radius:7px; background:#ecf5e9; color:#23522e; cursor:pointer; font-weight:600; }
+.enhanced-tag { border-radius:30px; padding:4px 8px; background:#e7f3e5; font-size:.77rem; display:inline-block; }
+.enhanced-tag.warn { background:#fff0d8; color:#755323; }
+.enhanced-tag.danger { background:#ffe9e8; color:#8f2e2a; }
+.enhanced-empty { border:1px dashed #9ab69e; border-radius:10px; padding:22px; text-align:center; color:#506b55; }
+.enhanced-compare-grid { display:grid; grid-template-columns:repeat(3,minmax(180px,1fr)); gap:12px; margin-bottom:16px; }
+.enhanced-compare-item { padding:15px; border:1px solid #d5e5d2; border-radius:11px; background:#fbfdfb; }
+.enhanced-compare-item h3 { color:#275b34; font-size:1.1rem; margin:7px 0 13px; overflow-wrap:anywhere; }
+.enhanced-compare-image { aspect-ratio:4/3; width:100%; display:flex; align-items:center; justify-content:center; background:#eff4eb; color:#5c7561; border-radius:8px; overflow:hidden; }
+.enhanced-compare-image img { width:100%; height:100%; object-fit:contain; }
+.enhanced-compare-item dl { margin:12px 0; }
+.enhanced-compare-item dt { color:#61756a; font-size:.76rem; margin:10px 0 3px; }
+.enhanced-compare-item dd { margin:0; font-size:.91rem; font-weight:600; overflow-wrap:anywhere; }
+.enhanced-compare-item p { color:#48604e; line-height:1.67; font-size:.86rem; }
+.enhanced-compare-item button { background:#295c3a; color:white; min-height:40px; padding:9px 14px; border:0; border-radius:8px; font:inherit; cursor:pointer; }
+@media(max-width:790px) { .enhanced-compare-grid { grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); } .enhanced-compare-tray { bottom:80px; } .enhanced-dialog { margin:8px 0; max-height:none; } }
+@media(max-width:510px) { .enhanced-compare-grid { grid-template-columns:1fr; } .enhanced-admin-filters input, .enhanced-admin-filters select { flex-basis:100%; } }
+@supports(content-visibility:auto) {
+    /* Let the browser skip off-screen rendering; do not remove cards from the DOM. */
+    .variety-grid .variety-card { content-visibility:auto; contain-intrinsic-size:auto 510px; }
+}
