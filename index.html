@@ -2696,6 +2696,81 @@
         }
 
 
+        // Rich text from articles is treated as data: only known HTML elements and safe
+        // attributes survive. Text, headings, lists, images and left/right alignment remain.
+        function sanitizeRichHtml(input) {
+            const raw = String(input || '');
+            if (typeof DOMParser === 'undefined') return escapeHtml(raw);
+            const parsed = new DOMParser().parseFromString(raw, 'text/html');
+            const safeDoc = document.implementation.createHTMLDocument('');
+            const root = safeDoc.createElement('div');
+            const allowed = new Set([
+                'P','DIV','SPAN','SECTION','ARTICLE','ASIDE','H1','H2','H3','H4','H5','H6',
+                'UL','OL','LI','STRONG','B','EM','I','U','S','SMALL','BLOCKQUOTE',
+                'BR','HR','A','IMG','FIGURE','FIGCAPTION','CODE','PRE',
+                'TABLE','THEAD','TBODY','TR','TH','TD'
+            ]);
+            const discard = new Set([
+                'SCRIPT','STYLE','IFRAME','OBJECT','EMBED','SVG','MATH','FORM','INPUT',
+                'BUTTON','TEXTAREA','SELECT','VIDEO','AUDIO','LINK','META','BASE','TEMPLATE'
+            ]);
+            const approvedStyles = new Set([
+                'text-align','float','width','max-width','min-width','height',
+                'max-height','margin','margin-top','margin-bottom','margin-left',
+                'margin-right','border-radius','object-fit','display'
+            ]);
+            const safeCss = value => /^[a-z0-9\s.%(),-]+$/i.test(value)
+                && !/(?:url|expression|var|calc|@import|behavior)/i.test(value);
+            function copy(node, parent) {
+                if (node.nodeType === 3) {
+                    parent.appendChild(safeDoc.createTextNode(node.textContent || ''));
+                    return;
+                }
+                if (node.nodeType !== 1 || discard.has(node.tagName)) return;
+                if (!allowed.has(node.tagName)) {
+                    Array.from(node.childNodes).forEach(child => copy(child, parent));
+                    return;
+                }
+                if (node.tagName === 'IMG' && !safeImageUrl(node.getAttribute('src'))) return;
+                const el = safeDoc.createElement(node.tagName.toLowerCase());
+                const className = node.getAttribute('class');
+                if (className && /^[a-z0-9_ -]{1,160}$/i.test(className)) el.setAttribute('class', className);
+                const title = node.getAttribute('title');
+                if (title) el.setAttribute('title', title.slice(0, 300));
+                const safeStyle = String(node.getAttribute('style') || '').split(';')
+                    .map(declaration => {
+                        const separator = declaration.indexOf(':');
+                        if (separator < 1) return '';
+                        const property = declaration.slice(0, separator).trim().toLowerCase();
+                        const value = declaration.slice(separator + 1).trim();
+                        return approvedStyles.has(property) && value.length <= 90 && safeCss(value)
+                            ? property + ':' + value : '';
+                    }).filter(Boolean).join(';');
+                if (safeStyle) el.setAttribute('style', safeStyle);
+                if (node.tagName === 'A') {
+                    const href = String(node.getAttribute('href') || '').trim();
+                    if (/^https:\/\//i.test(href) || /^mailto:[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(href)
+                        || /^\.?\.?\//.test(href) || href.startsWith('#')) {
+                        el.setAttribute('href', href);
+                        if (/^https:\/\//i.test(href)) {
+                            el.setAttribute('target', '_blank');
+                            el.setAttribute('rel', 'noopener noreferrer');
+                        }
+                    }
+                }
+                if (node.tagName === 'IMG') {
+                    el.setAttribute('src', node.getAttribute('src'));
+                    el.setAttribute('alt', String(node.getAttribute('alt') || '').slice(0, 280));
+                    el.setAttribute('loading', 'lazy');
+                    el.setAttribute('decoding', 'async');
+                }
+                Array.from(node.childNodes).forEach(child => copy(child, el));
+                parent.appendChild(el);
+            }
+            Array.from(parsed.body.childNodes).forEach(child => copy(child, root));
+            return root.innerHTML;
+        }
+
         function renderBlogPosts() {
             const grid = document.getElementById('blogGridContainer');
             if (!grid) return;
@@ -2727,7 +2802,7 @@
                     mediaHtml += '<img src="' + escapeHtml(post.img) + '" alt="' + escapeHtml(post.title) + '" loading="lazy">';
                 }
                 if (typeof post.video === 'string' && /^https:\/\//i.test(post.video)) {
-                    mediaHtml += '<iframe src="' + escapeHtml(post.video) + '" title="' + escapeHtml(post.title) + '" loading="lazy" frameborder="0" allowfullscreen></iframe>';
+                    mediaHtml += '<iframe src="' + escapeHtml(post.video) + '" title="' + escapeHtml(post.title) + '" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" frameborder="0" allowfullscreen></iframe>';
                 }
                 const richArticle = !!post.excerpt;
                 const meta = richArticle
@@ -2737,8 +2812,8 @@
                 const contentHtml = richArticle
                     ? '<p class="blog-excerpt">' + escapeHtml(post.excerpt) + '</p>' +
                       '<details class="blog-details"><summary>Prečítať celý článok</summary>' +
-                      '<div class="article-body">' + String(post.content || '') + '</div></details>'
-                    : '<div class="article-body">' + String(post.content || '') + '</div>';
+                      '<div class="article-body">' + sanitizeRichHtml(post.content) + '</div></details>'
+                    : '<div class="article-body">' + sanitizeRichHtml(post.content) + '</div>';
 
                 card.innerHTML = `
                     ${mediaHtml}
