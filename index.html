@@ -1429,8 +1429,8 @@
                 <label for="secImage">Adresa obrázka (HTTPS)</label>
                 <input type="url" id="secImage" placeholder="https://..." oninput="updateImageFitPreview('secImage','secImageFile','secImageFit','secImageFitPreview')" style="width:100%;margin-bottom:10px;">
                 <label for="secImageFile">Alebo nahrať obrázok z počítača / mobilu</label>
-                <input type="file" id="secImageFile" accept="image/*" onchange="updateImageFitPreview('secImage','secImageFile','secImageFit','secImageFitPreview')" style="width:100%;margin-bottom:10px;">
-                <small style="display:block;margin-bottom:14px;color:#64748b;">Maximálne 5 MB. Nahrávanie využíva existujúce úložisko Supabase „site-images“.</small>
+                <input type="file" id="secImageFile" accept="image/jpeg,image/png,image/webp" onchange="updateImageFitPreview('secImage','secImageFile','secImageFit','secImageFitPreview')" style="width:100%;margin-bottom:10px;">
+                <small style="display:block;margin-bottom:14px;color:#64748b;">JPG, PNG alebo WebP, najviac 20 MB pred zmenšením. Nahrávanie využíva Supabase Storage „site-images“ a vyžaduje správne práva pre správcu. Ak nahrávanie zlyhá, text príbehu môžeš uložiť aj bez nového súboru.</small>
                 <label for="secImagePosition">Umiestnenie obrázka</label>
                 <select id="secImagePosition" style="width:100%;padding:10px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
                     <option value="right">Vpravo od textu</option>
@@ -3224,19 +3224,23 @@
             if (idx === -1 && sectionsDatabase.some(item => item.id === id)) { alert('Karta s týmto ID už existuje.'); return; }
             if (image && !validSectionImageUrl(image)) { status.textContent = 'Fotografia musí mať platnú HTTPS adresu alebo byť súčasťou stránky.'; return; }
             if (imageFile) {
-                if (!imageFile.type.startsWith('image/')) { status.textContent = 'Vyber obrazový súbor.'; return; }
-                if (imageFile.size > 5 * 1024 * 1024) { status.textContent = 'Obrázok môže mať maximálne 5 MB.'; return; }
+                if (!['image/jpeg','image/png','image/webp'].includes(imageFile.type)) { status.textContent = 'Použi fotografiu JPG, PNG alebo WebP.'; return; }
+                if (imageFile.size > 20 * 1024 * 1024) { status.textContent = 'Fotografia má viac ako 20 MB. Zmenši ju pred výberom.'; return; }
                 if (!adminSupabase) { status.textContent = 'Úložisko Supabase nie je dostupné.'; return; }
             }
             if (saveButton) saveButton.disabled = true;
+            let uploadedPath = '';
+            let cloudSaved = false;
             try {
                 if (imageFile) {
-                    status.textContent = 'Nahrávam obrázok…';
-                    const extension = (imageFile.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
-                    const uploadPath = 'sections/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + '.' + extension;
-                    const { error } = await adminSupabase.storage.from('site-images').upload(uploadPath, imageFile, { upsert: false, contentType: imageFile.type });
-                    if (error) throw error;
-                    const { data } = adminSupabase.storage.from('site-images').getPublicUrl(uploadPath);
+                    status.textContent = 'Zmenšujem fotografiu pred nahraním…';
+                    const prepared = await prepareVarietyPhoto(imageFile);
+                    status.textContent = 'Nahrávam fotografiu do Supabase Storage…';
+                    uploadedPath = 'sections/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + (prepared.type === 'image/jpeg' ? '.jpg' : '.webp');
+                    const { error } = await adminSupabase.storage.from('site-images').upload(uploadedPath, prepared, { upsert: false, contentType: prepared.type });
+                    if (error) throw new Error('Supabase Storage: ' + (error.message || 'nahrávanie zlyhalo') + '. Skontroluj existenciu bucketu site-images a pravidlá zápisu správcu.');
+                    const { data } = adminSupabase.storage.from('site-images').getPublicUrl(uploadedPath);
+                    if (!data || !safeImageUrl(data.publicUrl)) throw new Error('Úložisko nevrátilo platnú HTTPS adresu fotografie.');
                     image = data.publicUrl;
                 }
                 const updated = { id, name, desc, content, image, imagePosition, imageFit, imageAlt };
@@ -3250,12 +3254,23 @@
                     status.textContent = 'Zmena sa nepodarila uložiť do online databázy. Skús znova.';
                     return;
                 }
+                cloudSaved = true;
+                // Ak správca odstráni fotografiu príbehu, jednorazová migrácia ju už neobnoví.
+                if (id === 'domov' && !farmSettings.homeStoryPhotoReleaseId) {
+                    const nextSettings = { ...farmSettings, homeStoryPhotoReleaseId };
+                    const markerSaved = await queueCloudSave('settings', nextSettings);
+                    if (markerSaved) farmSettings = nextSettings;
+                }
                 closeSectionModal();
                 renderAll();
                 showToast('✅ Karta uložená!');
             } catch (error) {
                 console.error('Uloženie karty zlyhalo:', error);
                 status.textContent = 'Uloženie zlyhalo: ' + (error.message || 'neznáma chyba');
+                if (uploadedPath && !cloudSaved) {
+                    try { await adminSupabase.storage.from('site-images').remove([uploadedPath]); }
+                    catch (cleanupError) { console.warn('Nepodarilo sa odstrániť nedokončené nahrávanie.', cleanupError); }
+                }
             } finally {
                 if (saveButton) saveButton.disabled = false;
             }
