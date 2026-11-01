@@ -1287,7 +1287,7 @@
 
     <!-- MODÁLNE OKNO - PRIDANIE / ÚPRAVA ODRODY -->
     <div class="modal-overlay" id="varietyModal">
-        <div class="modal-box">
+        <div class="modal-box" style="max-width: 780px;">
             <h3 id="modalVarietyTitle" style="color: var(--primary-color); margin-bottom: 15px;">Pridať odrodu</h3>
             <input type="hidden" id="editIndex" value="-1">
             <div style="margin-bottom: 15px;"><label>Sekcia *</label><select id="varSectionSelect"></select></div>
@@ -1330,9 +1330,19 @@
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div><label>Hmotnosť plodu</label><input type="text" id="varWeight" placeholder="20-30g"></div>
-                <div><label>Obrázok URL</label><input type="text" id="varImg" placeholder="obrazok.jpg"></div>
+                <div><label for="varImg">Hlavná fotografia (HTTPS)</label><input type="url" id="varImg" placeholder="https://.../paradajka.jpg"></div>
             </div>
-            <div style="margin-bottom: 15px;"><label>Popis</label><textarea id="varInfo" rows="3"></textarea></div>
+            <div style="margin-bottom: 15px;">
+                <label for="varGalleryUrls">Ďalšie fotografie do galérie (jedna HTTPS adresa na riadok)</label>
+                <textarea id="varGalleryUrls" rows="3" placeholder="https://.../plod.jpg&#10;https://.../rez.jpg&#10;https://.../rastlina.jpg"></textarea>
+            </div>
+            <div style="margin-bottom: 15px; border: 1px solid #dce7d8; background: #f6faf5; padding: 14px; border-radius: 10px;">
+                <label for="varPhotoFiles">Alebo nahraj viac fotografií priamo z mobilu</label>
+                <input type="file" id="varPhotoFiles" accept="image/jpeg,image/png,image/webp" multiple style="width:100%;margin-bottom:10px;">
+                <small style="display:block;line-height:1.6;color:#516658;">Môžeš vybrať najviac 6 fotografií naraz (JPG, PNG alebo WebP). Veľké snímky sa pred nahraním zmenšia, aby šetrili dáta. Ak hlavná fotografia ešte nie je vyplnená, prvá nahratá sa nastaví automaticky. Fotografie sa ukladajú do existujúceho úložiska Supabase „site-images“.</small>
+                <div id="varPhotoUploadStatus" role="status" aria-live="polite" style="margin-top:9px;font-size:.87rem;color:#42634b;"></div>
+            </div>
+            <div style="margin-bottom: 15px;"><label for="varInfo">Popis odrody</label><textarea id="varInfo" rows="5"></textarea></div>
             <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                 <label class="checkbox-label"><input type="checkbox" id="varMultiflora"> 🌟 Multiflora</label>
                 <label class="checkbox-label" style="color: #991B1B;"><input type="checkbox" id="varHidden"> 🚫 Schovať</label>
@@ -3102,6 +3112,9 @@
             document.getElementById('varStock').value = '2';
             document.getElementById('varWeight').value = '';
             document.getElementById('varImg').value = '';
+            document.getElementById('varGalleryUrls').value = '';
+            document.getElementById('varPhotoFiles').value = '';
+            document.getElementById('varPhotoUploadStatus').textContent = '';
             document.getElementById('varInfo').value = '';
             document.getElementById('varMultiflora').checked = false;
             document.getElementById('varHidden').checked = false;
@@ -3146,6 +3159,9 @@
             document.getElementById('varStock').value = typeof t.stock === 'number' ? t.stock : 10;
             document.getElementById('varWeight').value = t.weight || '';
             document.getElementById('varImg').value = t.img || '';
+            document.getElementById('varGalleryUrls').value = Array.isArray(t.gallery) ? t.gallery.join('\n') : '';
+            document.getElementById('varPhotoFiles').value = '';
+            document.getElementById('varPhotoUploadStatus').textContent = '';
             document.getElementById('varInfo').value = t.info || '';
             document.getElementById('varMultiflora').checked = t.multiflora;
             document.getElementById('varHidden').checked = t.hidden || false;
@@ -3159,6 +3175,41 @@
         }
         function closeVarietyModal() { document.getElementById('varietyModal').classList.remove('active'); }
 
+        // Prehľadné fotografie z telefónu: šetrné JPEG zmenšenie pred uploadom.
+        async function prepareVarietyPhoto(file) {
+            if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                throw new Error('Na nahrávanie použi JPG, PNG alebo WebP.');
+            }
+            if (file.size > 20 * 1024 * 1024) {
+                throw new Error('Jedna fotografia môže mať pred zmenšením najviac 20 MB.');
+            }
+            if (file.type === 'image/jpeg' && file.size <= 2 * 1024 * 1024) return file;
+            if (typeof createImageBitmap !== 'function') {
+                if (file.size <= 5 * 1024 * 1024) return file;
+                throw new Error('V tomto prehliadači nie je dostupné zmenšovanie veľkých fotografií.');
+            }
+            let bitmap;
+            try {
+                bitmap = await createImageBitmap(file);
+                const scale = Math.min(1, 1800 / Math.max(bitmap.width, bitmap.height));
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+                canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+                const context = canvas.getContext('2d');
+                if (!context) throw new Error('Nepodarilo sa pripraviť fotografiu.');
+                context.fillStyle = 'white';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+                context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+                const result = await new Promise((resolve, reject) =>
+                    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Zmenšenie zlyhalo.')), 'image/jpeg', 0.82)
+                );
+                if (result.size > 5 * 1024 * 1024) throw new Error('Zmenšená fotografia je stále príliš veľká.');
+                return result;
+            } finally {
+                if (bitmap && typeof bitmap.close === 'function') bitmap.close();
+            }
+        }
+
         async function saveVariety() {
             if (!requireAdmin()) return;
             const idx = parseInt(document.getElementById('editIndex').value, 10);
@@ -3171,13 +3222,16 @@
             const priceInput = document.getElementById('varPrice').value.trim().replace('€', '').replace(',', '.');
             const priceValue = Number(priceInput);
             const seedsPerPack = document.getElementById('varSeedsPerPack').value.trim();
-            const stockInput = document.getElementById('varStock').value.trim();
-            const stock = Number(stockInput);
+            const stock = Number(document.getElementById('varStock').value.trim());
             const weight = document.getElementById('varWeight').value.trim();
-            const img = document.getElementById('varImg').value.trim();
+            let img = document.getElementById('varImg').value.trim();
             const info = document.getElementById('varInfo').value.trim();
             const multiflora = document.getElementById('varMultiflora').checked;
             const hidden = document.getElementById('varHidden').checked;
+            const galleryUrls = document.getElementById('varGalleryUrls').value.split(/\r?\n/)
+                .map(url => url.trim()).filter(Boolean);
+            const files = Array.from(document.getElementById('varPhotoFiles').files || []);
+            const status = document.getElementById('varPhotoUploadStatus');
 
             if (!name || !type || !section) { alert('Vyplň názov, typ a sekciu odrody.'); return; }
             if (varietyDatabase.some((v, i) => i !== idx && String(v.name || '').trim().toLocaleLowerCase('sk') === name.toLocaleLowerCase('sk'))) {
@@ -3192,37 +3246,66 @@
             if (!/^\d+\s*ks$/i.test(seedsPerPack) || parseInt(seedsPerPack, 10) < 1) {
                 alert('Počet semien uveď vo formáte „10 ks“.'); return;
             }
-            if (img && !safeImageUrl(img)) {
-                alert('Obrázok musí mať bezpečnú adresu https://'); return;
+            if ((img && !safeImageUrl(img)) || galleryUrls.some(url => !safeImageUrl(url))) {
+                alert('Adresy všetkých fotografií musia začínať https://'); return;
             }
-
-            const previousData = idx >= 0 && varietyDatabase[idx] ? varietyDatabase[idx] : {};
-            const item = {
-                ...previousData, name, section, type, color,
-                price: priceValue.toFixed(2),
-                seedsPerPack: parseInt(seedsPerPack, 10) + ' ks',
-                stock, weight, img, info, multiflora, hidden
-            };
-            const originalDatabase = varietyDatabase;
-            varietyDatabase = idx === -1
-                ? [...varietyDatabase, item]
-                : varietyDatabase.map((v, i) => i === idx ? item : v);
+            if (files.length > 6) { alert('Naraz môžeš nahrať najviac 6 fotografií.'); return; }
+            if (files.length && !adminSupabase) { alert('Úložisko Supabase nie je dostupné.'); return; }
+            if (new Set([img, ...galleryUrls].filter(Boolean)).size + files.length > 8) {
+                alert('Jedna odroda môže mať najviac 8 fotografií vrátane hlavnej.'); return;
+            }
 
             const saveButton = document.querySelector('#varietyModal button[onclick="saveVariety()"]');
             if (saveButton) saveButton.disabled = true;
+            const uploadedPaths = [];
+            let savedToCloud = false;
             try {
+                for (let i = 0; i < files.length; i++) {
+                    status.textContent = 'Spracúvam a nahrávam fotografiu ' + (i + 1) + ' z ' + files.length + '…';
+                    const photo = await prepareVarietyPhoto(files[i]);
+                    const extension = photo.type === 'image/jpeg' ? '.jpg' : photo.type === 'image/png' ? '.png' : '.webp';
+                    const filePath = 'varieties/' + Date.now() + '-' + Math.random().toString(36).slice(2, 10) + extension;
+                    const { error } = await adminSupabase.storage.from('site-images').upload(filePath, photo, {
+                        upsert: false, contentType: photo.type
+                    });
+                    if (error) throw error;
+                    uploadedPaths.push(filePath);
+                    const { data } = adminSupabase.storage.from('site-images').getPublicUrl(filePath);
+                    if (!data || !safeImageUrl(data.publicUrl)) throw new Error('Úložisko nevrátilo platnú HTTPS adresu.');
+                    if (!img) img = data.publicUrl;
+                    else if (img !== data.publicUrl) galleryUrls.push(data.publicUrl);
+                }
+
+                const previousData = idx >= 0 && varietyDatabase[idx] ? varietyDatabase[idx] : {};
+                const gallery = [...new Set(galleryUrls.filter(url => url !== img))];
+                const item = {
+                    ...previousData, name, section, type, color,
+                    price: priceValue.toFixed(2),
+                    seedsPerPack: parseInt(seedsPerPack, 10) + ' ks',
+                    stock, weight, img, gallery, info, multiflora, hidden
+                };
+                const originalDatabase = varietyDatabase;
+                varietyDatabase = idx === -1
+                    ? [...varietyDatabase, item]
+                    : varietyDatabase.map((v, i) => i === idx ? item : v);
                 const saved = await queueCloudSave('varieties', varietyDatabase);
                 if (!saved) {
                     varietyDatabase = originalDatabase;
-                    alert('Odroda sa nepodarila uložiť do Supabase. Skontroluj stav cloudu a skús znova.');
-                    return;
+                    throw new Error('Zápis do Supabase zlyhal; údaje odrody neboli potvrdené.');
                 }
+                savedToCloud = true;
                 closeVarietyModal();
                 renderAll();
-                showToast('✅ Odroda uložená v online databáze.');
+                showToast('✅ Odroda a jej fotografie sú uložené v online databáze.');
             } catch (error) {
-                varietyDatabase = originalDatabase;
-                alert('Ukladanie odrody zlyhalo: ' + (error.message || 'neznáma chyba'));
+                status.textContent = 'Uloženie zlyhalo: ' + (error.message || 'Neznáma chyba');
+                if (uploadedPaths.length && !savedToCloud && adminSupabase) {
+                    try {
+                        await adminSupabase.storage.from('site-images').remove(uploadedPaths);
+                    } catch (cleanupError) {
+                        console.warn('Nepodarilo sa odstrániť nedokončené fotografie.', cleanupError);
+                    }
+                }
             } finally {
                 if (saveButton) saveButton.disabled = false;
             }
