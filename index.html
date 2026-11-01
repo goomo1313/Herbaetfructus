@@ -1296,6 +1296,7 @@
                     console.warn('Staršie lokálne údaje sa nepodarilo načítať.', legacyError);
                 }
                 applyHomeStoryMigration();
+                applyCatalogReviewIfNeeded();
                 cloudDatabaseReady = true;
                 cloudContentLoaded = true;
             } catch (error) {
@@ -1467,6 +1468,49 @@
             { name: "Zyska", section: "paradajky", type: "Determinantná", weight: "60–90 g", color: "Červená", price: "1.30", seedsPerPack: "12 ks", stock: 11, info: "Kompaktná odroda vhodná na nenáročné pestovanie s dobrou úrodou.", img: "" },
             { name: "Hokkaido", section: "tekvice", type: "Tekvica", weight: "1-2kg", color: "Žltá / Oranžová", price: "2.00", seedsPerPack: "10 ks", stock: 25, info: "Mimoriadne obľúbená tekvica s jemne orieškovou chuťou.", img: "" }
         ];
+
+
+        // Overená revízia katalógu: 52 položiek, zásoba 2 balenia, 10 semien/balenie.
+        const catalogReviewId = 'audit-2026-11-01-v1';
+        const catalogReviewPatches = {"Kajkyna kytica":{"weight":"15–25 g"},"Banana legs":{"name":"Banana Legs","type":"Determinantná","weight":"60–80 g","info":"Úrodná kríčková odroda s podlhovastými žltými plodmi, pevnou dužinou a menším množstvom šťavy. Vhodná na omáčky aj priamy konzum."},"Bawole srdce":{"name":"Bawole Serce","weight":"200–500 g","info":"Veľké, srdcovité a výrazne mäsité malinovočervené plody. Odroda vyžaduje oporu a je vhodná najmä na čerstvú konzumáciu."},"Black Cherry":{"multiflora":false,"info":"Obľúbená tmavočervená až mahagónová cherry paradajka s intenzívnou sladkou a aromatickou chuťou. Tvorí strapce drobných plodov."},"Black strawberry":{"name":"Black Strawberry","info":"Drobné ružovočervené plody s tmavofialovým antokyánovým sfarbením na osvetlených pleciach. Sladká chuť s jemnou ovocnou arómou."},"Citrón Groniasty":{"name":"Cytrynek Groniasty","weight":"10–20 g","info":"Skorá poľská cherry odroda s citrónovožltými plodmi s priemernou hmotnosťou približne 15 g. Dlhé strapce môžu niesť desiatky plodov."},"Dívčí prs":{"color":"Žltá / Oranžová","info":"Menej bežná odroda so žltooranžovými, mäsitými plodmi v tvare srdca s výraznou špičkou. Chuť je sladká; vhodnejšie je teplejšie stanovište."},"Flamantyno":{"name":"Flamantyno F1","type":"Cherry & Koktailová","color":"Žltá / Oranžová","weight":"15–16 g","info":"Žltá cherry paradajka, indeterminantný hybrid F1 od spoločnosti Hazera. Tvorí rovnomerné strapce drobných, sladkých plodov. Semená z vlastného zberu hybridu F1 nemusia zachovať vlastnosti pôvodného hybridu."},"Gialletto Brindisino":{"type":"Cherry & Koktailová","color":"Pásikavá / Pestrá","weight":"30–40 g","info":"Talianska drobnoplodá odroda s oválnymi plodmi, ktoré počas dozrievania prechádzajú zo žltkastej do perleťovo ružovej farby. Plody sú mäsité, sladkokyslé a vhodné aj na skladovanie."},"Golden Canary":{"weight":"70–100 g","info":"Žlté podlhovasté plody s jemným špicom a pevnou dužinou. Silnorastúca indeterminantná odroda, vhodná na priamy konzum aj spracovanie."},"Goldkrone":{"weight":"15–20 g"},"Heinz 1370":{"info":"Determinantná americká odroda s červenými, guľatými a mäsitými plodmi. Vhodná na kečup, pyré, omáčky a konzervovanie."},"Hellfrucht":{"weight":"70–80 g","info":"Osvedčená indeterminantná odroda s guľatými červenými plodmi a vyváženou chuťou. Vhodná do záhrady aj pod kryt."},"Ildi":{"weight":"10–20 g","info":"Veľmi úrodná multiflora odroda, ktorá vytvára bohato rozvetvené strapce s desiatkami drobných žltých plodov sladkej chuti."},"Iva‘s Red Berry":{"name":"Iva's Red Berry","weight":"10–15 g","info":"Úrodná indeterminantná cherry odroda z tvorby Iva Graša. Má drobné sýtočervené plody, dlhé strapce a výraznú sladko-ovocnú chuť."},"Malinowy Kapturek":{"type":"Determinantná","weight":"7–8 g","info":"Poľská determinantná cherry odroda s drobnými ružovo-malinovými, mierne pretiahnutými plodmi. Vytvára dlhé bohaté strapce; napriek kríčkovému rastu je vhodná opora."},"Malinowy Kujawski":{"type":"Determinantná","info":"Poľská stredne skorá determinantná odroda. Produkuje stredne veľké malinovoružové plody vhodné na čerstvú konzumáciu aj šťavu; v bežných podmienkach nevyžaduje vyštipovanie."},"Malinowy Retro":{"weight":"150–180 g","info":"Skoršia vysokorastúca poľská odroda s väčšími malinovoružovými mäsitými plodmi. Vyniká jemnou chuťou a vyžaduje oporu."},"Matt´s hornet":{"name":"Matt's Hornet","color":"Pásikavá / Pestrá","weight":"13–19 g","info":"Drobné pretiahnuté červené plody so žltooranžovým pásikovaním a špicom. Zaujímavá odroda z línie Matt’s Folly, s bohatou rodivosťou."},"Or pera d'abruzzo":{"name":"Or Pera d'Abruzzo","type":"Indeterminantná","weight":"250–500 g","info":"Tradičná talianska odroda s veľkými hruškovitými, mierne rebrovanými, mäsitými červenými plodmi a malým množstvom semien. Vhodná na čerstvé jedenie aj spracovanie."},"Pascal de Picardie":{"weight":"70–150 g","info":"Pretiahnuté slivkovité plody ružovej až mahagónovočervenej farby s tmavofialovými antokyánovými plecami. Mäsitá dužina a sladko-ovocná chuť."},"Perun":{"info":"Bohato rodiaca odroda so žltými hruškovitými plodmi s hmotnosťou približne 15–25 g. Plody sú sladké, pevné a vhodné na priamy konzum."},"Phil's two":{"name":"Phil's Two","type":"Zberateľská špecialita","color":"Pásikavá / Pestrá","weight":"50–120 g","info":"Neobvyklá segmentovaná paradajka so zelenožltými plodmi, ktoré pripomínajú spojené menšie časti. Má mäsitú dužinu a vyváženú sladkokyslú chuť."},"Primabella":{"info":"Cherry až koktailová odroda s červenými plodmi a výraznou toleranciou voči plesni zemiakovej (Phytophthora infestans). Vhodná aj na pestovanie vonku; tolerancia neznamená úplnú imunitu."},"Resibella":{"info":"Skorá červená šalátová paradajka s dobrou chuťou a výraznou toleranciou voči plesni zemiakovej. Vhodná predovšetkým na vonkajšie pestovanie; nie je úplne imúnna voči chorobám."},"Scatolone 3":{"weight":"90–110 g","info":"Talianska odroda s pretiahnutými červenými plodmi, typicky okolo 100 g. Vhodná na omáčky, pretlaky a konzervovanie."},"Siberian panther":{"name":"Siberian Panther","color":"Čierna / Tmavá","weight":"150–300 g","info":"Veľkoplodá indeterminantná odroda s plocho guľatými červenofialovými plodmi s tmavými antokyánovými plecami. Má šťavnatú, aromatickú dužinu."},"Slivka gurmán":{"name":"Slivka Gurman","color":"Čierna / Tmavá","weight":"50–80 g","info":"Pretiahnuté slivkovité ružovofialové plody s tmavým antokyánovým sfarbením, pevnou dužinou a sladkokyslou chuťou. Pod týmto názvom sa vyskytuje viacero farebných línií."},"Sofia’s Fire Comet":{"name":"Sofia's Fire Comet","info":"Výrazná odroda s mäsitými červenými, často srdcovitými plodmi a tmavým antokyánovým sfarbením pleca. Plody sú aromatické a šťavnaté."},"Tarasenko legend":{"name":"Legenda Tarasenko","weight":"60–110 g","info":"Silnorastúca indeterminantná multiflora odroda s bohatými rozvetvenými strapcami. Má červené pretiahnuté plody s malou špičkou; vhodná aj na spracovanie."},"Terion":{"type":"Determinantná","weight":"80–90 g","info":"Česká determinantná, kompaktná odroda s pevnými červenými oválnymi plodmi. Hodí sa predovšetkým na spracovanie a konzervovanie."},"Tiger zebra":{"name":"Tiger Zebra","weight":"40–50 g","info":"Menšia determinantná odroda s pretiahnutými červeno-zeleno pásikavými plodmi s jemnou špičkou. Má chrumkavú šťavnatú dužinu."},"Zyska":{"info":"Úrodná determinantná poľná odroda s pevnými podlhovastými červenými plodmi. Vhodná na omáčky, pyré, šťavy aj čerstvú konzumáciu."},"Hokkaido":{"weight":"1–2 kg","info":"Menšia tekvica s oranžovou šupkou a sladkastou, jemne orieškovou dužinou. Vhodná na pečenie, polievky a pyré; šupka pri tepelnej úprave zmäkne."}};
+        const catalogReviewPatchByNewName = Object.fromEntries(
+            Object.entries(catalogReviewPatches).filter(([, patch]) => patch.name).map(([key, patch]) => [patch.name, patch])
+        );
+
+        function applyCatalogReviewToVariety(item) {
+            if (!item || !item.name) return;
+            const oldName = item.name === 'Alegaty sunset' ? 'Allegaty sunset' : item.name;
+            const update = catalogReviewPatches[oldName] || catalogReviewPatchByNewName[oldName];
+            if (update) Object.assign(item, update);
+            if (item.name === 'Alegaty sunset') item.name = 'Allegaty sunset';
+            item.stock = 2;
+            item.seedsPerPack = '10 ks';
+        }
+
+        // Aj obnovenie pôvodnej databázy musí používať opravené odrody.
+        defaultVarieties.forEach(applyCatalogReviewToVariety);
+        let catalogReviewPending = false;
+
+        function applyCatalogReviewIfNeeded() {
+            if (farmSettings && farmSettings.catalogReviewId === catalogReviewId) return;
+            if (!Array.isArray(varietyDatabase)) return;
+            varietyDatabase.forEach(applyCatalogReviewToVariety);
+            catalogReviewPending = true;
+        }
+
+        async function persistCatalogReviewIfNeeded() {
+            if (!catalogReviewPending || !adminAuthenticated || !cloudDatabaseReady) return;
+            // Najprv zapíš odrody; marker do settings až po ich úspešnom zápise.
+            const varietiesSaved = await queueCloudSave('varieties', varietyDatabase);
+            if (!varietiesSaved) return;
+            const nextSettings = { ...farmSettings, catalogReviewId };
+            const settingsSaved = await queueCloudSave('settings', nextSettings);
+            if (settingsSaved) {
+                farmSettings = nextSettings;
+                catalogReviewPending = false;
+                showToast('✅ Katalóg: všetky odrody skontrolované, 2 balenia a 10 semien na balenie.');
+            }
+        }
 
         let sectionsDatabase = [...defaultSections];
         let varietyDatabase = [...defaultVarieties];
@@ -2235,6 +2279,7 @@
                 passwordInput.value = '';
                 enableAdminMode(true);
                 await seedCloudContentIfNeeded();
+                await persistCatalogReviewIfNeeded();
             } catch (error) {
                 console.error('Prihlásenie správcu zlyhalo:', error);
                 alert(error && error.message ? error.message : 'Prihlásenie sa nepodarilo. Skontrolujte údaje a skúste znova.');
@@ -2257,6 +2302,7 @@
                 }
                 enableAdminMode(false);
                 await seedCloudContentIfNeeded();
+                await persistCatalogReviewIfNeeded();
             } catch (error) {
                 console.warn('Obnovenie relácie správcu sa nepodarilo.', error);
             }
