@@ -2631,19 +2631,24 @@
         }
 
         function renderFilterChipsForSection(secId) {
-            const chipsContainer = document.getElementById(`filterChips_${secId}`);
-            if (!chipsContainer) return;
-
-            const types = new Set();
-            varietyDatabase.filter(v => v.section === secId).forEach(v => {
-                if (v.type) types.add(v.type.trim());
-            });
-
-            let chipsHtml = `<button class="chip active" onclick="filterByCategory('all', '${secId}', this)">Všetky</button>`;
-            types.forEach(tType => {
-                chipsHtml += `<button class="chip" onclick="filterByCategory('${tType.toLowerCase()}', '${secId}', this)">${tType}</button>`;
-            });
-            chipsContainer.innerHTML = chipsHtml;
+            const container = document.getElementById('filterChips_' + secId);
+            if (!container) return;
+            const isAdmin = document.body.classList.contains('admin-mode');
+            const types = [...new Set(varietyDatabase
+                .filter(v => v.section === secId && (isAdmin || !v.hidden))
+                .map(v => String(v.type || '').trim())
+                .filter(Boolean))].sort((a,b) => a.localeCompare(b,'sk'));
+            container.replaceChildren();
+            const addChip = (value, label) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'chip' + (value === 'all' ? ' active' : '');
+                button.textContent = label;
+                button.addEventListener('click', () => filterByCategory(value, secId, button));
+                container.appendChild(button);
+            };
+            addChip('all','Všetky');
+            for (const type of types) addChip(type.toLocaleLowerCase('sk'),type);
         }
 
         function filterByCategory(category, secId, btnElement) {
