@@ -3236,7 +3236,7 @@
                     status.textContent = 'Zmenšujem fotografiu pred nahraním…';
                     const prepared = await prepareVarietyPhoto(imageFile);
                     status.textContent = 'Nahrávam fotografiu do Supabase Storage…';
-                    uploadedPath = 'sections/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + (prepared.type === 'image/jpeg' ? '.jpg' : '.webp');
+                    uploadedPath = 'sections/' + Date.now() + '-' + Math.random().toString(36).slice(2,8) + (prepared.type === 'image/jpeg' ? '.jpg' : prepared.type === 'image/png' ? '.png' : '.webp');
                     const { error } = await adminSupabase.storage.from('site-images').upload(uploadedPath, prepared, { upsert: false, contentType: prepared.type });
                     if (error) throw new Error('Supabase Storage: ' + (error.message || 'nahrávanie zlyhalo') + '. Skontroluj existenciu bucketu site-images a pravidlá zápisu správcu.');
                     const { data } = adminSupabase.storage.from('site-images').getPublicUrl(uploadedPath);
