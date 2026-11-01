@@ -2374,7 +2374,13 @@
             
             document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active-section'));
             const target = document.getElementById('section_' + secId);
-            if (target) target.classList.add('active-section');
+            if (target) {
+                target.classList.add('active-section');
+                const grid = target.querySelector('[data-section-grid]');
+                if (grid && grid.dataset.rendered !== 'true') {
+                    renderVarietyGridForSection(secId);
+                }
+            }
 
             const contactSec = document.getElementById('kontaktSection');
             const podmienkySec = document.getElementById('podmienkySection');
@@ -2614,8 +2620,10 @@
                 container.appendChild(sectionDiv);
 
                 if (sec.id !== 'domov' && sec.id !== 'blog') {
-                    renderVarietyGridForSection(sec.id);
                     renderFilterChipsForSection(sec.id);
+                    // Speed: build card DOM and fetch its photos only when the section is visited.
+                    // The form still uses the full catalogue data and remains available.
+                    if (sec.id === currentActiveSection) renderVarietyGridForSection(sec.id);
                 } else if (sec.id === 'blog') {
                     renderBlogPosts();
                 }
@@ -2695,6 +2703,7 @@
             const grid = document.querySelector(`[data-section-grid="${secId}"]`);
             if (!grid) return;
             grid.innerHTML = '';
+            grid.dataset.rendered = 'true';
 
             const items = varietyDatabase.filter(v => v.section === secId);
             const isAdmin = document.body.classList.contains('admin-mode');
