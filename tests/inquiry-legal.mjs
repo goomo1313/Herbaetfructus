@@ -94,14 +94,25 @@ test('cart quantity and deletion update the selected list and hidden form field'
     assert.match(controls.cartSummaryContent.innerHTML,/Zatiaľ nemáte vybrané žiadne odrody/);
 });
 
-test('site does not promise a collector-seed sales exemption', () => {
-    assert.match(html, /nepredstavuje samostatné zákonné povolenie/);
-    assert.match(html, /nariadenie vlády SR č\. 58\/2007 Z\. z\./);
+test('visitor page omits the removed legal-status section while preserving basic notices', () => {
+    assert.doesNotMatch(html, /Právne postavenie zberateľského osiva/);
+    assert.doesNotMatch(html, /nariadenie vlády SR č\. 58\/2007 Z\. z\./);
+    assert.match(html, /výnimku z predpisov o uvádzaní osiva na trh/);
     assert.match(html, /nezáväzný dopyt/);
+    assert.match(html, /Základné informácie o osobných údajoch/);
     assert.match(legalNotes, /nie právne stanovisko/);
     assert.match(legalNotes, /500 € ročne/);
     assert.match(legalNotes, /ÚKSÚP/);
     assert.match(legalNotes, /zberateľské/);
+});
+
+test('family seed farm branding is consistent in title, hero and SEO', () => {
+    assert.match(html, /<title>Herba et Fructus - Rodinná semenná farma<\/title>/);
+    assert.match(html, /RODINNÁ SEMENNÁ FARMA/);
+    assert.match(html, /id="heroDesc">Herba et Fructus je rodinná semenná farma/);
+    assert.match(html, /<meta name="description" content="Herba et Fructus je rodinná semenná farma/);
+    assert.match(html, /<meta property="og:description" content="Herba et Fructus je rodinná semenná farma/);
+    assert.doesNotMatch(html, /osobný projekt|súkromná zbierka/i);
 });
 
 test('after submitting, FormSubmit redirects to a real non-binding confirmation page', () => {
