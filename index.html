@@ -1038,6 +1038,7 @@
     @media(max-width:760px) { .story-inner { grid-template-columns:1fr; gap:24px; } .story-photo-wrap { min-height:240px; } .story-photo-wrap img { min-height:240px; } .story-copy { text-align:left; } }
 </style>
     <link rel="stylesheet" href="./site-polish.css">
+    <link rel="stylesheet" href="./site-enhancements.css">
 </head>
 <body>
     <a href="#mainContainer" class="skip-to-content">Preskočiť na hlavný obsah</a>
@@ -1049,6 +1050,7 @@
             <div id="cloudSaveStatus" role="status" aria-live="polite" style="font-size:0.78rem;font-weight:600;color:#C6F6D5;white-space:nowrap;">☁️ Cloud pripravený</div>
         </div>
         <div class="admin-actions-scroll">
+            <button class="admin-btn" style="background: #276749;" type="button" onclick="window.HERBA_IMPROVEMENTS?.dashboardOpen()">📊 Prehľad správcu</button>
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openTableManagerModal()">📊 Tabuľka odrôd & Sklad</button>
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openSectionTableModal()">📂 Správa kariet</button>
             <button class="admin-btn" style="background: #D97706;" onclick="openFormSettingsModal()">✉️ E-mail</button>
@@ -1371,6 +1373,51 @@
                     </div>
                 </div>
             </div>
+        </section>
+    </div>
+
+    <!-- Admin prehľad bez zápisu do databázy -->
+    <div class="enhanced-overlay" id="enhancedDashboardOverlay" aria-hidden="true">
+        <section class="enhanced-dialog" role="dialog" aria-modal="true" aria-labelledby="enhancedDashboardTitle">
+            <div class="enhanced-dialog-head">
+                <div><h2 id="enhancedDashboardTitle">📊 Prehľad správcu</h2>
+                    <p id="enhancedDashboardHint">Prehľad aktuálnych odrôd – bez automatického prepisovania údajov.</p>
+                </div>
+                <button class="enhanced-close" id="enhancedDashboardClose" type="button" aria-label="Zatvoriť prehľad">×</button>
+            </div>
+            <div class="enhanced-stats" id="enhancedDashboardStats" aria-label="Štatistiky katalógu"></div>
+            <div class="enhanced-admin-actions" id="enhancedDashboardActions" aria-label="Rýchle správcovské úkony"></div>
+            <div class="enhanced-admin-filters">
+                <input type="search" id="enhancedDashboardSearch" aria-label="Hľadať v katalógu správcu" placeholder="Hľadať odrodu, farbu, typ alebo popis...">
+                <select id="enhancedDashboardStatus" aria-label="Filtruj odrody podľa stavu">
+                    <option value="all">Všetky odrody</option>
+                    <option value="missing-photo">Bez fotografie</option>
+                    <option value="incomplete">Neúplné údaje</option>
+                    <option value="out">Vypredané</option>
+                    <option value="hidden">Skryté</option>
+                </select>
+            </div>
+            <p class="enhanced-admin-count" id="enhancedDashboardCount" role="status" aria-live="polite"></p>
+            <div class="enhanced-table-scroll"><table class="enhanced-data-table">
+                <thead><tr><th>Názov</th><th>Sekcia</th><th>Fotografia</th><th>Sklad</th><th>Údaje</th><th>Akcia</th></tr></thead>
+                <tbody id="enhancedDashboardRows"></tbody>
+            </table></div>
+            <p class="enhanced-empty" id="enhancedDashboardEmpty" hidden>V tejto skupine sa nenašli žiadne odrody.</p>
+        </section>
+    </div>
+    <!-- Porovnanie dvoch alebo troch odrôd -->
+    <div class="enhanced-compare-tray" id="enhancedCompareTray" aria-hidden="true" role="region" aria-label="Výber na porovnanie">
+        <strong id="enhancedCompareCount">Porovnanie: 0/3</strong>
+        <button type="button" id="enhancedCompareOpen" disabled>Porovnať odrody</button>
+        <button type="button" id="enhancedCompareReset">Vymazať výber</button>
+    </div>
+    <div class="enhanced-overlay" id="enhancedCompareOverlay" aria-hidden="true">
+        <section class="enhanced-dialog" role="dialog" aria-modal="true" aria-labelledby="enhancedCompareTitle">
+            <div class="enhanced-dialog-head">
+                <div><h2 id="enhancedCompareTitle">⚖️ Porovnanie odrôd</h2><p>Údaje sú prevzaté z katalógu. Hmotnosti sú orientačné.</p></div>
+                <button class="enhanced-close" id="enhancedCompareClose" type="button" aria-label="Zatvoriť porovnanie">×</button>
+            </div>
+            <div id="enhancedCompareItems" class="enhanced-compare-grid"></div>
         </section>
     </div>
 
@@ -2457,7 +2504,7 @@
                     }).join('');
                     const validStoryPhoto = sec.image && validSectionImageUrl(String(sec.image).trim());
                     const storyPhoto = validStoryPhoto
-                        ? '<img class="' + (normalizedImageFit(sec.imageFit) === 'cover' ? 'story-image-cover' : '') + '" src="' + escapeStory(String(sec.image).trim()) + '" alt="' + escapeStory(sec.imageAlt || 'Naše pestovanie paradajok') + '" loading="lazy">'
+                        ? '<img class="' + (normalizedImageFit(sec.imageFit) === 'cover' ? 'story-image-cover' : '') + '" src="' + escapeStory(String(sec.image).trim()) + '" alt="' + escapeStory(sec.imageAlt || 'Naše pestovanie paradajok') + '" loading="eager" fetchpriority="high" decoding="async">'
                         : '<div class="home-story-placeholder" role="img" aria-label="Miesto na fotografiu z našej záhrady">' +
                             '<span class="home-story-placeholder-icon" aria-hidden="true">📷</span>' +
                             '<strong>Fotografia z našej záhrady</strong>' +
@@ -2477,7 +2524,7 @@
                     }).join('');
                     const validImage = sec.image && /^https:\/\//i.test(String(sec.image).trim());
                     const sectionFit = normalizedImageFit(sec.imageFit);
-                    const imageHtml = validImage ? '<img src="' + safeBlock(String(sec.image).trim()) + '" alt="' + safeBlock(sec.imageAlt || '') + '" loading="lazy" style="width:100%;height:' + (sectionFit === 'cover' ? '380px' : 'auto') + ';max-height:480px;object-fit:' + sectionFit + ';border-radius:12px;">' : '';
+                    const imageHtml = validImage ? '<img src="' + safeBlock(String(sec.image).trim()) + '" alt="' + safeBlock(sec.imageAlt || '') + '" loading="lazy" decoding="async" style="width:100%;height:' + (sectionFit === 'cover' ? '380px' : 'auto') + ';max-height:480px;object-fit:' + sectionFit + ';border-radius:12px;">' : '';
                     const position = ['left', 'right', 'top', 'bottom'].includes(sec.imagePosition) ? sec.imagePosition : 'right';
                     const textBox = '<div style="min-width:0;line-height:1.75;">' + textHtml + '</div>';
                     let contentLayout = textBox || '';
@@ -2528,6 +2575,36 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="enhanced-filters" role="group" aria-label="Rozšírené filtrovanie odrôd">
+                            <label>Dostupnosť
+                                <select id="filterAvailability_${sec.id}" onchange="applyFilters('${sec.id}')">
+                                    <option value="all">Všetky odrody</option>
+                                    <option value="stock">Na sklade</option>
+                                    <option value="out">Vypredané</option>
+                                    <option value="photos">S fotografiou</option>
+                                </select>
+                            </label>
+                            <label>Hmotnosť plodu (orientačne)
+                                <select id="filterWeight_${sec.id}" onchange="applyFilters('${sec.id}')">
+                                    <option value="all">Ľubovoľná hmotnosť</option>
+                                    <option value="small">Do 30 g</option>
+                                    <option value="medium">31–100 g</option>
+                                    <option value="large">101–250 g</option>
+                                    <option value="giant">Nad 250 g</option>
+                                </select>
+                            </label>
+                            <label>Zoradiť
+                                <select id="filterSort_${sec.id}" onchange="applyFilters('${sec.id}')">
+                                    <option value="default">Pôvodné poradie</option>
+                                    <option value="name">Podľa názvu A–Z</option>
+                                    <option value="price-asc">Cena: najnižšia</option>
+                                    <option value="price-desc">Cena: najvyššia</option>
+                                    <option value="weight-asc">Hmotnosť: najmenšia</option>
+                                    <option value="weight-desc">Hmotnosť: najväčšia</option>
+                                </select>
+                            </label>
+                        </div>
+                        <p class="enhanced-filter-counter" id="filterCount_${sec.id}" role="status" aria-live="polite"></p>
                         <div class="category-info-box" id="categoryInfoBox_${sec.id}"></div>
                         <div class="variety-grid" data-section-grid="${sec.id}"></div>
                     `;
@@ -2594,6 +2671,10 @@
         }
 
         function applyFilters(secId) {
+            if (window.HERBA_IMPROVEMENTS) {
+                window.HERBA_IMPROVEMENTS.applyFilters(secId);
+                return;
+            }
             const searchInput = document.getElementById(`searchInput_${secId}`);
             const textQuery = searchInput ? searchInput.value.toLowerCase() : '';
             const grid = document.querySelector(`[data-section-grid="${secId}"]`);
@@ -2627,6 +2708,14 @@
                 card.dataset.type = String(t.type || '').trim().toLowerCase();
                 card.dataset.color = String(t.color || '').toLowerCase();
                 card.dataset.search = [t.name, t.info, t.color, t.type].map(value => String(value || '').toLocaleLowerCase('sk')).join(' ');
+                card.dataset.name = String(t.name || '');
+                card.dataset.originalOrder = String(realIndex);
+                card.dataset.weightText = String(t.weight || '');
+                card.dataset.weight = String(window.HERBA_IMPROVEMENTS?.grams(t.weight) ?? '');
+                card.dataset.price = String(parseFloat(String(t.price || '').replace(',', '.')));
+                card.dataset.stock = String(Math.max(0, Number(t.stock) || 0));
+                card.dataset.hidden = String(!!t.hidden);
+                card.dataset.hasPhoto = String(safeImageUrl(t.img) || (Array.isArray(t.gallery) && t.gallery.some(safeImageUrl)));
 
                 const priceFormatted = t.price ? (String(t.price).includes('€') ? String(t.price) : String(t.price) + ' €') : '';
                 const seedsInfo = t.seedsPerPack ? `🌱 ${t.seedsPerPack}` : '';
@@ -2635,7 +2724,7 @@
                 const hasPhoto = safeImageUrl(t.img);
 
                 card.innerHTML = `
-                    <div class="card-img-placeholder${hasPhoto ? ' has-photo' : ''}">${hasPhoto ? `<img src="${escapeHtml(t.img)}" alt="${escapeHtml(t.name)}" loading="lazy" style="object-fit:${normalizedImageFit(t.imageFit)}">` : ''}</div>
+                    <div class="card-img-placeholder${hasPhoto ? ' has-photo' : ''}">${hasPhoto ? `<img src="${escapeHtml(t.img)}" alt="${escapeHtml(t.name)}" loading="lazy" decoding="async" style="object-fit:${normalizedImageFit(t.imageFit)}">` : ''}</div>
                     <div class="card-content">
                         <div class="badges-wrapper">
                             ${t.isFlagship ? '<span class="badge multiflora">🌟 Vlajková</span>' : ''}
@@ -2661,6 +2750,7 @@
                         ` : '<div style="color: #E53E3E; font-weight: 600; font-size: 0.9rem; text-align: center; padding: 8px;">Vypredané</div>'}
                         
                         <button class="variety-more" type="button">Detail odrody a fotografie</button>
+                        <button class="enhanced-compare-btn" type="button" data-name="${escapeHtml(t.name)}" aria-pressed="false">⚖️ Porovnať odrodu</button>
                         <div class="card-admin-actions">
                             <button class="btn-edit-card" onclick="editVariety(${realIndex})">✏️</button>
                             <button style="background: #3182CE; color:white; border:none; border-radius:4px;" onclick="moveVariety(${realIndex}, -1)">⬆️</button>
@@ -2693,8 +2783,10 @@
                         if (window.HERBA_CATALOGUE) window.HERBA_CATALOGUE.open(t.name);
                     });
                 }
+                if (window.HERBA_IMPROVEMENTS) window.HERBA_IMPROVEMENTS.bindCompareCard(card, t);
                 grid.appendChild(card);
             });
+            if (window.HERBA_IMPROVEMENTS) window.HERBA_IMPROVEMENTS.applyFilters(secId);
         }
 
         function changeCardQty(btn, delta) {
@@ -2808,7 +2900,7 @@
                     .map(value => String(value || '').replace(/<[^>]*>/g, ' ').toLocaleLowerCase('sk')).join(' ');
                 let mediaHtml = '';
                 if (safeImageUrl(post.img)) {
-                    mediaHtml += '<img src="' + escapeHtml(post.img) + '" alt="' + escapeHtml(post.title) + '" loading="lazy">';
+                    mediaHtml += '<img src="' + escapeHtml(post.img) + '" alt="' + escapeHtml(post.title) + '" loading="lazy" decoding="async">';
                 }
                 if (typeof post.video === 'string' && /^https:\/\//i.test(post.video)) {
                     mediaHtml += '<iframe src="' + escapeHtml(post.video) + '" title="' + escapeHtml(post.title) + '" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" frameborder="0" allowfullscreen></iframe>';
@@ -4169,5 +4261,6 @@
         });
     </script>
     <script src="./catalogue-ui.js"></script>
+    <script src="./site-enhancements.js"></script>
 </body>
 </html>
