@@ -459,6 +459,9 @@
             z-index: 1;
         }
 
+        /* Pri fotografii skry text prázdneho rámika, aby nepresvital na okrajoch. */
+        .card-img-placeholder.has-photo::after { content: none; }
+
         .card-img-placeholder img[src=""], 
         .card-img-placeholder img:not([src]) { display: none; }
 
@@ -2435,7 +2438,7 @@
                 const hasPhoto = safeImageUrl(t.img);
 
                 card.innerHTML = `
-                    <div class="card-img-placeholder">${hasPhoto ? `<img src="${escapeHtml(t.img)}" alt="${escapeHtml(t.name)}" loading="lazy">` : ''}</div>
+                    <div class="card-img-placeholder${hasPhoto ? ' has-photo' : ''}">${hasPhoto ? `<img src="${escapeHtml(t.img)}" alt="${escapeHtml(t.name)}" loading="lazy">` : ''}</div>
                     <div class="card-content">
                         <div class="badges-wrapper">
                             ${t.isFlagship ? '<span class="badge multiflora">🌟 Vlajková</span>' : ''}
