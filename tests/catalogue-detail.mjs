@@ -140,3 +140,63 @@ test('catalogue and story photos fit fully without clipping', () => {
     assert.ok(storyStyle);
     assert.match(storyStyle[1], /object-fit:\s*contain\s*;/);
 });
+
+test('fitting can be configured separately for the main and gallery photos', () => {
+    const {vm} = site();
+    const fitFor = vm.window.HERBA_CATALOGUE.fitFor;
+    const item = {
+        img: 'https://example.org/main.jpg',
+        imageFit: 'cover',
+        gallery: ['https://example.org/rez.jpg', 'https://example.org/plant.jpg'],
+        galleryImageFits: {
+            'https://example.org/rez.jpg': 'contain',
+            'https://example.org/plant.jpg': 'cover'
+        }
+    };
+    assert.equal(fitFor(item, item.img), 'cover');
+    assert.equal(fitFor(item, item.gallery[0]), 'contain');
+    assert.equal(fitFor(item, item.gallery[1]), 'cover');
+    assert.equal(fitFor({...item, imageFit: undefined}, item.img), 'contain');
+    assert.equal(fitFor({...item, galleryImageFits: {}}, item.gallery[1]), 'contain');
+    assert.equal(runInContext("normalizedImageFit('not-a-valid-fit')", vm), 'contain');
+});
+
+test('the detailed photo gallery obeys each saved fit setting when changing images', () => {
+    const {vm, controls} = site();
+    runInContext(
+        "varietyDatabase[0].img = 'https://images.example/main.jpg';"+
+        "varietyDatabase[0].imageFit = 'cover';"+
+        "varietyDatabase[0].gallery = ['https://images.example/inside.jpg', 'https://images.example/on-plant.jpg'];"+
+        "varietyDatabase[0].galleryImageFits = {"+
+            "'https://images.example/inside.jpg': 'contain',"+
+            "'https://images.example/on-plant.jpg': 'cover'"+
+        "};",
+        vm
+    );
+    const name = runInContext('varietyDatabase[0].name',vm);
+    assert.equal(vm.window.HERBA_CATALOGUE.open(name, true), true);
+    const hero = controls.get('detailHero');
+    const thumbs = controls.get('detailThumbs').children;
+    assert.equal(thumbs.length, 3);
+    assert.equal(hero.children.at(-1).style.objectFit, 'cover');
+    thumbs[1].listeners.click();
+    assert.equal(hero.children.at(-1).style.objectFit, 'contain');
+    assert.equal(thumbs[1].attrs['aria-pressed'], 'true');
+    thumbs[2].listeners.click();
+    assert.equal(hero.children.at(-1).style.objectFit, 'cover');
+});
+
+test('photo-fit selections are available in the admin and written to Supabase datasets', () => {
+    for (const id of ['varImageFit','varGalleryFitControls','secImageFit',
+        'varMainPhotoPreview','secImageFitPreview']) {
+        assert.ok(html.includes('id="' + id + '"'), 'Missing admin control ' + id);
+    }
+    assert.match(html, /const galleryImageFits = Object\.fromEntries\(/);
+    assert.match(html, /stock, weight, img, imageFit, gallery, galleryImageFits/);
+    assert.match(html, /const updated = \{ id, name, desc, content, image, imagePosition, imageFit, imageAlt \}/);
+    assert.match(html, /normalizedImageFit\(t\.imageFit\)/);
+    assert.match(html, /<img src="\$\{escapeHtml\(t\.img\)\}"[^>]+style="object-fit:\$\{normalizedImageFit\(t\.imageFit\)\}"/);
+    assert.match(html, /story-image-cover/);
+    assert.match(html, /Zobraziť celú – bez orezania/);
+    assert.match(html, /Vyplniť rámik – možné orezanie okrajov/);
+});
