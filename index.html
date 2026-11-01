@@ -972,27 +972,39 @@
         <!-- Dynamické karty / sekcie sa vykreslia sem -->
     </main>
 
-    <!-- SEKCIA PODMIENKY A VÝMENA (GDPR & Bankovanie) -->
+    <!-- AKO OBJEDNAŤ: nezáväzný dopyt na semienka -->
     <section id="podmienkySection" style="max-width: 1200px; margin: 0 auto; padding: 0 20px; display: none;">
         <div class="contact-container">
             <div class="section-header" style="border:none; margin-bottom: 0;">
-                <h2>Podmienky & Bankovanie semien</h2>
+                <h2>Ako objednať semená</h2>
             </div>
-            <p class="description" style="margin-bottom: 2rem;">Všetko, čo potrebujete vedieť o nákupe, výmene a ochrane osobných údajov.</p>
-            
-            <div style="display: grid; gap: 20px; font-size: 0.95rem; color: var(--text-main);">
-                <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <h3 style="color: var(--primary-color); margin-bottom: 8px;">🛒 Kúpa a doručenie</h3>
-                    <p>Semienka balíme ručne s dôrazom na čistotu a kvalitu odrody. Odosielame štandardne poštom alebo cez zásielkovňu po potvrdení dostupnosti.</p>
+            <p class="description" style="margin-bottom: 2rem;">
+                Na Herba et Fructus si vyberiete odrody a pošlete nezáväzný dopyt. Dostupnosť,
+                cenu doručenia aj ďalšie podmienky si potvrdíme individuálne e-mailom.
+                Samotné odoslanie formulára ešte nepredstavuje potvrdenú objednávku ani platbu.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,260px), 1fr)); gap: 18px; font-size: .95rem; line-height: 1.7;">
+                <div class="article-note" style="margin:0; padding:20px;">
+                    <h3 style="color:var(--primary-color); margin-bottom:10px;">1. Vyberte si odrody</h3>
+                    <p>V katalógu nájdete opis plodov, orientačnú hmotnosť, cenu za balenie a aktuálnu skladovú zásobu. Počet semien je uvedený osobitne pri každej odrode.</p>
                 </div>
-                <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <h3 style="color: var(--primary-color); margin-bottom: 8px;">🔄 Výmena odrôd (Bankovanie)</h3>
-                    <p>Podporujeme uchovávanie genofondu starých a vzácnych odrôd. Ak máte čisté, dobre presušené semienka netradičných odrôd, radi ich s vami vymeníme za iné z našej ponuky.</p>
+                <div class="article-note" style="margin:0; padding:20px;">
+                    <h3 style="color:var(--primary-color); margin-bottom:10px;">2. Odošlite nezáväzný dopyt</h3>
+                    <p>Vo formulári uvidíte súhrn vybraných balení a orientačnú cenu bez dopravy. Vyplňte kontaktné údaje, aby sme vás mohli informovať o dostupnosti.</p>
                 </div>
-                <div style="background: #F8FAFC; padding: 20px; border-radius: 10px; border: 1px solid var(--border-color);">
-                    <h3 style="color: var(--primary-color); margin-bottom: 8px;">🔒 Ochrana osobných údajov (GDPR)</h3>
-                    <p>Vaše meno, e-mail a adresa sú využité výhradne na vybavenie vašej objednávky alebo dopytu. Údaje neposkytujeme tretím stranám ani ich nepoužívame na hromadný spam.</p>
+                <div class="article-note" style="margin:0; padding:20px;">
+                    <h3 style="color:var(--primary-color); margin-bottom:10px;">3. Potvrdíme podrobnosti</h3>
+                    <p>Odpovieme e-mailom s informáciou o dostupnosti, možnostiach doručenia a celkovej sume. Skladové zásoby sa po nezáväznom dopyte automaticky neodpočítajú.</p>
                 </div>
+                <div class="article-note" style="margin:0; padding:20px;">
+                    <h3 style="color:var(--primary-color); margin-bottom:10px;">4. Čo znamenajú opisy odrôd</h3>
+                    <p>Uvedené hmotnosti, farby a chuťové vlastnosti sú orientačné. Závisia od stanovišťa, počasia, pestovania a dozretia. Pri vlastnom osive dbáme na označenie odrody a pôvodu, no prírodné podmienky môžu ovplyvniť výsledok.</p>
+                </div>
+            </div>
+            <div style="margin-top: 22px; padding: 20px; background: #f8faf7; border:1px solid #dce5d8; border-radius: 12px; line-height: 1.75;">
+                <h3 style="color:var(--primary-color); margin-bottom: 8px;">Ochrana kontaktných údajov</h3>
+                <p>Pri odoslaní dopytu spracúvame meno, e-mail, vybrané odrody a prípadne doplnenú adresu alebo správu, aby sme mohli odpovedať. Formulár technicky odosiela dáta prostredníctvom služby <a href="https://formsubmit.co/" target="_blank" rel="noopener noreferrer">FormSubmit</a>, ktorá ich sprostredkúva do e-mailovej schránky. Viac informácií o jej spracovaní nájdete v <a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer">zásadách ochrany súkromia FormSubmit</a>.</p>
+                <p style="margin-top: 12px;">Kontaktné údaje neposkytujte do formulára, ak si neprajete odpoveď na dopyt. Otázky k spracúvaniu údajov nám môžete poslať cez kontaktný formulár; pred bežnou komerčnou prevádzkou je potrebné doplniť úplné informácie o prevádzkovateľovi a obchodné podmienky.</p>
             </div>
         </div>
     </section>
@@ -1001,7 +1013,7 @@
     <section id="kontaktSection" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
         <div class="contact-container">
             <div class="section-header" style="border:none; margin-bottom: 0;">
-                <h2>Formulár pre Kúpu a Výmenu</h2>
+                <h2>Nezáväzný dopyt po semenách</h2>
             </div>
             <p class="description" style="margin-bottom: 1.5rem;">Vyberte si odrody, vyplňte kontaktné údaje a odošlite nezáväznú objednávku. Dostupnosť a ďalšie podrobnosti vám potvrdíme e-mailom. Odoslaním sa skladové zásoby nemenia.</p>
             <div class="order-steps" aria-label="Postup objednávky">
@@ -1407,6 +1419,7 @@
                     console.warn('Staršie lokálne údaje sa nepodarilo načítať.', legacyError);
                 }
                 applyHomeStoryMigration();
+                applyOrderSectionName();
                 applyCatalogReviewIfNeeded();
                 applyEditorialRelease();
                 cloudDatabaseReady = true;
@@ -1505,7 +1518,7 @@
             { id: "paradajky", name: "Paradajky", desc: "Pestujeme pestrú kolekciu odrôd rozdelenú do prehľadných pomologických kategórií.", hidden: false },
             { id: "tekvice", name: "Tekvice a Cukety", desc: "Zelenina vhodná na dlhodobé skladovanie aj okamžitú spotrebu.", hidden: false },
             { id: "blog", name: "Blog & Rady", desc: "Zaujímavosti, návody, projekty a videá zo života na farme.", hidden: false },
-            { id: "podmienky", name: "Podmienky & Výmena", desc: "Informácie o nákupe, bankovaní semien a ochrane údajov.", hidden: false }
+            { id: "podmienky", name: "Ako objednať", desc: "Postup nezáväzného dopytu, doručenie a kontaktné údaje.", hidden: false }
         ];
 
         const categoryDescriptions = {
@@ -1708,6 +1721,18 @@
                 editorialReleasePending = false;
                 showToast('📚 Nové odborné články sú uložené aj v databáze.');
             }
+        }
+
+        function applyOrderSectionName() {
+            if (!Array.isArray(sectionsDatabase)) return;
+            const section = sectionsDatabase.find(item => item && item.id === 'podmienky');
+            if (!section || section.name !== 'Podmienky & Výmena') return;
+            section.name = 'Ako objednať';
+            if (section.desc === 'Informácie o nákupe, bankovaní semien a ochrane údajov.') {
+                section.desc = 'Postup nezáväzného dopytu, doručenie a kontaktné údaje.';
+            }
+            // Existujúca synchronizácia kariet uloží zmenu po prihlásení správcu.
+            homeStoryMigrationPending = true;
         }
 
         let currentActiveSection = 'domov';
