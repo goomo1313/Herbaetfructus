@@ -1961,7 +1961,7 @@
 
                 const priceFormatted = t.price ? (t.price.includes('€') ? t.price : t.price + ' €') : '';
                 const seedsInfo = t.seedsPerPack ? `🌱 ${t.seedsPerPack}` : '';
-                const stockVal = typeof t.stock === 'number' ? t.stock : 10;
+                const stockVal = Math.max(0, Number.isFinite(Number(t.stock)) ? Math.floor(Number(t.stock)) : 0);
                 const isSoldOut = stockVal <= 0;
 
                 card.innerHTML = `
@@ -1979,11 +1979,11 @@
                         ${t.weight ? `<div class="weight-info">⚖️ Hmotnosť: <span>${t.weight}</span></div>` : ''}
                         <p class="info">${t.info}</p>
                         
-                        ${!isSoldOut || isAdmin ? `
+                        ${!isSoldOut && !t.hidden ? `
                             <div class="card-actions-row">
                                 <div class="quantity-selector">
                                     <button class="qty-btn" type="button" onclick="changeCardQty(this, -1)">-</button>
-                                    <input type="text" class="qty-input" value="1" readonly>
+                                    <input type="text" class="qty-input" value="1" data-max="${stockVal}" readonly aria-label="Počet balení">
                                     <button class="qty-btn" type="button" onclick="changeCardQty(this, 1)">+</button>
                                 </div>
                                 <button class="btn-select" type="button" onclick="addVarietyToForm('${t.name.replace(/'/g, "\\'")}', this)">+ Pridať do výberu</button>
@@ -2004,9 +2004,9 @@
 
         function changeCardQty(btn, delta) {
             const input = btn.parentElement.querySelector('.qty-input');
-            let val = parseInt(input.value) + delta;
-            if (val < 1) val = 1;
-            input.value = val;
+            const max = Math.max(1, Number.parseInt(input.dataset.max, 10) || 1);
+            const value = (Number.parseInt(input.value, 10) || 1) + delta;
+            input.value = Math.max(1, Math.min(value, max));
         }
 
         function renderBlogPosts() {
@@ -2050,7 +2050,7 @@
                 const safeId = 'variety_check_' + index;
                 const priceNum = parseFloat(t.price) || 0;
                 const priceClean = t.price ? (t.price.includes('€') ? t.price : t.price + ' €') : '0.00 €';
-                const stockVal = typeof t.stock === 'number' ? t.stock : 10;
+                const stockVal = Math.max(0, Number.isFinite(Number(t.stock)) ? Math.floor(Number(t.stock)) : 0);
                 const isSoldOut = stockVal <= 0;
                 
                 const itemDiv = document.createElement('div');
@@ -2104,12 +2104,13 @@
                 }
             });
 
-            if (targetCheckbox && targetQtyInput) {
-                targetCheckbox.checked = true;
-                let currentVal = parseInt(targetQtyInput.value, 10) || 1;
+            if (targetCheckbox && targetQtyInput && !targetCheckbox.disabled) {
+                const alreadySelected = targetCheckbox.checked;
+                const currentVal = alreadySelected ? (parseInt(targetQtyInput.value, 10) || 1) : 0;
                 const max = Math.max(1, parseInt(targetQtyInput.dataset.max, 10) || 1);
-                const requested = currentVal + qtyToAdd - 1;
-                targetQtyInput.value = Math.min(max, requested);
+                const requested = currentVal + qtyToAdd;
+                targetCheckbox.checked = true;
+                targetQtyInput.value = Math.max(1, Math.min(max, requested));
                 updateSelectionCounter();
                 showToast(requested > max
                     ? `Do výberu bolo pridaných ${max} bal. – viac kusov nie je skladom.`
@@ -2203,10 +2204,12 @@
             }
             const selectorItems = document.querySelectorAll('#formTomatoSelector .selector-item');
             const problems = [];
+            let selectedVarieties = 0;
 
             selectorItems.forEach(item => {
                 const cb = item.querySelector('input[type="checkbox"]');
                 if (!cb || !cb.checked) return;
+                selectedVarieties++;
                 const qtyInput = item.querySelector('.form-qty-input');
                 const orderedQty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
                 const variety = varietyDatabase.find(v => v.name === cb.value);
@@ -2216,6 +2219,11 @@
                 }
             });
 
+            if (selectedVarieties === 0) {
+                event.preventDefault();
+                alert('Vyber aspoň jednu odrodu semien pred odoslaním objednávky.');
+                return false;
+            }
             if (problems.length) {
                 event.preventDefault();
                 alert('Niektoré vybrané odrody už nemajú dostatočný sklad:\n\n' + problems.join('\n') + '\n\nUpravte výber a odošlite formulár znova.');
