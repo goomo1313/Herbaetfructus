@@ -1253,6 +1253,15 @@
 
         // CLOUD STORAGE: obsah stránky sa ukladá do Supabase, nie do exportovaného HTML.
         const cloudContentTable = 'site_content';
+        function escapeHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[char]));
+        }
+        function safeImageUrl(value) {
+            return typeof value === 'string' && /^https:\/\//i.test(value.trim());
+        }
+
         let cloudDatabaseReady = false;
         let cloudContentLoaded = false;
 
@@ -1955,29 +1964,30 @@
 
                 const card = document.createElement('div');
                 card.className = `variety-card ${t.isFlagship ? 'flagship' : ''}`;
-                card.dataset.type = t.type.trim().toLowerCase();
-                card.dataset.color = (t.color || '').toLowerCase();
-                card.dataset.search = `${t.name.toLowerCase()} ${t.info.toLowerCase()} ${t.color ? t.color.toLowerCase() : ''} ${t.type.toLowerCase()}`;
+                card.dataset.type = String(t.type || '').trim().toLowerCase();
+                card.dataset.color = String(t.color || '').toLowerCase();
+                card.dataset.search = [t.name, t.info, t.color, t.type].map(value => String(value || '').toLocaleLowerCase('sk')).join(' ');
 
-                const priceFormatted = t.price ? (t.price.includes('€') ? t.price : t.price + ' €') : '';
+                const priceFormatted = t.price ? (String(t.price).includes('€') ? String(t.price) : String(t.price) + ' €') : '';
                 const seedsInfo = t.seedsPerPack ? `🌱 ${t.seedsPerPack}` : '';
                 const stockVal = Math.max(0, Number.isFinite(Number(t.stock)) ? Math.floor(Number(t.stock)) : 0);
                 const isSoldOut = stockVal <= 0;
+                const hasPhoto = safeImageUrl(t.img);
 
                 card.innerHTML = `
-                    <div class="card-img-placeholder" ${t.img ? `onclick="openLightbox('${t.img}')"` : ''}>${t.img ? `<img src="${t.img}" alt="${t.name}">` : ''}</div>
+                    <div class="card-img-placeholder">${hasPhoto ? `<img src="${escapeHtml(t.img)}" alt="${escapeHtml(t.name)}" loading="lazy">` : ''}</div>
                     <div class="card-content">
                         <div class="badges-wrapper">
                             ${t.isFlagship ? '<span class="badge multiflora">🌟 Vlajková</span>' : ''}
-                            <span class="badge type">${t.type}</span>
-                            ${priceFormatted ? `<span class="badge price">💰 ${priceFormatted}</span>` : ''}
-                            ${seedsInfo ? `<span class="badge seeds-info">${seedsInfo}</span>` : ''}
+                            <span class="badge type">${escapeHtml(t.type)}</span>
+                            ${priceFormatted ? `<span class="badge price">💰 ${escapeHtml(priceFormatted)}</span>` : ''}
+                            ${seedsInfo ? `<span class="badge seeds-info">${escapeHtml(seedsInfo)}</span>` : ''}
                             ${isSoldOut ? '<span class="badge hidden-badge">❌ Vypredané</span>' : ''}
                             ${t.hidden ? '<span class="badge hidden-badge">🚫 Nedostupné</span>' : ''}
                         </div>
-                        <h3>${t.name}</h3>
-                        ${t.weight ? `<div class="weight-info">⚖️ Hmotnosť: <span>${t.weight}</span></div>` : ''}
-                        <p class="info">${t.info}</p>
+                        <h3>${escapeHtml(t.name)}</h3>
+                        ${t.weight ? `<div class="weight-info">⚖️ Hmotnosť: <span>${escapeHtml(t.weight)}</span></div>` : ''}
+                        <p class="info">${escapeHtml(t.info)}</p>
                         
                         ${!isSoldOut && !t.hidden ? `
                             <div class="card-actions-row">
@@ -1986,7 +1996,7 @@
                                     <input type="text" class="qty-input" value="1" data-max="${stockVal}" readonly aria-label="Počet balení">
                                     <button class="qty-btn" type="button" onclick="changeCardQty(this, 1)">+</button>
                                 </div>
-                                <button class="btn-select" type="button" onclick="addVarietyToForm('${t.name.replace(/'/g, "\\'")}', this)">+ Pridať do výberu</button>
+                                <button class="btn-select" type="button">+ Pridať do výberu</button>
                             </div>
                         ` : '<div style="color: #E53E3E; font-weight: 600; font-size: 0.9rem; text-align: center; padding: 8px;">Vypredané</div>'}
                         
@@ -1998,6 +2008,24 @@
                         </div>
                     </div>
                 `;
+                if (hasPhoto) {
+                    const photo = card.querySelector('.card-img-placeholder');
+                    photo.style.cursor = 'zoom-in';
+                    photo.tabIndex = 0;
+                    photo.setAttribute('role', 'button');
+                    photo.setAttribute('aria-label', 'Zväčšiť fotografiu odrody ' + (t.name || ''));
+                    photo.addEventListener('click', () => openLightbox(t.img));
+                    photo.addEventListener('keydown', event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            openLightbox(t.img);
+                        }
+                    });
+                }
+                const selectButton = card.querySelector('.btn-select');
+                if (selectButton) {
+                    selectButton.addEventListener('click', () => addVarietyToForm(t.name, selectButton));
+                }
                 grid.appendChild(card);
             });
         }
@@ -2019,14 +2047,16 @@
                 const card = document.createElement('div');
                 card.className = 'blog-card';
                 let mediaHtml = '';
-                if (post.img) mediaHtml += `<img src="${post.img}" alt="${post.title}">`;
-                if (post.video) mediaHtml += `<iframe src="${post.video}" frameborder="0" allowfullscreen></iframe>`;
+                if (safeImageUrl(post.img)) mediaHtml += `<img src="${escapeHtml(post.img)}" alt="${escapeHtml(post.title)}" loading="lazy">`;
+                if (typeof post.video === 'string' && /^https:\/\//i.test(post.video)) {
+                    mediaHtml += '<iframe src="' + escapeHtml(post.video) + '" title="' + escapeHtml(post.title) + '" loading="lazy" frameborder="0" allowfullscreen></iframe>';
+                }
 
                 card.innerHTML = `
                     ${mediaHtml}
                     <div class="blog-card-content">
-                        <div class="blog-date">${post.date}</div>
-                        <h3>${post.title}</h3>
+                        <div class="blog-date">${escapeHtml(post.date)}</div>
+                        <h3>${escapeHtml(post.title)}</h3>
                         <div>${post.content}</div>
                         ${isAdmin ? `
                             <div style="display:flex; gap:5px; margin-top:15px;">
@@ -2043,8 +2073,15 @@
         function renderFormTomatoCheckboxes() {
             const container = document.getElementById('formTomatoSelector');
             if (!container) return;
+            const previousSelection = new Map();
+            container.querySelectorAll('.selector-item').forEach(item => {
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (!cb || !cb.checked) return;
+                const input = item.querySelector('.form-qty-input');
+                previousSelection.set(cb.value, Math.max(1, parseInt(input?.value, 10) || 1));
+            });
             container.innerHTML = '';
-            
+
             varietyDatabase.forEach((t, index) => {
                 if (t.hidden) return;
                 const safeId = 'variety_check_' + index;
@@ -2058,21 +2095,27 @@
                 
                 itemDiv.innerHTML = `
                     <label class="checkbox-label" style="flex-grow: 1; ${isSoldOut ? 'opacity: 0.5;' : ''}">
-                        <input type="checkbox" id="${safeId}" name="odrody_checkbox" value="${t.name}" data-price="${priceNum}" ${isSoldOut ? 'disabled' : ''} onchange="toggleFormCheckboxRow(this)">
-                        <span><b>${t.name}</b> (${priceClean}) ${isSoldOut ? '<span style="color:#E53E3E; font-size:0.8rem;">(Vypredané)</span>' : ''}</span>
+                        <input type="checkbox" id="${safeId}" name="odrody_checkbox" value="${escapeHtml(t.name)}" data-price="${priceNum}" ${isSoldOut ? 'disabled' : ''} onchange="toggleFormCheckboxRow(this)">
+                        <span><b>${escapeHtml(t.name)}</b> (${escapeHtml(priceClean)}) ${isSoldOut ? '<span style="color:#E53E3E; font-size:0.8rem;">(Vypredané)</span>' : ''}</span>
                     </label>
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Počet bal.:</span>
                         <div class="quantity-selector">
                             <button class="qty-btn" type="button" onclick="changeFormQty(this, -1)">-</button>
-                            <input type="text" class="qty-input form-qty-input" value="1" readonly data-index="${index}" data-max="${stockVal}" aria-label="Počet balení odrody ${t.name}">
-                            <button class="qty-btn" type="button" onclick="changeFormQty(this, 1)" aria-label="Pridať balenie ${t.name}">+</button>
+                            <input type="text" class="qty-input form-qty-input" value="1" readonly data-index="${index}" data-max="${stockVal}" aria-label="Počet balení odrody ${escapeHtml(t.name)}">
+                            <button class="qty-btn" type="button" onclick="changeFormQty(this, 1)" aria-label="Pridať balenie ${escapeHtml(t.name)}">+</button>
                         </div>
                     </div>
                 `;
+                const previousQty = previousSelection.get(t.name);
+                if (previousQty && !isSoldOut) {
+                    itemDiv.querySelector('input[type="checkbox"]').checked = true;
+                    itemDiv.querySelector('.form-qty-input').value = Math.min(previousQty, stockVal);
+                }
                 container.appendChild(itemDiv);
             });
             updateFormFilterCount();
+            updateSelectionCounter();
         }
 
         function changeFormQty(btn, delta) {
@@ -2165,7 +2208,7 @@
                     
                     const itemTotal = (price * qty).toFixed(2);
                     selectedItemsList.push(`${cb.value} (počet: ${qty} bal.)`);
-                    cartSummaryHtml += `<div class="cart-line"><span>${cb.value} – ${qty} × bal.</span><strong>${itemTotal} €</strong></div>`;
+                    cartSummaryHtml += `<div class="cart-line"><span>${escapeHtml(cb.value)} – ${qty} × bal.</span><strong>${itemTotal} €</strong></div>`;
                 }
             });
 
