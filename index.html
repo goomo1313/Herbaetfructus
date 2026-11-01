@@ -332,6 +332,20 @@
         body.admin-mode .admin-section-actions { display: flex; }
 
         /* Edukačné úvodné bloky katalógov bez vymyslených parametrov odrôd. */
+        /* V katalógu zostáva iba krátky odkaz; odborný text patrí do blogu. */
+        .catalogue-readmore {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px;
+            padding: 11px 16px; margin: 0 0 19px;
+            border-left: 3px solid var(--primary-color); border-radius: 0 9px 9px 0;
+            background: var(--primary-light); color: #34533b; font-size: .91rem;
+        }
+        .catalogue-readmore button {
+            background: transparent; border: 0; padding: 4px 0; cursor: pointer;
+            color: var(--primary-color); font: inherit; font-weight: 700;
+            text-decoration: underline; text-underline-offset: 3px;
+        }
+        .catalogue-readmore button:hover, .catalogue-readmore button:focus-visible { color: #1b4327; }
+
         .catalogue-intro {
             margin: 0 0 22px; padding: clamp(20px, 3vw, 28px);
             border-radius: 14px; border: 1px solid #d8e4d6;
@@ -2035,7 +2049,8 @@
 
         // Publikovanie odborných článkov bez zásahu do existujúcich cien, skladu alebo vlastných príspevkov.
         // Návštevníci vidia články hneď; správca ich po prihlásení jednorazovo uloží do Supabase.
-        const editorialReleaseId = 'editorial-2026-11-01-v1';
+        const editorialReleaseId = 'editorial-2026-11-01-v2';
+        const previousEditorialReleaseId = 'editorial-2026-11-01-v1';
         let editorialReleasePending = false;
         const originalDemoArticles = [
             { title: 'Malí Semenári: Ako učíme deti pestovať', phrase: 'S láskou učíme deti tajomstvám semenárstva', id: 'hf-deti-v-zahrade' },
@@ -2047,20 +2062,29 @@
             if (farmSettings && farmSettings.editorialReleaseId === editorialReleaseId) return;
             const prepared = blogDatabase.map(post => ({ ...post }));
             const alreadyExists = new Set(prepared.map(post => post.id).filter(Boolean));
-            for (const legacy of originalDemoArticles) {
-                const index = prepared.findIndex(post => {
-                    const text = String(post.content || '');
-                    return post.title === legacy.title &&
-                        text.includes(legacy.phrase) &&
-                        text.length < (legacy.id === 'hf-deti-v-zahrade' ? 700 : 200);
-                });
-                if (index < 0 || alreadyExists.has(legacy.id)) continue;
-                const replacement = editorialPosts.find(post => post.id === legacy.id);
-                if (!replacement) continue;
-                prepared[index] = { ...replacement };
-                alreadyExists.add(legacy.id);
+            // Druhé redakčné vydanie má iba jeden nový článok.
+            // Pri už publikovanom v1 nesmieme obnoviť články, ktoré správca medzičasom zmazal.
+            const previousReleaseComplete = farmSettings &&
+                farmSettings.editorialReleaseId === previousEditorialReleaseId;
+            const articlesToPublish = previousReleaseComplete
+                ? editorialPosts.filter(post => post.id === 'hf-odroda-ma-svoj-charakter')
+                : editorialPosts;
+            if (!previousReleaseComplete) {
+                for (const legacy of originalDemoArticles) {
+                    const index = prepared.findIndex(post => {
+                        const text = String(post.content || '');
+                        return post.title === legacy.title &&
+                            text.includes(legacy.phrase) &&
+                            text.length < (legacy.id === 'hf-deti-v-zahrade' ? 700 : 200);
+                    });
+                    if (index < 0 || alreadyExists.has(legacy.id)) continue;
+                    const replacement = editorialPosts.find(post => post.id === legacy.id);
+                    if (!replacement) continue;
+                    prepared[index] = { ...replacement };
+                    alreadyExists.add(legacy.id);
+                }
             }
-            const newArticles = editorialPosts.filter(post =>
+            const newArticles = articlesToPublish.filter(post =>
                 !alreadyExists.has(post.id) &&
                 !prepared.some(existing => existing.title === post.title)
             ).map(post => ({ ...post }));
@@ -2422,24 +2446,10 @@
         function catalogueIntroForSection(sectionId) {
             if (sectionId === 'paradajky') {
                 return `
-                    <section class="catalogue-intro" aria-label="Ako si vybrať paradajky">
-                        <div>
-                            <span class="catalogue-kicker">Odroda má svoj charakter</span>
-                            <h3>Paradajky pre chuť, pestovanie aj vlastné semená</h3>
-                            <p>Za každým názvom je odlišný rast, tvar plodu, chuť a využitie. Cherry paradajky potešia pri priamom zbere, mäsité typy sa hodia na krájanie a pevnejšie omáčkové odrody na spracovanie. Vyberajte podľa toho, čo chcete zo svojej záhrady získať.</p>
-                            <p>Uvedené hmotnosti sú orientačné. Skutočná veľkosť aj chuť plodov závisia od počasia, pestovania a zrelosti. Pri vzácnych alebo menej známych odrodách je dôležitý tiež pôvod osiva.</p>
-                            <button type="button" onclick="openEditorialArticle('hf-typy-paradajok')">Ako sa vyznať v typoch paradajok →</button>
-                        </div>
-                        <div>
-                            <span class="catalogue-kicker">Rýchly sprievodca výberom</span>
-                            <ul>
-                                <li><strong>Kolíková vs. kríčková:</strong> spôsob rastu a potreba opory.</li>
-                                <li><strong>Cherry, šalátová, omáčková:</strong> veľkosť a využitie plodov.</li>
-                                <li><strong>Multiflora:</strong> neobvykle bohaté rozvetvené strapce.</li>
-                                <li><strong>F1 hybrid:</strong> semená z vlastného zberu nemusia zachovať vlastnosti rodičov.</li>
-                            </ul>
-                        </div>
-                    </section>
+                    <aside class="catalogue-readmore" aria-label="Sprievodca výberom odrôd">
+                        <span>🌱 Neviete, ktorú paradajku si vybrať?</span>
+                        <button type="button" onclick="openEditorialArticle('hf-odroda-ma-svoj-charakter')">Prečítať článok Odroda má svoj charakter →</button>
+                    </aside>
                 `;
             }
             if (sectionId === 'tekvice') {
