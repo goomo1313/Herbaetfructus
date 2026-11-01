@@ -10,6 +10,13 @@
     <meta property="og:title" content="Herba et Fructus - Rodinná semenná farma">
     <meta property="og:description" content="Herba et Fructus je osobný projekt o pestovaní a uchovávaní zberateľských odrôd paradajok, rozmanitosti rastlín a skúsenostiach z vlastnej záhrady.">
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Herba et Fructus">
+    <meta property="og:url" content="https://goomo1313.github.io/Herbaetfructus/">
+    <meta property="og:image" content="https://goomo1313.github.io/Herbaetfructus/assets/nas-pribeh-paradajky.jpg">
+    <meta property="og:image:alt" content="Pestrá úroda paradajok z vlastnej záhrady Herba et Fructus">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="theme-color" content="#2C5530">
+    <link rel="canonical" href="https://goomo1313.github.io/Herbaetfructus/">
 
     <!-- Moderné Google Fonty -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1030,8 +1037,10 @@
     .story-photo-placeholder span { font-size:.95rem; max-width:260px; line-height:1.5; }
     @media(max-width:760px) { .story-inner { grid-template-columns:1fr; gap:24px; } .story-photo-wrap { min-height:240px; } .story-photo-wrap img { min-height:240px; } .story-copy { text-align:left; } }
 </style>
+    <link rel="stylesheet" href="./site-polish.css">
 </head>
 <body>
+    <a href="#mainContainer" class="skip-to-content">Preskočiť na hlavný obsah</a>
 
     <!-- ADMIN LIŠTA -->
     <div id="adminBar">
@@ -1056,7 +1065,7 @@
 
     <header>
         <nav>
-            <a class="logo" onclick="switchSection('domov')">
+            <a class="logo" href="./index.html" onclick="switchSection('domov'); return false;" aria-label="Herba et Fructus – úvodná stránka">
                 <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="50" cy="55" r="32" fill="#C05621"/>
                     <path d="M50 23C50 15 57 6 66 3C66 3 63 14 54 19Z" fill="#2C5530"/>
@@ -1088,7 +1097,7 @@
         </div>
     </div>
 
-    <main id="mainContainer">
+    <main id="mainContainer" tabindex="-1">
         <!-- Dynamické karty / sekcie sa vykreslia sem -->
     </main>
 
@@ -3135,10 +3144,22 @@
             );
         }
 
+        // Fixed toolbar may wrap onto several rows on mobile. Reserve its real height
+        // instead of assuming a constant 55/75px and covering the navigation.
+        function syncAdminBarHeight() {
+            const bar = document.getElementById('adminBar');
+            const root = document.documentElement;
+            if (!bar || !root || !root.style || !bar.getBoundingClientRect) return;
+            const height = bar.classList.contains('active')
+                ? Math.ceil(bar.getBoundingClientRect().height) : 0;
+            root.style.setProperty('--admin-bar-height', height + 'px');
+        }
+
         function enableAdminMode(showMessage = true) {
             adminAuthenticated = true;
             document.body.classList.add('admin-mode');
             document.getElementById('adminBar').classList.add('active');
+            syncAdminBarHeight();
             closeLoginModal();
             renderAll();
             if (homeStoryMigrationPending && cloudDatabaseReady) {
@@ -3160,6 +3181,7 @@
             adminAuthenticated = false;
             document.body.classList.remove('admin-mode');
             document.getElementById('adminBar').classList.remove('active');
+            syncAdminBarHeight();
             renderAll();
             if (showMessage) showToast('🔒 Boli ste odhlásený.');
         }
@@ -4091,9 +4113,15 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
+            const adminBar = document.getElementById('adminBar');
+            if (typeof ResizeObserver !== 'undefined' && adminBar) {
+                new ResizeObserver(syncAdminBarHeight).observe(adminBar);
+            }
+            if (window.addEventListener) window.addEventListener('resize', syncAdminBarHeight);
             await loadCloudContent();
             renderAll();
             await restoreAdminSession();
+            syncAdminBarHeight();
             if (window.HERBA_CATALOGUE) window.HERBA_CATALOGUE.routeFromHash();
         });
     </script>
