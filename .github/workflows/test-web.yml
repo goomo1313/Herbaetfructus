@@ -22,4 +22,4 @@ jobs:
         with:
           node-version: '22'
       - name: Spustiť automatické kontroly
-        run: node --test tests/site-smoke.mjs
+        run: node --test tests/*.mjs
