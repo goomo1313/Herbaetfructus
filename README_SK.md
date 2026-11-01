@@ -1,3 +1,35 @@
+## Fotografia nášho príbehu – 1. november 2026
+
+Fotografia rozmanitých vlastnoručne pestovaných paradajok od majiteľa je uložená
+priamo v GitHube ako `assets/nas-pribeh-paradajky.jpg`. Ide o webovo optimalizovaný
+JPEG (760 × 982 px). Na domovskej karte **Náš príbeh** je štandardne zobrazená
+celá bez orezania. Existujúci text a všetky ostatné sekcie zostali zachované.
+
+- **Staršia databáza:** ak v zázname `sections` chýbala fotografia príbehu,
+  po načítaní stránky sa automaticky doplní lokálny obrázok. Už nastavená
+  fotografia sa neprepisuje.
+- **Trvalé uloženie:** pri najbližšom prihlásení správcu sa aktualizuje
+  záznam `sections` v Supabase, a potom sa do `settings` uloží jednorazový
+  marker `homeStoryPhotoReleaseId`. Následne je možné fotografiu aj odstrániť
+  bez toho, aby sa sama znovu objavila.
+- **Bezpečné zobrazenie:** lokálny obrázok v danom adresári je výnimkou
+  z pravidla HTTPS adries; všetky ďalšie ručne vložené odkazy na obrázky
+  musia byť HTTPS.
+- **Zlyhané nahrávanie:** fotografie v administrácii potrebujú existujúci
+  bucket Supabase Storage `site-images` a správne pravidlá pre prihláseného
+  správcu. To je nezávislé od obrázkov uložených priamo v GitHube.
+  Pripravili sme skript `SUPABASE_FOTOGRAFIE.sql`, ktorý treba spustiť
+  v **Supabase → SQL Editor → Run** so správcom projektu. Skript nevykonávaj
+  opakovane po vlastných úpravách politík bez kontroly.
+- **Nový upload v správe kariet:** JPG, PNG a WebP sa pri potrebe najprv
+  zmenšujú, veľké súbory do 20 MB možno vybrať, a následne sa ukladajú
+  ako obrázky do Storage. Pri chýbajúcom buckete alebo zamietnutom
+  prístupe administrácia zobrazí vysvetlenie problému.
+
+Automatický test `tests/story-photo.mjs` kontroluje, či je reálny JPEG
+v repozitári, či nová stránka používa daný záber a či sa vlastné fotografie
+pri migrácii neprepisujú.
+
 # Herba et Fructus – web s online databázou
 
 Stránka je statická (GitHub Pages), ale jej obsah sa ukladá do databázy **Supabase**. Po úprave odrody, skladu, kategórie alebo článku sa zmena uloží online. Nie je potrebné sťahovať ani opätovne nahrávať `index.html`.
