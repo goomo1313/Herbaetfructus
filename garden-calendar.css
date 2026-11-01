@@ -1,0 +1,26 @@
+
+/* Herba et Fructus: sezónny pestovateľský kalendár a otázky zákazníkov. */
+.garden-calendar { max-width: 1200px; margin: 0 auto; padding: 26px 20px 0; }
+.garden-calendar-header { padding: clamp(22px,4vw,40px); border-radius: 16px; border: 1px solid #dce8d8; background: linear-gradient(125deg,#eef6e9,#fffdf7); margin-bottom: 24px; }
+.garden-calendar-header h2 { font-family: 'Playfair Display', Georgia, serif; color:#295635; font-size: clamp(1.55rem,3vw,2.3rem); margin: 5px 0 14px; }
+.garden-calendar-header p { color: #445b49; max-width: 880px; line-height: 1.78; }
+.garden-calendar-tag { text-transform: uppercase; letter-spacing: 1.5px; color:#507356; font-size: .74rem; font-weight:700; }
+.garden-season { margin-bottom: 28px; }
+.garden-season h3 { font-size: 1.35rem; color: #295635; border-bottom: 1px solid #d8e5d6; padding-bottom: 8px; margin-bottom: 17px; }
+.garden-month-grid { display:grid; gap: 15px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+.garden-month { border: 1px solid #e1e9df; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 6px 15px rgba(25,68,35,.04); }
+.garden-month h4 { color: #326340; font-size: 1.12rem; margin-bottom: 11px; }
+.garden-month p, .garden-month li { color: #415448; line-height: 1.7; font-size: .92rem; }
+.garden-month p { margin-bottom: 9px; }
+.garden-month ul { padding-left: 18px; }
+.garden-month li { margin-bottom: 6px; }
+.garden-calendar a, .garden-calendar button.garden-link { font: inherit; font-weight: 600; color:#29663e; background:none; border:none; padding:0; cursor:pointer; text-decoration:underline; text-underline-offset:3px; }
+.garden-faq { margin: 35px 0 15px; }
+.garden-faq h3 { color: #295635; font-size: 1.4rem; margin: 0 0 15px; }
+.garden-faq details { border: 1px solid #dce7dc; background:white; border-radius:10px; padding: 17px 20px; margin-bottom: 11px; }
+.garden-faq summary { cursor:pointer; color: #295435; font-weight:700; line-height: 1.5; }
+.garden-faq details[open] summary { margin-bottom: 9px; }
+.garden-faq p { color:#4a5b4d; line-height:1.8; }
+.garden-note { padding: 16px 20px; margin: 22px 0; background:#fff7e8; border-left:4px solid #bd862e; color:#66512a; line-height:1.75; border-radius: 0 10px 10px 0; }
+@media (max-width: 900px) { .garden-month-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width: 610px) { .garden-month-grid { grid-template-columns:1fr; } .garden-month { padding: 16px; } }
