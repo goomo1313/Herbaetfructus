@@ -594,6 +594,73 @@
         .blog-card h3 { color: var(--primary-color); font-size: 1.25rem; margin-bottom: 10px; }
         .blog-card p { font-size: 0.92rem; color: var(--text-muted); margin-bottom: 15px; flex-grow: 1; }
 
+        /* Redakčný blog: čitateľné odborné články v samostatných blokoch. */
+        .blog-intro {
+            display: grid; gap: 10px; padding: clamp(18px, 3vw, 30px);
+            margin: 0 0 22px; border: 1px solid #dce8da;
+            border-left: 5px solid var(--primary-color); border-radius: 14px;
+            background: linear-gradient(135deg, #f1f6ed, #ffffff);
+        }
+        .blog-intro h3 { font-size: 1.34rem; color: var(--primary-color); }
+        .blog-intro p { line-height: 1.75; color: #4b5e50; max-width: 830px; }
+        .blog-filters {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+            margin-bottom: 12px;
+        }
+        .blog-filters label { margin: 0; color: var(--primary-color); }
+        .blog-filters input, .blog-filters select {
+            min-height: 44px; padding: 10px 13px; font: inherit;
+            background: white; border: 1px solid #cbd5ce; border-radius: 9px;
+        }
+        .blog-filters input { flex: 2 1 240px; }
+        .blog-filters select { flex: 1 1 190px; }
+        .blog-results-count { font-size: .88rem; color: #53685b; margin: 0 0 18px; }
+        .blog-grid { align-items: start; grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr)); }
+        .blog-card { align-self: start; border-color: #dce5d8; }
+        .blog-card-content { gap: 0; padding: clamp(20px, 2.5vw, 28px); }
+        .blog-card h3 { font-size: 1.31rem; line-height: 1.35; margin-bottom: 12px; }
+        .blog-meta { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 12px; }
+        .blog-topic, .blog-reading-time {
+            display: inline-flex; align-items: center; font-size: .76rem;
+            padding: 4px 9px; border-radius: 99px; font-weight: 600;
+        }
+        .blog-topic { color: #275333; background: #e6efe5; }
+        .blog-reading-time { color: #755016; background: #fff4df; }
+        .blog-card .blog-excerpt { color: #44544a; line-height: 1.7; font-size: .94rem; flex-grow: 0; margin: 0 0 16px; }
+        .blog-details { border-top: 1px solid #e3eae1; padding-top: 12px; }
+        .blog-details summary {
+            cursor: pointer; list-style-position: inside;
+            font-size: .94rem; font-weight: 700; color: var(--primary-color);
+            min-height: 38px; padding: 6px 3px; border-radius: 6px;
+        }
+        .blog-details summary:hover, .blog-details summary:focus-visible { color: var(--accent-color); }
+        .blog-details[open] summary { margin-bottom: 18px; }
+        .article-body { color: #34443a; font-size: .96rem; line-height: 1.83; overflow-wrap: anywhere; }
+        .article-body h4 { color: var(--primary-color); font-family: 'Playfair Display', Georgia, serif; font-size: 1.17rem; margin: 22px 0 10px; }
+        .article-body h4:first-child { margin-top: 0; }
+        .blog-card .article-body p { color: #34443a; font-size: .94rem; line-height: 1.83; margin: 0 0 14px; flex-grow: 0; }
+        .blog-card .article-body .article-lead { font-size: 1.02rem; color: #233c2b; font-weight: 500; }
+        .article-body ul, .article-body ol { padding-left: 23px; margin: 8px 0 18px; }
+        .article-body li { margin-bottom: 10px; padding-left: 2px; }
+        .article-note {
+            background: #edf5e9; border-left: 4px solid #4f8553;
+            padding: 15px 16px 8px; border-radius: 0 11px 11px 0;
+            margin: 20px 0; color: #244a2b;
+        }
+        .article-note strong { display: block; margin-bottom: 6px; }
+        .blog-card .article-note p { color: #244a2b; }
+        .article-sources { margin-top: 23px; padding-top: 14px; border-top: 1px solid #dce5d8; font-size: .88rem; }
+        .article-sources strong { color: var(--primary-color); }
+        .article-sources ul { margin: 7px 0 0; padding-left: 20px; }
+        .article-sources li { margin-bottom: 6px; }
+        .article-sources a { color: #235a40; text-decoration: underline; text-underline-offset: 2px; }
+        .blog-empty { padding: 24px; border: 1px dashed #aabfad; border-radius: 10px; color: #435b48; text-align: center; }
+        @media (max-width: 620px) {
+            .blog-intro { padding: 18px; }
+            .blog-grid { gap: 18px; }
+            .blog-card-content { padding: 18px; }
+        }
+
         /* Kontaktný formulár & Košík */
         .contact-container {
             background: var(--surface-color);
@@ -1896,7 +1963,21 @@
                 }
 
                 if (sec.id === 'blog') {
-                    html += `<div class="blog-grid" id="blogGridContainer"></div>`;
+                    html += `
+                        <div class="blog-intro">
+                            <h3>Praktický sprievodca záhradou a semenárstvom</h3>
+                            <p>Od prvého výsevu až po vlastné osivo. Nájdete tu postupy na pestovanie paradajok, zber a uchovávanie semien, starostlivosť o ovocie i vysvetlenia častých problémov. Každý článok si môžete rozbaliť a prečítať celý.</p>
+                        </div>
+                        <div class="blog-filters" role="search" aria-label="Vyhľadávanie článkov">
+                            <label for="blogSearch">Hľadať článok</label>
+                            <input type="search" id="blogSearch" placeholder="Napríklad semená, tekvice alebo pH..." oninput="filterBlogPosts()">
+                            <label for="blogCategory">Téma</label>
+                            <select id="blogCategory" onchange="filterBlogPosts()"><option value="">Všetky témy</option></select>
+                        </div>
+                        <p class="blog-results-count" id="blogResultsCount" role="status" aria-live="polite"></p>
+                        <div class="blog-grid" id="blogGridContainer"></div>
+                        <p class="blog-empty" id="blogEmptyMessage" style="display:none;">Pre zadané hľadanie sa nenašli články. Skúste iný výraz alebo všetky témy.</p>
+                    `;
                 } else if (sec.id !== 'domov') {
                     html += `
                         <div class="filters-wrapper">
@@ -2087,27 +2168,57 @@
             input.value = Math.max(1, Math.min(value, max));
         }
 
+
         function renderBlogPosts() {
             const grid = document.getElementById('blogGridContainer');
             if (!grid) return;
             grid.innerHTML = '';
             const isAdmin = document.body.classList.contains('admin-mode');
+            const categorySelect = document.getElementById('blogCategory');
+            if (categorySelect) {
+                const selected = categorySelect.value;
+                categorySelect.innerHTML = '<option value="">Všetky témy</option>';
+                const topics = [...new Set(blogDatabase.map(post => post.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'sk'));
+                for (const topic of topics) {
+                    const option = document.createElement('option');
+                    option.value = topic;
+                    option.textContent = topic;
+                    categorySelect.appendChild(option);
+                }
+                categorySelect.value = topics.includes(selected) ? selected : '';
+            }
 
             blogDatabase.forEach((post, index) => {
-                const card = document.createElement('div');
+                const card = document.createElement('article');
                 card.className = 'blog-card';
+                card.dataset.topic = String(post.category || '');
+                card.dataset.search = [post.title, post.excerpt, post.category, post.content]
+                    .map(value => String(value || '').replace(/<[^>]*>/g, ' ').toLocaleLowerCase('sk')).join(' ');
                 let mediaHtml = '';
-                if (safeImageUrl(post.img)) mediaHtml += `<img src="${escapeHtml(post.img)}" alt="${escapeHtml(post.title)}" loading="lazy">`;
+                if (safeImageUrl(post.img)) {
+                    mediaHtml += '<img src="' + escapeHtml(post.img) + '" alt="' + escapeHtml(post.title) + '" loading="lazy">';
+                }
                 if (typeof post.video === 'string' && /^https:\/\//i.test(post.video)) {
                     mediaHtml += '<iframe src="' + escapeHtml(post.video) + '" title="' + escapeHtml(post.title) + '" loading="lazy" frameborder="0" allowfullscreen></iframe>';
                 }
+                const richArticle = !!post.excerpt;
+                const meta = richArticle
+                    ? '<div class="blog-meta"><span class="blog-topic">' + escapeHtml(post.category || 'Zo záhrady') +
+                      '</span>' + (post.readTime ? '<span class="blog-reading-time">⏱ ' + escapeHtml(post.readTime) + ' čítania</span>' : '') + '</div>'
+                    : '';
+                const contentHtml = richArticle
+                    ? '<p class="blog-excerpt">' + escapeHtml(post.excerpt) + '</p>' +
+                      '<details class="blog-details"><summary>Prečítať celý článok</summary>' +
+                      '<div class="article-body">' + String(post.content || '') + '</div></details>'
+                    : '<div class="article-body">' + String(post.content || '') + '</div>';
 
                 card.innerHTML = `
                     ${mediaHtml}
                     <div class="blog-card-content">
-                        <div class="blog-date">${escapeHtml(post.date)}</div>
+                        ${meta}
+                        <div class="blog-date">${escapeHtml(post.date || '')}</div>
                         <h3>${escapeHtml(post.title)}</h3>
-                        <div>${post.content}</div>
+                        ${contentHtml}
                         ${isAdmin ? `
                             <div style="display:flex; gap:5px; margin-top:15px;">
                                 <button class="admin-btn" style="background:#ED8936; padding:4px 10px;" onclick="editBlogPost(${index})">✏️ Upraviť</button>
@@ -2118,6 +2229,26 @@
                 `;
                 grid.appendChild(card);
             });
+            filterBlogPosts();
+        }
+
+        function filterBlogPosts() {
+            const grid = document.getElementById('blogGridContainer');
+            if (!grid) return;
+            const query = String(document.getElementById('blogSearch')?.value || '').trim().toLocaleLowerCase('sk');
+            const category = document.getElementById('blogCategory')?.value || '';
+            let count = 0;
+            const cards = [...grid.querySelectorAll('.blog-card')];
+            for (const card of cards) {
+                const matches = card.dataset.search.includes(query) && (!category || card.dataset.topic === category);
+                card.hidden = !matches;
+                card.style.display = matches ? '' : 'none';
+                if (matches) count++;
+            }
+            const results = document.getElementById('blogResultsCount');
+            if (results) results.textContent = 'Zobrazených ' + count + ' z ' + cards.length + ' článkov';
+            const empty = document.getElementById('blogEmptyMessage');
+            if (empty) empty.style.display = count ? 'none' : 'block';
         }
 
         function renderFormTomatoCheckboxes() {
