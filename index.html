@@ -233,6 +233,65 @@
             max-width: 800px;
         }
 
+        /* Úvodná sekcia Náš príbeh: fotografia vľavo a príbeh vpravo. */
+        .home-story-layout {
+            display: grid;
+            grid-template-columns: minmax(240px, .9fr) minmax(0, 1.2fr);
+            align-items: center;
+            gap: clamp(22px, 4vw, 52px);
+            padding: clamp(20px, 3.5vw, 42px);
+            border-radius: 18px;
+            background: linear-gradient(130deg, #f4f7f1 0%, #fff 70%);
+            border: 1px solid #e1e9dc;
+            box-shadow: 0 12px 30px rgba(36, 69, 43, .07);
+        }
+        .home-story-media { min-width: 0; }
+        .home-story-media img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            max-height: 500px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .home-story-placeholder {
+            aspect-ratio: 4 / 5;
+            min-height: 300px;
+            border: 2px dashed #adc5ae;
+            border-radius: 12px;
+            background: linear-gradient(155deg, #edf4e8, #dae7d6);
+            color: #476e50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px;
+            text-align: center;
+            gap: 12px;
+        }
+        .home-story-placeholder-icon { font-size: 3.2rem; line-height: 1; }
+        .home-story-placeholder strong { font-size: 1.14rem; }
+        .home-story-placeholder small { font-size: .86rem; max-width: 250px; line-height: 1.5; }
+        .home-story-text { min-width: 0; color: #3f4e42; font-size: 1.02rem; line-height: 1.82; }
+        .home-story-text p { margin: 0 0 1.1em; }
+        .home-story-text p:last-child { margin-bottom: 0; }
+        .home-story-text h3 { color: var(--primary-color); margin: 0 0 18px; }
+        .home-story-layout.home-story-right .home-story-media,
+        .home-story-layout.home-story-bottom .home-story-media { order: 2; }
+        .home-story-layout.home-story-right .home-story-text,
+        .home-story-layout.home-story-bottom .home-story-text { order: 1; }
+        .home-story-layout.home-story-top,
+        .home-story-layout.home-story-bottom { grid-template-columns: 1fr; }
+        .home-story-layout.home-story-top .home-story-media,
+        .home-story-layout.home-story-bottom .home-story-media { width: min(100%, 600px); margin: 0 auto; }
+        @media (max-width: 760px) {
+            .home-story-layout { grid-template-columns: 1fr; }
+            .home-story-layout .home-story-media { width: min(100%, 440px); margin: 0 auto; }
+            .home-story-layout.home-story-right .home-story-media { order: 0; }
+            .home-story-layout.home-story-right .home-story-text { order: 0; }
+            .home-story-placeholder { min-height: 250px; }
+        }
+
         .category-info-box {
             display: none;
             background: var(--primary-light);
@@ -1236,6 +1295,7 @@
                 } catch (legacyError) {
                     console.warn('Staršie lokálne údaje sa nepodarilo načítať.', legacyError);
                 }
+                applyHomeStoryMigration();
                 cloudDatabaseReady = true;
                 cloudContentLoaded = true;
             } catch (error) {
@@ -1320,8 +1380,15 @@
             }
         }
 
+        // Pôvodný text príbehu používame aj pri prechode zo starej karty Domov.
+        const defaultHomeStoryText = [
+            "Všetko sa začalo jednou odrodou – Vajce vtáka Ohniváka. Kúpil som si jej semená a podarilo sa mi dopestovať vlastné paradajky. Ich pestovanie ma nadchlo natoľko, že v nasledujúcom roku som rozšíril svoju zbierku na 30 odrôd. Potom ich bolo 50 a na ďalšiu sezónu sa pripravujem už s približne 100 odrodami.",
+            "Postupne som začal objavovať nové odrody, zbierať ich a učiť sa, ako správne získavať a uchovávať vlastné semená. Z pôvodného koníčka sa stala vášeň, ktorej venujem čoraz viac času.",
+            "Keďže mám semien dostatok, rád sa o ne podelím aj s ďalšími pestovateľmi. Herba et Fructus vzniklo z jednoduchej myšlienky – uchovávať zaujímavé odrody a posúvať radosť z ich pestovania ďalej."
+        ].join('\n\n');
+
         const defaultSections = [
-            { id: "domov", name: "Domov", desc: "Vitajte na našej rodinnej semenná farme.", hidden: false },
+            { id: "domov", name: "Náš príbeh", desc: "Od jednej paradajky k stovke odrôd", content: defaultHomeStoryText, image: "", imagePosition: "left", imageAlt: "Naše pestovanie paradajok", hidden: false },
             { id: "paradajky", name: "Paradajky", desc: "Pestujeme pestrú kolekciu odrôd rozdelenú do prehľadných pomologických kategórií.", hidden: false },
             { id: "tekvice", name: "Tekvice a Cukety", desc: "Zelenina vhodná na dlhodobé skladovanie aj okamžitú spotrebu.", hidden: false },
             { id: "blog", name: "Blog & Rady", desc: "Zaujímavosti, návody, projekty a videá zo života na farme.", hidden: false },
@@ -1417,6 +1484,27 @@
             photo: "",
             photoAlt: "Fotografia pestovania Herba et Fructus"
         };
+
+        // Starší záznam v Supabase má stále názov Domov a nemá obsah príbehu.
+        // Migrujeme iba pôvodnú kartu, aby sa neprepísali neskoršie úpravy správcu.
+        let homeStoryMigrationPending = false;
+        function applyHomeStoryMigration() {
+            if (!Array.isArray(sectionsDatabase)) return;
+            const home = sectionsDatabase.find(section => section && section.id === 'domov');
+            if (!home) return;
+            let changed = false;
+            if (home.name === 'Domov') {
+                home.name = 'Náš príbeh';
+                if (!String(home.content || '').trim()) home.content = defaultHomeStoryText;
+                if (home.desc === 'Vitajte na našej rodinnej semenná farme.') {
+                    home.desc = 'Od jednej paradajky k stovke odrôd';
+                }
+                changed = true;
+            }
+            if (!home.imagePosition) { home.imagePosition = 'left'; changed = true; }
+            if (!home.imageAlt) { home.imageAlt = 'Naše pestovanie paradajok'; changed = true; }
+            if (changed) homeStoryMigrationPending = true;
+        }
 
         let currentActiveSection = 'domov';
         let currentCategory = 'all';
@@ -1630,7 +1718,28 @@
                     <p class="description">${sec.desc}</p>
                 `;
 
-                if (sec.content || sec.image) {
+                if (sec.id === 'domov') {
+                    const escapeStory = value => String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+                    const storyText = String(sec.content || defaultHomeStoryText);
+                    const storyParagraphs = storyText.replace(/\r/g, '').split(/\n\s*\n/).map(block => block.trim()).filter(Boolean);
+                    const storyHtml = storyParagraphs.map(block => {
+                        if (block.startsWith('## ')) return '<h4>' + escapeStory(block.slice(3)) + '</h4>';
+                        if (block.startsWith('# ')) return '<h3>' + escapeStory(block.slice(2)) + '</h3>';
+                        return '<p>' + escapeStory(block).replace(/\n/g, '<br>') + '</p>';
+                    }).join('');
+                    const validStoryPhoto = sec.image && /^https:\/\//i.test(String(sec.image).trim());
+                    const storyPhoto = validStoryPhoto
+                        ? '<img src="' + escapeStory(String(sec.image).trim()) + '" alt="' + escapeStory(sec.imageAlt || 'Naše pestovanie paradajok') + '" loading="lazy">'
+                        : '<div class="home-story-placeholder" role="img" aria-label="Miesto na fotografiu z našej záhrady">' +
+                            '<span class="home-story-placeholder-icon" aria-hidden="true">📷</span>' +
+                            '<strong>Fotografia z našej záhrady</strong>' +
+                            '<small>' + (isAdmin ? 'Pridaj ju cez Správa kariet → Upraviť.' : 'Čoskoro tu pribudne fotografia z nášho pestovania.') + '</small>' +
+                          '</div>';
+                    const storyPosition = ['left', 'right', 'top', 'bottom'].includes(sec.imagePosition) ? sec.imagePosition : 'left';
+                    html += '<section class="home-story-layout home-story-' + storyPosition + '">' +
+                        '<div class="home-story-media">' + storyPhoto + '</div>' +
+                        '<div class="home-story-text">' + storyHtml + '</div></section>';
+                } else if (sec.content || sec.image) {
                     const safeBlock = value => String(value || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
                     const paragraphs = String(sec.content || '').replace(/\r/g, '').split(/\n\s*\n/).map(t => t.trim()).filter(Boolean);
                     const textHtml = paragraphs.map(t => {
@@ -1652,24 +1761,9 @@
                     html += '<div class="variety-card" style="padding:24px;margin:20px 0;">' + contentLayout + '</div>';
                 }
 
-                if (sec.id === 'domov') {
-                    html += `
-                        <div class="variety-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
-                            <div class="variety-card" style="padding: 2rem;">
-                                <h3>🌿 Naša Všeobecná Ponuka</h3>
-                                <p class="info" style="margin-top: 10px;">Preskúmajte naše odrody paradajok, tekvíc a zapojte sa do našich semenárskych aktivít.</p>
-                                <button class="btn-select" style="margin-top: 15px;" onclick="switchSection('paradajky')">Pozrieť paradajky</button>
-                            </div>
-                            <div class="variety-card" style="padding: 2rem;">
-                                <h3>📚 Blog & Malí Semenári</h3>
-                                <p class="info" style="margin-top: 10px;">Prečítajte si užitočné tipy, návody a projekty z našej farmy vrátane výchovy malých semenárov.</p>
-                                <button class="btn-select" style="margin-top: 15px;" onclick="switchSection('blog')">Otvoriť blog</button>
-                            </div>
-                        </div>
-                    `;
-                } else if (sec.id === 'blog') {
+                if (sec.id === 'blog') {
                     html += `<div class="blog-grid" id="blogGridContainer"></div>`;
-                } else {
+                } else if (sec.id !== 'domov') {
                     html += `
                         <div class="filters-wrapper">
                             <div class="search-box">
@@ -2088,6 +2182,12 @@
             document.getElementById('adminBar').classList.add('active');
             closeLoginModal();
             renderAll();
+            if (homeStoryMigrationPending && cloudDatabaseReady) {
+                homeStoryMigrationPending = false;
+                queueCloudSave('sections', sectionsDatabase).then(saved => {
+                    if (!saved) homeStoryMigrationPending = true;
+                });
+            }
             if (showMessage) showToast('🔓 Prihlásenie správcu bolo úspešné.');
         }
 
