@@ -86,6 +86,7 @@
         activeName = item.name;
         const stock = Math.max(0, Math.floor(Number(item.stock) || 0));
         const soldOut = stock === 0 || !!item.hidden;
+        const formPaused = typeof isOrderFormPaused === 'function' && isOrderFormPaused();
         byId('detailTitle').textContent = item.name;
         byId('detailCategory').textContent = item.section === 'tekvice' ? 'Tekvice a cukety' : 'Zberateľské odrody paradajok';
         byId('detailDescription').textContent = item.info || 'Podrobnejší opis odrody doplníme podľa dostupných podkladov.';
@@ -101,14 +102,16 @@
             .join('');
         const price = String(item.price || '').trim();
         byId('detailPrice').textContent = price ? (price.includes('€') ? price : price + ' €') : 'Cena na vyžiadanie';
-        byId('detailAvailability').textContent = item.hidden ? 'Momentálne nedostupné' :
+        byId('detailAvailability').textContent = formPaused ? '⏸ Nezáväzné dopyty sú momentálne pozastavené' :
+            item.hidden ? 'Momentálne nedostupné' :
             stock ? 'Na sklade: ' + stock + ' bal.' : 'Momentálne vypredané';
-        byId('detailAvailability').classList.toggle('out', soldOut);
+        byId('detailAvailability').classList.toggle('out', soldOut || formPaused);
         const qty = byId('detailQuantity');
         qty.max = String(Math.max(1, stock));
         qty.value = '1';
-        qty.disabled = soldOut;
-        byId('detailAdd').disabled = soldOut;
+        qty.disabled = soldOut || formPaused;
+        byId('detailAdd').disabled = soldOut || formPaused;
+        byId('detailOrder').disabled = formPaused;
         displayPhotos(item);
         overlay.classList.add('active');
         overlay.setAttribute('aria-hidden', 'false');
@@ -154,6 +157,7 @@
     }
 
     function addFromDetail() {
+        if (typeof isOrderFormPaused === 'function' && isOrderFormPaused()) return;
         const item = currentVariety(activeName);
         if (!item || item.hidden) return;
         const quantity = Number.parseInt(byId('detailQuantity').value, 10) || 1;
@@ -163,6 +167,7 @@
     }
 
     function order() {
+        if (typeof isOrderFormPaused === 'function' && isOrderFormPaused()) return;
         const item = currentVariety(activeName);
         if (!item) return;
         close();
