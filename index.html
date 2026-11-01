@@ -1781,8 +1781,15 @@
             "Keďže mám semien dostatok, rád sa o ne podelím aj s ďalšími pestovateľmi. Herba et Fructus vzniklo z jednoduchej myšlienky – uchovávať zaujímavé odrody a posúvať radosť z ich pestovania ďalej."
         ].join('\n\n');
 
+        // Autentická fotografia zo zbierky používateľa, uložená priamo v GitHube.
+        const homeStoryPhotoPath = './assets/nas-pribeh-paradajky.jpg';
+        const homeStoryPhotoReleaseId = 'nas-pribeh-foto-2026-11-01';
+        function validSectionImageUrl(value) {
+            return safeImageUrl(value) || value === homeStoryPhotoPath;
+        }
+
         const defaultSections = [
-            { id: "domov", name: "Náš príbeh", desc: "Od jednej paradajky k stovke odrôd", content: defaultHomeStoryText, image: "", imagePosition: "left", imageAlt: "Naše pestovanie paradajok", hidden: false },
+            { id: "domov", name: "Náš príbeh", desc: "Od jednej paradajky k stovke odrôd", content: defaultHomeStoryText, image: homeStoryPhotoPath, imagePosition: "left", imageFit: "contain", imageAlt: "Pestrá zbierka vlastnoručne pestovaných paradajok Herba et Fructus", hidden: false },
             { id: "paradajky", name: "Paradajky", desc: "Pestujeme pestrú kolekciu odrôd rozdelenú do prehľadných pomologických kategórií.", hidden: false },
             { id: "tekvice", name: "Tekvice a Cukety", desc: "Zelenina vhodná na dlhodobé skladovanie aj okamžitú spotrebu.", hidden: false },
             { id: "blog", name: "Blog & Rady", desc: "Zaujímavosti, návody, projekty a videá zo života na farme.", hidden: false },
@@ -1912,7 +1919,7 @@
         let sectionsDatabase = [...defaultSections];
         let varietyDatabase = [...defaultVarieties];
         let blogDatabase = [...defaultBlogPosts];
-        let farmSettings = { email: "tvojemail@priklad.sk" };
+        let farmSettings = { email: "tvojemail@priklad.sk", homeStoryPhotoReleaseId };
         let storyContent = {
             eyebrow: "NÁŠ PRÍBEH",
             title: "Od jednej paradajky k stovke odrôd",
@@ -1929,6 +1936,7 @@
         // Starší záznam v Supabase má stále názov Domov a nemá obsah príbehu.
         // Migrujeme iba pôvodnú kartu, aby sa neprepísali neskoršie úpravy správcu.
         let homeStoryMigrationPending = false;
+        let homeStoryPhotoReleasePending = false;
         function applyHomeStoryMigration() {
             if (!Array.isArray(sectionsDatabase)) return;
             const home = sectionsDatabase.find(section => section && section.id === 'domov');
@@ -1944,6 +1952,15 @@
             }
             if (!home.imagePosition) { home.imagePosition = 'left'; changed = true; }
             if (!home.imageAlt) { home.imageAlt = 'Naše pestovanie paradajok'; changed = true; }
+            // Starší cloudový príbeh môže mať prázdne pole image. Fotku vložíme iba raz,
+            // bez zásahu do textu a bez prepísania existujúcej vlastnej fotografie.
+            if (!String(home.image || '').trim() && farmSettings.homeStoryPhotoReleaseId !== homeStoryPhotoReleaseId) {
+                home.image = homeStoryPhotoPath;
+                home.imageFit = 'contain';
+                home.imageAlt = 'Pestrá zbierka vlastnoručne pestovaných paradajok Herba et Fructus';
+                homeStoryPhotoReleasePending = true;
+                changed = true;
+            }
             if (changed) homeStoryMigrationPending = true;
         }
 
@@ -2352,7 +2369,7 @@
                         if (block.startsWith('# ')) return '<h3>' + escapeStory(block.slice(2)) + '</h3>';
                         return '<p>' + escapeStory(block).replace(/\n/g, '<br>') + '</p>';
                     }).join('');
-                    const validStoryPhoto = sec.image && /^https:\/\//i.test(String(sec.image).trim());
+                    const validStoryPhoto = sec.image && validSectionImageUrl(String(sec.image).trim());
                     const storyPhoto = validStoryPhoto
                         ? '<img class="' + (normalizedImageFit(sec.imageFit) === 'cover' ? 'story-image-cover' : '') + '" src="' + escapeStory(String(sec.image).trim()) + '" alt="' + escapeStory(sec.imageAlt || 'Naše pestovanie paradajok') + '" loading="lazy">'
                         : '<div class="home-story-placeholder" role="img" aria-label="Miesto na fotografiu z našej záhrady">' +
@@ -2968,8 +2985,14 @@
             renderAll();
             if (homeStoryMigrationPending && cloudDatabaseReady) {
                 homeStoryMigrationPending = false;
-                queueCloudSave('sections', sectionsDatabase).then(saved => {
-                    if (!saved) homeStoryMigrationPending = true;
+                queueCloudSave('sections', sectionsDatabase).then(async saved => {
+                    if (!saved) { homeStoryMigrationPending = true; return; }
+                    if (homeStoryPhotoReleasePending) {
+                        // Marker zabráni opätovnému vloženiu fotografie, ak ju správca neskôr odstráni.
+                        const nextSettings = { ...farmSettings, homeStoryPhotoReleaseId };
+                        const markerSaved = await queueCloudSave('settings', nextSettings);
+                        if (markerSaved) { farmSettings = nextSettings; homeStoryPhotoReleasePending = false; }
+                    }
                 });
             }
             if (showMessage) showToast('🔓 Prihlásenie správcu bolo úspešné.');
@@ -3199,7 +3222,7 @@
             if (!id || !name) { alert('Vyplňte ID a názov!'); return; }
             if (!/^[a-z0-9_-]{1,40}$/.test(id)) { alert('ID karty môže obsahovať iba malé písmená bez diakritiky, číslice, pomlčku a podčiarkovník.'); return; }
             if (idx === -1 && sectionsDatabase.some(item => item.id === id)) { alert('Karta s týmto ID už existuje.'); return; }
-            if (image && !/^https:\/\//i.test(image)) { status.textContent = 'Adresa obrázka musí začínať https://'; return; }
+            if (image && !validSectionImageUrl(image)) { status.textContent = 'Fotografia musí mať platnú HTTPS adresu alebo byť súčasťou stránky.'; return; }
             if (imageFile) {
                 if (!imageFile.type.startsWith('image/')) { status.textContent = 'Vyber obrazový súbor.'; return; }
                 if (imageFile.size > 5 * 1024 * 1024) { status.textContent = 'Obrázok môže mať maximálne 5 MB.'; return; }
@@ -3415,7 +3438,7 @@
             const file = document.getElementById(fileInputId)?.files?.[0];
             const rawUrl = document.getElementById(urlInputId)?.value.trim() || '';
             const fit = normalizedImageFit(document.getElementById(fitInputId)?.value);
-            let src = safeImageUrl(rawUrl) ? rawUrl : '';
+            let src = validSectionImageUrl(rawUrl) ? rawUrl : '';
             if (file && file.type.startsWith('image/') && typeof URL !== 'undefined' && URL.createObjectURL) {
                 src = URL.createObjectURL(file);
                 imageFitPreviewBlobUrls.set(previewId, src);
