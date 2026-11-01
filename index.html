@@ -933,20 +933,7 @@
         </div>
     </section>
 
-        <section id="storySection" class="story-section">
-        <div class="story-inner">
-            <div class="story-copy">
-                <div class="story-kicker" id="storyEyebrow">NÁŠ PRÍBEH</div>
-                <h2 id="storyTitle">Od jednej paradajky k stovke odrôd</h2>
-                <div id="storyParagraphs"></div>
-                <a class="story-link" id="storyButton" href="#kontaktSection" onclick="switchSection('kontaktSection')">Vybrať si semená</a>
-            </div>
-            <div class="story-photo-wrap" id="storyPhotoWrap">
-                <div class="story-photo-placeholder" id="storyPhotoPlaceholder">📷<span>Miesto pre fotografie z našej záhrady a pestovania</span></div>
-                <img id="storyPhoto" alt="Fotografia pestovania Herba et Fructus" style="display:none;">
-            </div>
-        </div>
-    </section>
+
 
     <footer>
         <p>&copy; Herba et Fructus. Všetky práva vyhradené. | <a onclick="openLoginModal()">Prihlásenie správcu</a></p>
@@ -1706,7 +1693,23 @@
                 sectionDiv.className = `content-section ${sec.id === currentActiveSection ? 'active-section' : ''}`;
                 if (sec.hidden) sectionDiv.style.opacity = '0.6';
 
-                let html = `
+                let html = sec.id === 'domov' ? `
+                    <section id="storySection" class="story-section">
+                        <div class="story-inner">
+                            <div class="story-copy">
+                                <div class="story-kicker" id="storyEyebrow">NÁŠ PRÍBEH</div>
+                                <h2 id="storyTitle">Od jednej paradajky k stovke odrôd</h2>
+                                <div id="storyParagraphs"></div>
+                                <a class="story-link" id="storyButton" href="#kontaktSection" onclick="switchSection('kontaktSection')">Vybrať si semená</a>
+                            </div>
+                            <div class="story-photo-wrap" id="storyPhotoWrap">
+                                <div class="story-photo-placeholder" id="storyPhotoPlaceholder">📷<span>Miesto pre fotografie z našej záhrady a pestovania</span></div>
+                                <img id="storyPhoto" alt="Fotografia pestovania Herba et Fructus" style="display:none;">
+                            </div>
+                        </div>
+                    </section>
+                    ` : '';
+                html += `
                     <div class="section-header">
                         <div>
                             <div class="admin-section-actions">
