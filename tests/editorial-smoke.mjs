@@ -36,13 +36,13 @@ function site() {
     return { context, grid, controls };
 }
 
-test('desiatka odborných článkov má rubriku, perex, bloky a bezpečné zdroje', () => {
+test('jedenásť odborných článkov má rubriku, perex, bloky a bezpečné zdroje', () => {
     assert.doesNotThrow(() => new Script(editorial));
     assert.doesNotThrow(() => new Script(app));
     const articles = runInContext('editorialPosts.map(post => ({ ...post }))', site().context);
-    assert.equal(articles.length, 10);
-    assert.equal(new Set(articles.map(post => post.id)).size, 10);
-    assert.equal(new Set(articles.map(post => post.title)).size, 10);
+    assert.equal(articles.length, 11);
+    assert.equal(new Set(articles.map(post => post.id)).size, 11);
+    assert.equal(new Set(articles.map(post => post.title)).size, 11);
     for (const post of articles) {
         assert.ok(post.category);
         assert.ok(post.excerpt && post.excerpt.length > 50);
@@ -57,7 +57,7 @@ test('desiatka odborných článkov má rubriku, perex, bloky a bezpečné zdroj
 
 test('predvolený blog zobrazí články aj bez prihlásenia', () => {
     const articles = runInContext('blogDatabase.map(post => ({ ...post }))', site().context);
-    assert.equal(articles.length, 10);
+    assert.equal(articles.length, 11);
     assert.ok(articles.some(post => post.id === 'hf-tekvice-krizenie'));
 });
 
@@ -65,24 +65,24 @@ test('migrácia nahradí len pôvodné ukážky a zachová vlastný príspevok',
     const { context } = site();
     runInContext("blogDatabase = [{title:'Malí Semenári: Ako učíme deti pestovať',content:'S láskou učíme deti tajomstvám semenárstva'}, {title:'Ako správne odoberať semienka paradajok',content:'Zber semienok je krásny proces.'}, {title:'Príprava záhona na jarnú výsadbu',content:'Kvalitný kompost a správne vrstvenie pôdy'}, {title:'Vlastný príspevok',content:'Moje údaje'}]; farmSettings={email:'example@example.com'}; applyEditorialRelease();",context);
     const items = runInContext('blogDatabase.map(post => ({ ...post }))',context);
-    assert.equal(items.length, 11);
-    assert.equal(items.filter(p => p.id).length, 10);
+    assert.equal(items.length, 12);
+    assert.equal(items.filter(p => p.id).length, 11);
     assert.ok(items.some(p => p.title === 'Vlastný príspevok' && p.content === 'Moje údaje'));
     runInContext('applyEditorialRelease()',context);
-    assert.equal(runInContext('blogDatabase.length',context),11);
+    assert.equal(runInContext('blogDatabase.length',context),12);
 });
 
 test('už zmazaný príspevok sa po uloženom vydaní znovu neobjaví', () => {
     const { context } = site();
     runInContext("farmSettings={editorialReleaseId}; blogDatabase=blogDatabase.filter(p=>p.id!=='hf-zahradny-dennik'); applyEditorialRelease();",context);
-    assert.equal(runInContext('blogDatabase.length',context),9);
+    assert.equal(runInContext('blogDatabase.length',context),10);
 });
 
 test('rozbaľovacie články umožňujú filtrovanie podľa textu a rubriky', () => {
     const { context, grid, controls } = site();
     runInContext('renderBlogPosts()',context);
-    assert.equal(grid.children.length,10);
-    assert.equal(controls.blogResultsCount.textContent,'Zobrazených 10 z 10 článkov');
+    assert.equal(grid.children.length,11);
+    assert.equal(controls.blogResultsCount.textContent,'Zobrazených 11 z 11 článkov');
     assert.ok(grid.children.every(card => card.innerHTML.includes('blog-details')));
     controls.blogSearch.value = 'Čučoriedky';
     runInContext('filterBlogPosts()',context);
@@ -99,4 +99,30 @@ test('publikovanie používa dátový súbor a otvorenie konkrétneho článku',
     assert.match(html, /function applyEditorialRelease\(\)/);
     assert.match(html, /await persistEditorialReleaseIfNeeded\(\)/);
     assert.match(html, /function openEditorialArticle\(articleId\)/);
+});
+
+
+test('pôvodná v1 migrácia zachová odstránené články a pridá iba novú praktickú príručku', () => {
+    const {context} = site();
+    runInContext("farmSettings={editorialReleaseId: previousEditorialReleaseId}; blogDatabase=blogDatabase.filter(p=>p.id!=='hf-zahradny-dennik' && p.id!=='hf-odroda-ma-svoj-charakter'); applyEditorialRelease();",context);
+    const items=runInContext('blogDatabase.map(p=>p.id)',context);
+    assert.ok(items.includes('hf-odroda-ma-svoj-charakter'));
+    assert.ok(!items.includes('hf-zahradny-dennik'), 'už zmazaný článok sa nesmie obnoviť');
+    assert.equal(items.filter(id=>id==='hf-odroda-ma-svoj-charakter').length,1);
+    runInContext('applyEditorialRelease()',context);
+    assert.equal(runInContext("blogDatabase.filter(p=>p.id==='hf-odroda-ma-svoj-charakter').length",context),1);
+});
+
+test('v katalógu ostáva krátky odkaz na nový blogový článok, nie pôvodný blok', () => {
+    const {context}=site();
+    const snippet=runInContext("catalogueIntroForSection('paradajky')",context);
+    assert.match(snippet, /class="catalogue-readmore"/);
+    assert.match(snippet, /hf-odroda-ma-svoj-charakter/);
+    assert.ok(!snippet.includes('Rýchly sprievodca výberom'));
+    assert.ok(!snippet.includes('Za každým názvom je odlišný rast'));
+    const article=runInContext("editorialPosts.find(p=>p.id==='hf-odroda-ma-svoj-charakter')",context);
+    assert.ok(article);
+    assert.match(article.content,/Každá odroda paradajky má svoj charakter/);
+    assert.match(article.content,/Hmotnosť plodu je orientačná/);
+    assert.match(article.img,/nas-pribeh-paradajky.jpg/);
 });
