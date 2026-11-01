@@ -159,6 +159,22 @@ HTML formulár a výber URL však zostanú dostupné. Nikdy nezadávaj
 
 Ceny, názvy a skladové zásoby sa pri obyčajnom otvorení detailu nemenia.
 
+### Prepínanie spôsobu zobrazenia fotografie
+
+Pri úprave každej odrody je pod hlavnou fotografiou voľba **Zobrazenie hlavnej fotografie**:
+
+- **Zobraziť celú – bez orezania (predvolené):** v rámiku zostane celý záber a pri nezhodnom pomere strán sa objavia voľné okraje.
+- **Vyplniť rámik – možné orezanie okrajov:** fotografia vyplní rámik, ale časť záberu môže byť skrytá.
+
+Po zmene uvidíš živý náhľad. Nastavenie sa uloží do poľa `imageFit` príslušnej odrody pri stlačení **Uložiť** a premietne sa do katalógovej karty aj hlavnej fotografie v detaile odrody.
+
+Pri ďalších fotografiách v galérii je vedľa každej samostatná rozbaľovacia voľba. Web uloží jej nastavenie do poľa `galleryImageFits` pod príslušnou HTTPS adresou. Tieto voľby ovplyvňujú náhľad vybranej fotografie v detaile odrody; nie je potrebné znovu nahrávať súbory. Nové galériové snímky predvolene používajú režim „Zobraziť celú“ a režim im môžeš nastaviť pri ďalšej úprave po nahratí.
+
+Rovnaký prepínač existuje v **Administrácia → Správa kariet → Upraviť** pri obrázku sekcie „Náš príbeh“ aj ďalších obsahových kariet. Ukladá sa ako `imageFit` v zázname sekcie. Staré údaje bez nastavenia sa zobrazujú celé (`contain`).
+
+Automatické testy kontrolujú samostatné režimy hlavnej a galériových fotografií aj to, či sa správne vykresľujú v detaile odrody. Testy nenahrádzajú skutočné otestovanie uloženia cez prihlásenie do Supabase.
+
+
 ## 10. Pestovateľský kalendár a FAQ
 
 V navigácii pribudla samostatná sekcia **Pestovateľský kalendár** s dvanástimi
