@@ -736,6 +736,48 @@
             .blog-card-content { padding: 18px; }
         }
 
+
+        /* Kompaktný dopyt: viditeľný výber, nenápadná voliteľná úprava. */
+        .order-selection-help { font-size:.93rem; line-height:1.7; color:#48604f; margin:0 0 13px; }
+        .order-selection-help button, .order-data-notice button {
+            border:none; background:none; color:#246540; text-decoration:underline;
+            text-underline-offset:3px; padding:0; font:inherit; font-weight:700; cursor:pointer;
+        }
+        .order-selection-help button:focus-visible, .order-data-notice button:focus-visible {
+            outline: 3px solid #618a5f; outline-offset:3px;
+        }
+        .cart-summary-box { scroll-margin-top:30px; }
+        .cart-line { align-items:center; }
+        .cart-line-actions { display:inline-flex; align-items:center; gap:6px; flex-wrap:wrap; }
+        .cart-line-actions button {
+            display:inline-flex; align-items:center; justify-content:center;
+            min-height:34px; min-width:34px; padding:4px 8px;
+            border:1px solid #c1d2c1; border-radius:7px; background:#f7fbf6;
+            color:#245532; font-size:.9rem; font-weight:700; cursor:pointer;
+        }
+        .cart-line-actions button:hover, .cart-line-actions button:focus-visible {
+            background:#e4f1e0; border-color:#699871;
+        }
+        .cart-line-actions button.cart-remove { color:#8b3333; border-color:#e0c1c1; }
+        .cart-line-title { min-width:0; overflow-wrap:anywhere; }
+        .cart-line-price { white-space:nowrap; }
+        .form-selection-edit { margin-top:16px; border:1px solid #dce7d9; border-radius:10px; }
+        .form-selection-edit summary { padding:13px 16px; cursor:pointer; font-size:.92rem; font-weight:700; color:#355b3d; }
+        .form-selection-edit[open] summary { border-bottom:1px solid #dce7d9; }
+        .form-selection-edit .accordion-content { padding:12px 14px 16px; }
+        .order-data-notice {
+            padding:14px 16px; border-radius:10px; background:#f5f8f4;
+            border:1px solid #dae5d8; font-size:.87rem; color:#435849; line-height:1.7;
+        }
+        .order-safety-note { margin:15px 0; padding:15px 17px;
+            background:#fff9ed; border-left:4px solid #b48a3a;
+            border-radius:0 9px 9px 0; color:#594a31; line-height:1.75; font-size:.91rem;
+        }
+        @media(max-width:640px) {
+            .cart-line { display:flex; flex-direction:column; gap:7px; align-items:flex-start; }
+            .cart-line-actions { width:100%; }
+        }
+
         /* Kontaktný formulár & Košík */
         .contact-container {
             background: var(--surface-color);
@@ -1181,25 +1223,25 @@
     <section id="kontaktSection" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
         <div class="contact-container">
             <div class="section-header" style="border:none; margin-bottom: 0;">
-                <h2>Nezáväzný dopyt po semenách</h2>
+                <h2>Nezáväzný dopyt o zberateľské semená</h2>
             </div>
-            <p class="description" style="margin-bottom: 1.5rem;">Vyberte si odrody, vyplňte kontaktné údaje a odošlite nezáväznú objednávku. Dostupnosť a ďalšie podrobnosti vám potvrdíme e-mailom. Odoslaním sa skladové zásoby nemenia.</p>
+            <p class="description" style="margin-bottom: 1.5rem;">Vyberte si odrody v katalógu a pošlite otázku na ich dostupnosť. Formulár slúži iba na nezáväzný dopyt, bez platby a rezervácie. Možnosti poskytnutia osiva sa riešia individuálne v súlade s platnými pravidlami.</p>
             <div class="order-steps" aria-label="Postup objednávky">
                 <div class="order-step"><strong>1. Výber odrôd</strong>Vyberte odrody a počet balení.</div>
                 <div class="order-step"><strong>2. Kontaktné údaje</strong>Vyplňte údaje potrebné na odpoveď.</div>
-                <div class="order-step"><strong>3. Nezáväzný dopyt</strong>Odošlite výber, ktorý následne potvrdíme.</div>
+                <div class="order-step"><strong>3. Nezáväzný dopyt</strong>Pošlite otázku; nejde o potvrdenú objednávku.</div>
             </div>
             
             <form id="contactForm" method="POST" onsubmit="handleFormSubmit(event)">
                 <input type="text" name="_honey" style="display:none">
-                <input type="hidden" name="_subject" value="Nová nezáväzná objednávka – Herba et Fructus">
+                <input type="hidden" name="_subject" value="Nový nezáväzný dopyt – Herba et Fructus">
                 <input type="hidden" name="_template" value="table">
                 <input type="hidden" name="_next" id="formReturnUrl" value="">
                 <input type="hidden" name="Vybrané odrody a množstvá" id="orderSummary" value="Bez výberu odrôd">
                 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="meno">Meno a Priezvisko *</label>
+                        <label for="meno">Meno *</label>
                         <input type="text" id="meno" name="meno" required placeholder="Napr. Ján Hraško">
                     </div>
                     
@@ -1209,54 +1251,48 @@
                     </div>
 
                     <div class="form-group full-width">
-                        <label for="adresa">Doručovacia adresa (Nepovinné)</label>
-                        <input type="text" id="adresa" name="adresa" placeholder="Ulica, Číslo, PSČ, Mesto (vyplňte ak si objednávate semienka)">
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label>Vyberte odrody a množstvo balíčkov:</label>
-                        <details class="form-accordion" open>
-                            <summary>Zoznam odrôd na výber (kliknite pre zbalenie/rozbalenie)</summary>
-                            <div class="accordion-content">
-                                <input type="text" style="margin-bottom: 8px;" id="formTomatoFilter" placeholder="🔍 Hľadať podľa názvu odrody..." oninput="filterFormTomatoes()" aria-label="Vyhľadať odrodu">
-                                <div class="selector-search-meta"><span id="formTomatoResults" aria-live="polite">Načítavam odrody…</span><span>Pri každej odrode nastavte počet balení.</span></div>
-                                <div class="varieties-selector" id="formTomatoSelector"></div>
-                            </div>
-                        </details>
+                        <p class="order-selection-help">
+                            Odrody a počet balení si vyberáš priamo v katalógu. Tu už iba skontroluj výber.
+                            <button type="button" onclick="switchSection('paradajky')">Vrátiť sa do katalógu paradajok</button>
+                        </p>
                     </div>
 
                     <!-- Interaktívny prehľad košíka / sumár -->
                     <div class="form-group full-width">
                         <div class="cart-summary-box" id="cartSummaryBox">
-                            <h4>📋 Súhrn vášho výberu</h4>
-                            <div id="cartSummaryContent" style="color: var(--text-muted); font-size: 0.9rem;">Zatiaľ nemáte vybrané žiadne položky.</div>
+                            <h4>🌱 Váš výber zberateľských odrôd</h4>
+                            <div id="cartSummaryContent" aria-live="polite" style="color: var(--text-muted); font-size: 0.9rem;">Zatiaľ nemáte vybrané žiadne položky.</div>
                         </div>
+                        <details class="form-accordion form-selection-edit" id="formSelectionEditor">
+                            <summary>Chcem upraviť výber alebo pridať ďalšiu odrodu</summary>
+                            <div class="accordion-content">
+                                <input type="search" style="margin-bottom: 8px;" id="formTomatoFilter" placeholder="Hľadať podľa názvu odrody…" oninput="filterFormTomatoes()" aria-label="Vyhľadať odrodu">
+                                <div class="selector-search-meta"><span id="formTomatoResults" aria-live="polite">Načítavam odrody…</span><span>Tu je možné doplniť aj odrody mimo aktuálneho výberu.</span></div>
+                                <div class="varieties-selector" id="formTomatoSelector"></div>
+                            </div>
+                        </details>
                     </div>
 
                     <div class="form-group full-width">
-                        <label>Preferovaný spôsob platby (pri kúpe semien)</label>
-                        <div class="checkbox-group" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
-                            <label class="checkbox-label"><input type="radio" name="sposob_platby" value="Dobierka"> 💶 Dobierka – platba pri prevzatí zásielky</label>
-                            <label class="checkbox-label"><input type="radio" name="sposob_platby" value="Bankový prevod"> 🏦 Bankový prevod – údaje po potvrdení objednávky</label>
-                        </div>
-                        <p style="font-size:.82rem; color:var(--text-muted); margin-top:7px;">Výber je zatiaľ nezáväzný. Dostupnosť a konečné podmienky platby potvrdíme e-mailom.</p>
+                        <p class="order-safety-note"><strong>Nezáväzný dopyt, nie nákup:</strong> vyplnením formulára nevzniká povinnosť platiť, nedochádza k rezervácii zásob ani k dohode o odoslaní semien. Informácie o prípadnej dostupnosti a ďalšom postupe sa riešia individuálne, s ohľadom na platné pravidlá pre osivo.</p>
                     </div>
 
                     <div class="form-group full-width">
                         <label for="sprava">Správa / Doplňujúce informácie</label>
-                        <textarea id="sprava" name="sprava" rows="4" placeholder="Napíšte nám podrobnosti k objednávke..."></textarea>
-                    </div>
-
-                    <!-- Povinný GDPR súhlas -->
-                    <div class="form-group full-width">
-                        <label class="checkbox-label" style="font-weight: 500;">
-                            <input type="checkbox" id="gdprConsent" required> 
-                            Súhlasím so spracovaním osobných údajov na účely vybavenia tejto požiadavky.
-                        </label>
+                        <textarea id="sprava" name="sprava" rows="4" placeholder="Voliteľná otázka k odrodám, pôvodu semien alebo dostupnosti…"></textarea>
                     </div>
 
                     <div class="form-group full-width">
-                        <button type="submit" class="btn-submit">Odoslať žiadosť</button>
+                        <div class="order-data-notice">
+                            <strong>Ochrana údajov:</strong> na odpoveď na dopyt používame meno, e-mail, výber odrôd a obsah tvojej správy.
+                            Údaje sa prenášajú cez službu FormSubmit do e-mailovej schránky správcu projektu.
+                            Nežiadame doručovaciu adresu ani platobné údaje. Dopyt nepoužívame na automatické odosielanie marketingu.
+                            <button type="button" onclick="switchSection('podmienky')">Viac o spracovaní údajov a dopytoch</button>.
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <button type="submit" class="btn-submit">Odoslať nezáväzný dopyt</button>
                     </div>
                 </div>
             </form>
