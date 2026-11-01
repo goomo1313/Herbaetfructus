@@ -1,0 +1,24 @@
+name: Oprava zaseknuteho GitHub Pages
+on:
+  push:
+    paths:
+      - '.github/workflows/repair-pages.yml'
+permissions:
+  contents: read
+  pages: write
+jobs:
+  unblock:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Zrusit zaseknute publikovanie
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh api -X POST "repos/$GH_REPO/pages/deployments/c19b10d0bb3e52b2850c5cf64e24a152bab4b3a2/cancel"
+      - name: Vyziadat nove publikovanie aktualnej vetvy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh api -X POST "repos/$GH_REPO/pages/builds"
