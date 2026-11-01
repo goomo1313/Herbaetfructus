@@ -22,7 +22,15 @@
         return [...new Set(urls)].slice(0, 8);
     }
 
-    function selectPhoto(url, label) {
+    function fitFor(item, url) {
+        if (!item) return 'contain';
+        if (url === item.img) return item.imageFit === 'cover' ? 'cover' : 'contain';
+        const galleryFits = item.galleryImageFits && typeof item.galleryImageFits === 'object'
+            ? item.galleryImageFits : {};
+        return galleryFits[url] === 'cover' ? 'cover' : 'contain';
+    }
+
+    function selectPhoto(url, label, fit = 'contain') {
         const hero = byId('detailHero');
         const thumbs = byId('detailThumbs');
         if (!hero || !thumbs) return;
@@ -30,6 +38,7 @@
         const photo = document.createElement('img');
         photo.src = url;
         photo.alt = label;
+        photo.style.objectFit = fit === 'cover' ? 'cover' : 'contain';
         hero.appendChild(photo);
         for (const thumb of thumbs.querySelectorAll('button')) {
             thumb.setAttribute('aria-pressed', String(thumb.dataset.url === url));
@@ -59,11 +68,13 @@
             image.src = url;
             image.alt = '';
             image.loading = 'lazy';
+            image.style.objectFit = fitFor(item, url);
             button.appendChild(image);
-            button.addEventListener('click', () => selectPhoto(url, item.name + ' – fotografia ' + (index + 1)));
+            button.addEventListener('click', () =>
+                selectPhoto(url, item.name + ' – fotografia ' + (index + 1), fitFor(item, url)));
             thumbs.appendChild(button);
         }
-        selectPhoto(urls[0], item.name + ' – fotografia 1');
+        selectPhoto(urls[0], item.name + ' – fotografia 1', fitFor(item, urls[0]));
     }
 
     function open(name, withoutHistory = false) {
@@ -201,5 +212,5 @@
         window.addEventListener('hashchange', routeFromHash);
     }
 
-    window.HERBA_CATALOGUE = { open, close, routeFromHash, imagesFor };
+    window.HERBA_CATALOGUE = { open, close, routeFromHash, imagesFor, fitFor };
 })();
