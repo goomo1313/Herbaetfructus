@@ -346,31 +346,6 @@
         }
         .catalogue-readmore button:hover, .catalogue-readmore button:focus-visible { color: #1b4327; }
 
-        .catalogue-intro {
-            margin: 0 0 22px; padding: clamp(20px, 3vw, 28px);
-            border-radius: 14px; border: 1px solid #d8e4d6;
-            background: linear-gradient(125deg, #f4f8f1, #fffdf8);
-            display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-            gap: clamp(20px, 4vw, 42px); align-items: start;
-        }
-        .catalogue-kicker { font-size: .73rem; text-transform: uppercase; letter-spacing: 1.8px; color: #507b55; font-weight: 700; }
-        .catalogue-intro h3 { color: var(--primary-color); font-size: 1.36rem; margin: 6px 0 12px; }
-        .catalogue-intro p { color: #42574a; line-height: 1.77; margin-bottom: 11px; }
-        .catalogue-intro ul { margin: 6px 0 0 20px; line-height: 1.65; color: #405548; }
-        .catalogue-intro li { margin: 0 0 9px; }
-        .catalogue-intro button {
-            margin-top: 12px; font: inherit; color: var(--primary-color);
-            font-weight: 700; border: 1px solid #aac6aa; border-radius: 8px;
-            padding: 10px 13px; background: white; cursor: pointer; text-align: left;
-        }
-        .catalogue-intro button:hover, .catalogue-intro button:focus-visible {
-            background: #e6f1e5; border-color: #5c9161;
-        }
-        @media (max-width: 720px) {
-            .catalogue-intro { grid-template-columns: 1fr; padding: 18px; }
-        }
-
-
         /* Fotografický režim a náhľady pre správcu. */
         .image-fit-setting { margin: 12px 0 15px; }
         .image-fit-setting > label { display:block; color:var(--primary-color); font-weight:700; margin-bottom:7px; }
@@ -2049,8 +2024,9 @@
 
         // Publikovanie odborných článkov bez zásahu do existujúcich cien, skladu alebo vlastných príspevkov.
         // Návštevníci vidia články hneď; správca ich po prihlásení jednorazovo uloží do Supabase.
-        const editorialReleaseId = 'editorial-2026-11-01-v2';
-        const previousEditorialReleaseId = 'editorial-2026-11-01-v1';
+        const editorialReleaseId = 'editorial-2026-11-01-v3';
+        const previousEditorialReleaseId = 'editorial-2026-11-01-v2';
+        const firstEditorialReleaseId = 'editorial-2026-11-01-v1';
         let editorialReleasePending = false;
         const originalDemoArticles = [
             { title: 'Malí Semenári: Ako učíme deti pestovať', phrase: 'S láskou učíme deti tajomstvám semenárstva', id: 'hf-deti-v-zahrade' },
@@ -2062,14 +2038,18 @@
             if (farmSettings && farmSettings.editorialReleaseId === editorialReleaseId) return;
             const prepared = blogDatabase.map(post => ({ ...post }));
             const alreadyExists = new Set(prepared.map(post => post.id).filter(Boolean));
-            // Druhé redakčné vydanie má iba jeden nový článok.
-            // Pri už publikovanom v1 nesmieme obnoviť články, ktoré správca medzičasom zmazal.
-            const previousReleaseComplete = farmSettings &&
-                farmSettings.editorialReleaseId === previousEditorialReleaseId;
-            const articlesToPublish = previousReleaseComplete
-                ? editorialPosts.filter(post => post.id === 'hf-odroda-ma-svoj-charakter')
-                : editorialPosts;
-            if (!previousReleaseComplete) {
+            // Nové vydanie pridáva sprievodcu tekvicami a cuketami.
+            // Po už uložených v1/v2 doplň iba nové články: nikdy neobnov zmazané staršie články.
+            const completedRelease = String(farmSettings?.editorialReleaseId || '');
+            const completedV1 = completedRelease === firstEditorialReleaseId;
+            const completedV2 = completedRelease === previousEditorialReleaseId;
+            const newerArticleIds = ['hf-odroda-ma-svoj-charakter', 'hf-od-letnej-cukety-po-zimnu-tekvicu'];
+            const articlesToPublish = completedV2
+                ? editorialPosts.filter(post => post.id === newerArticleIds[1])
+                : completedV1
+                    ? editorialPosts.filter(post => newerArticleIds.includes(post.id))
+                    : editorialPosts;
+            if (!completedV1 && !completedV2) {
                 for (const legacy of originalDemoArticles) {
                     const index = prepared.findIndex(post => {
                         const text = String(post.content || '');
@@ -2454,24 +2434,10 @@
             }
             if (sectionId === 'tekvice') {
                 return `
-                    <section class="catalogue-intro" aria-label="Ako pestovať tekvice a cukety">
-                        <div>
-                            <span class="catalogue-kicker">Tekvice a cukety</span>
-                            <h3>Od letnej cukety po zimnú tekvicu</h3>
-                            <p>Tekvicovitá zelenina ukazuje veľkú rozmanitosť: mladé cukety zbierame priebežne, zimné tekvice nechávame vyzrieť a pri vhodnom skladovaní ich využívame aj po skončení sezóny. Hokkaido je obľúbené na pečenie a krémové polievky.</p>
-                            <p>Ak si odkladáte vlastné semená, sledujte aj botanický druh. Cukety, patizóny a niektoré tekvice sa môžu krížiť. Zmena sa pritom typicky prejaví až v ďalšej generácii pestovanej z odložených semien.</p>
-                            <button type="button" onclick="openEditorialArticle('hf-tekvice-krizenie')">Prečítať sprievodcu krížením →</button>
-                        </div>
-                        <div>
-                            <span class="catalogue-kicker">Na čo nezabudnúť</span>
-                            <ul>
-                                <li><strong>Stanovište:</strong> slnečné, teplé a s dostatkom priestoru.</li>
-                                <li><strong>Voda:</strong> rovnomerná vlhkosť počas rastu a tvorby plodov.</li>
-                                <li><strong>Zber:</strong> mladá cuketa a vyzretá zimná tekvica majú odlišný termín.</li>
-                                <li><strong>Osivo:</strong> pri zachovávaní odrody chráňte kvety pred nechceným krížením.</li>
-                            </ul>
-                        </div>
-                    </section>
+                    <aside class="catalogue-readmore" aria-label="Sprievodca tekvicami a cuketami">
+                        <span>🎃 Zber, pestovanie a skladovanie tekvíc</span>
+                        <button type="button" onclick="openEditorialArticle('hf-od-letnej-cukety-po-zimnu-tekvicu')">Prečítať článok Od letnej cukety po zimnú tekvicu →</button>
+                    </aside>
                 `;
             }
             return '';
