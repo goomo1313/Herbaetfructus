@@ -16,6 +16,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
+    <link rel="stylesheet" href="./catalogue-ui.css">
     <style>
         :root {
             --primary-color: #2C5530;
@@ -1111,6 +1112,38 @@
     <div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightbox()">
         <span class="lightbox-close">&times;</span>
         <img class="lightbox-content" id="lightboxImg" src="" alt="Zväčšená fotografia">
+    </div>
+
+    <!-- PODROBNÝ POHĽAD NA ODRODU: fotogaléria, parametre, výber semien -->
+    <div class="product-detail-overlay" id="productDetailOverlay" role="presentation" aria-hidden="true">
+        <section class="product-detail-dialog" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+            <div class="product-detail-header">
+                <div><span class="product-detail-eyebrow" id="detailCategory"></span><h2 id="detailTitle"></h2></div>
+                <button class="product-detail-close" id="detailClose" type="button" aria-label="Zatvoriť detail odrody">×</button>
+            </div>
+            <div class="product-detail-layout">
+                <div>
+                    <div class="product-detail-photo" id="detailHero"></div>
+                    <div class="product-detail-thumbs" id="detailThumbs" aria-label="Ďalšie fotografie odrody"></div>
+                </div>
+                <div>
+                    <p class="product-detail-description" id="detailDescription"></p>
+                    <dl class="product-detail-properties" id="detailProperties"></dl>
+                    <div class="product-detail-price" id="detailPrice"></div>
+                    <small class="product-detail-info">Cena za balenie. Uvedená hmotnosť plodu je orientačná a závisí od podmienok pestovania.</small>
+                    <span class="product-detail-availability" id="detailAvailability"></span>
+                    <div class="product-detail-quantity">
+                        <label for="detailQuantity" style="margin:0;">Počet balení:</label>
+                        <input type="number" id="detailQuantity" value="1" min="1" step="1" aria-label="Počet balení na pridanie do výberu">
+                    </div>
+                    <div class="product-detail-buttons">
+                        <button id="detailAdd" type="button">+ Pridať do výberu</button>
+                        <button id="detailOrder" type="button">Prejsť k dopytu</button>
+                        <button id="detailShare" type="button">Zdieľať odrodu</button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <!-- MODÁLNE OKNO - PRIHLÁSENIE -->
@@ -2262,6 +2295,7 @@
                             </div>
                         ` : '<div style="color: #E53E3E; font-weight: 600; font-size: 0.9rem; text-align: center; padding: 8px;">Vypredané</div>'}
                         
+                        <button class="variety-more" type="button">Detail odrody a fotografie</button>
                         <div class="card-admin-actions">
                             <button class="btn-edit-card" onclick="editVariety(${realIndex})">✏️</button>
                             <button style="background: #3182CE; color:white; border:none; border-radius:4px;" onclick="moveVariety(${realIndex}, -1)">⬆️</button>
@@ -2287,6 +2321,12 @@
                 const selectButton = card.querySelector('.btn-select');
                 if (selectButton) {
                     selectButton.addEventListener('click', () => addVarietyToForm(t.name, selectButton));
+                }
+                const detailButton = card.querySelector('.variety-more');
+                if (detailButton) {
+                    detailButton.addEventListener('click', () => {
+                        if (window.HERBA_CATALOGUE) window.HERBA_CATALOGUE.open(t.name);
+                    });
                 }
                 grid.appendChild(card);
             });
@@ -2444,14 +2484,11 @@
             updateSelectionCounter();
         }
 
-        function addVarietyToForm(varietyName, btnElement) {
-            const cardContent = btnElement.closest('.variety-card');
-            const cardQtyInput = cardContent.querySelector('.qty-input');
-            const qtyToAdd = parseInt(cardQtyInput.value) || 1;
-
+        // Jednotné sčítavanie balení z karty aj z podrobného detailu odrody.
+        function addVarietyQuantityToForm(varietyName, quantity) {
+            const qtyToAdd = Math.max(1, Number.parseInt(quantity, 10) || 1);
             let targetCheckbox = null;
             let targetQtyInput = null;
-
             document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
                 const cb = item.querySelector('input[type="checkbox"]');
                 if (cb && cb.value === varietyName) {
@@ -2459,19 +2496,24 @@
                     targetQtyInput = item.querySelector('.form-qty-input');
                 }
             });
+            if (!targetCheckbox || !targetQtyInput || targetCheckbox.disabled) return false;
+            const currentVal = targetCheckbox.checked ? (Number.parseInt(targetQtyInput.value, 10) || 1) : 0;
+            const max = Math.max(1, Number.parseInt(targetQtyInput.dataset.max, 10) || 1);
+            const requested = currentVal + qtyToAdd;
+            targetCheckbox.checked = true;
+            targetQtyInput.value = Math.max(1, Math.min(max, requested));
+            updateSelectionCounter();
+            showToast(requested > max
+                ? 'Vo výbere je ' + max + ' bal. – viac nie je skladom.'
+                : '✅ Do výberu bolo pridaných ' + qtyToAdd + ' bal.');
+            return true;
+        }
 
-            if (targetCheckbox && targetQtyInput && !targetCheckbox.disabled) {
-                const alreadySelected = targetCheckbox.checked;
-                const currentVal = alreadySelected ? (parseInt(targetQtyInput.value, 10) || 1) : 0;
-                const max = Math.max(1, parseInt(targetQtyInput.dataset.max, 10) || 1);
-                const requested = currentVal + qtyToAdd;
-                targetCheckbox.checked = true;
-                targetQtyInput.value = Math.max(1, Math.min(max, requested));
-                updateSelectionCounter();
-                showToast(requested > max
-                    ? `Do výberu bolo pridaných ${max} bal. – viac kusov nie je skladom.`
-                    : `✅ Úspešne pridané do výberu (${qtyToAdd} ks)`);
-            }
+        function addVarietyToForm(varietyName, btnElement) {
+            const card = btnElement.closest('.variety-card');
+            if (!card) return false;
+            const qtyInput = card.querySelector('.qty-input');
+            return addVarietyQuantityToForm(varietyName, qtyInput ? qtyInput.value : 1);
         }
 
         function filterFormTomatoes() {
@@ -3347,7 +3389,9 @@
             await loadCloudContent();
             renderAll();
             await restoreAdminSession();
+            if (window.HERBA_CATALOGUE) window.HERBA_CATALOGUE.routeFromHash();
         });
     </script>
+    <script src="./catalogue-ui.js"></script>
 </body>
 </html>
