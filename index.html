@@ -1796,10 +1796,10 @@
                                 <button class="admin-btn" style="background: #3182CE;" onclick="moveSection(${secIndex}, 1)">⬇️</button>
                                 <button class="admin-btn" style="background: #E53E3E;" onclick="deleteSection(${secIndex})">🗑️ Zmazať</button>
                             </div>
-                            <h2>${sec.name}</h2>
+                            <h2>${escapeHtml(sec.name)}</h2>
                         </div>
                     </div>
-                    <p class="description">${sec.desc}</p>
+                    <p class="description">${escapeHtml(sec.desc)}</p>
                 `;
 
                 if (sec.id === 'domov') {
@@ -2407,13 +2407,31 @@
             document.getElementById('formSettingsModal').classList.add('active');
         }
         function closeFormSettingsModal() { document.getElementById('formSettingsModal').classList.remove('active'); }
-        function saveFormEmailSettings() {
+        async function saveFormEmailSettings() {
             if (!requireAdmin()) return;
-            farmSettings.email = document.getElementById('adminEmailInput').value.trim();
-            try { queueCloudSave('settings', farmSettings); } catch(e){}
-            updateFormAction();
-            closeFormSettingsModal();
-            showToast('✅ E-mail aktualizovaný!');
+            const email = document.getElementById('adminEmailInput').value.trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Zadaj platnú e-mailovú adresu na prijímanie objednávok.'); return;
+            }
+            const previousSettings = farmSettings;
+            const nextSettings = { ...farmSettings, email };
+            const button = document.querySelector('#formSettingsModal button[onclick="saveFormEmailSettings()"]');
+            if (button) button.disabled = true;
+            try {
+                const saved = await queueCloudSave('settings', nextSettings);
+                if (!saved) {
+                    alert('E-mail sa nepodarilo uložiť do databázy Supabase.'); return;
+                }
+                farmSettings = nextSettings;
+                updateFormAction();
+                closeFormSettingsModal();
+                showToast('✅ Objednávkový e-mail uložený.');
+            } catch (error) {
+                farmSettings = previousSettings;
+                alert('Uloženie e-mailu zlyhalo: ' + (error.message || 'neznáma chyba'));
+            } finally {
+                if (button) button.disabled = false;
+            }
         }
 
         function moveSection(index, direction) {
@@ -2447,7 +2465,7 @@
             sectionsDatabase.forEach((sec, idx) => {
                 tbody.innerHTML += `
                     <tr style="border-bottom: 1px solid var(--border-color);">
-                        <td style="padding: 10px; font-weight:600;">${sec.name}</td>
+                        <td style="padding: 10px; font-weight:600;">${escapeHtml(sec.name)}</td>
                         <td style="padding: 10px; text-align: center;">
                             <button class="admin-btn" style="padding: 2px 6px;" onclick="moveSection(${idx}, -1)">⬆️</button>
                             <button class="admin-btn" style="padding: 2px 6px;" onclick="moveSection(${idx}, 1)">⬇️</button>
@@ -2514,6 +2532,7 @@
             const saveButton = document.querySelector('#sectionModal button[onclick="saveSection()"]');
             let image = document.getElementById('secImage').value.trim();
             if (!id || !name) { alert('Vyplňte ID a názov!'); return; }
+            if (!/^[a-z0-9_-]{1,40}$/.test(id)) { alert('ID karty môže obsahovať iba malé písmená bez diakritiky, číslice, pomlčku a podčiarkovník.'); return; }
             if (idx === -1 && sectionsDatabase.some(item => item.id === id)) { alert('Karta s týmto ID už existuje.'); return; }
             if (image && !/^https:\/\//i.test(image)) { status.textContent = 'Adresa obrázka musí začínať https://'; return; }
             if (imageFile) {
@@ -2533,13 +2552,16 @@
                     image = data.publicUrl;
                 }
                 const updated = { id, name, desc, content, image, imagePosition, imageAlt };
-                if (idx === -1) {
-                    sectionsDatabase.push({ ...updated, hidden: false });
-                } else {
-                    sectionsDatabase[idx] = { ...sectionsDatabase[idx], ...updated };
-                }
+                const previousSections = sectionsDatabase;
+                sectionsDatabase = idx === -1
+                    ? [...sectionsDatabase, { ...updated, hidden: false }]
+                    : sectionsDatabase.map((item, i) => i === idx ? { ...item, ...updated } : item);
                 const saved = await queueCloudSave('sections', sectionsDatabase);
-                if (!saved) { status.textContent = 'Zmena sa nepodarila uložiť do online databázy. Skús znova.'; return; }
+                if (!saved) {
+                    sectionsDatabase = previousSections;
+                    status.textContent = 'Zmena sa nepodarila uložiť do online databázy. Skús znova.';
+                    return;
+                }
                 closeSectionModal();
                 renderAll();
                 showToast('✅ Karta uložená!');
@@ -2626,12 +2648,33 @@
             });
         }
 
-        function updateStockFromTable(index, newVal) {
+        async function updateStockFromTable(index, newVal) {
             if (!requireAdmin()) return;
-            varietyDatabase[index].stock = parseInt(newVal) || 0;
-            try { queueCloudSave('varieties', varietyDatabase); } catch(e) {}
-            renderAll();
-            showToast('📦 Sklad aktualizovaný');
+            const product = varietyDatabase[index];
+            if (!product) return;
+            const quantity = Number(newVal);
+            if (!Number.isInteger(quantity) || quantity < 0 || quantity > 100000) {
+                alert('Skladové zásoby musia byť nezáporné celé číslo.');
+                renderAdminTable();
+                return;
+            }
+            const previous = product.stock;
+            product.stock = quantity;
+            try {
+                const saved = await queueCloudSave('varieties', varietyDatabase);
+                if (!saved) {
+                    product.stock = previous;
+                    renderAdminTable();
+                    alert('Zmena skladu sa nepodarila uložiť do Supabase.');
+                    return;
+                }
+                renderAll();
+                showToast('📦 Sklad uložený v online databáze.');
+            } catch (error) {
+                product.stock = previous;
+                renderAdminTable();
+                alert('Uloženie skladu zlyhalo: ' + (error.message || 'neznáma chyba'));
+            }
         }
 
         function filterAdminTable() {
@@ -2709,7 +2752,7 @@
             const sel = document.getElementById('varSectionSelect');
             sel.innerHTML = '';
             sectionsDatabase.filter(s => s.id !== 'domov' && s.id !== 'blog' && s.id !== 'podmienky').forEach(s => {
-                sel.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+                sel.innerHTML += `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`;
             });
             document.getElementById('varietyModal').classList.add('active');
         }
@@ -2753,7 +2796,7 @@
             const sel = document.getElementById('varSectionSelect');
             sel.innerHTML = '';
             sectionsDatabase.filter(s => s.id !== 'domov' && s.id !== 'blog' && s.id !== 'podmienky').forEach(s => {
-                sel.innerHTML += `<option value="${s.id}" ${s.id === t.section ? 'selected' : ''}>${s.name}</option>`;
+                sel.innerHTML += `<option value="${escapeHtml(s.id)}" ${s.id === t.section ? 'selected' : ''}>${escapeHtml(s.name)}</option>`;
             });
             document.getElementById('varietyModal').classList.add('active');
         }
