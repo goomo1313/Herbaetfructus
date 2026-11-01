@@ -1622,6 +1622,11 @@
             if (!requireAdmin()) return;
             const file = event.target.files[0];
             if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+                alert('Záloha je príliš veľká (maximum 10 MB).');
+                event.target.value = '';
+                return;
+            }
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
@@ -1629,44 +1634,70 @@
                     const valid = data && typeof data === 'object' &&
                         Array.isArray(data.sections) && Array.isArray(data.varieties) &&
                         Array.isArray(data.blog) && data.settings && typeof data.settings === 'object' &&
-                        typeof data.settings.email === 'string';
+                        typeof data.settings.email === 'string' &&
+                        data.sections.every(item => item && typeof item.id === 'string' && typeof item.name === 'string') &&
+                        data.varieties.every(item => item && typeof item.name === 'string' && item.name.trim() && typeof item.section === 'string');
                     if (!valid) throw new Error('Súbor nemá správnu štruktúru zálohy Herba et Fructus.');
-                    if (!confirm('Import prepíše aktuálne odrody, sklad, karty, blog a nastavenia. Pokračovať?')) return;
-
-                    const previous = {
-                        sections: sectionsDatabase, varieties: varietyDatabase,
-                        blog: blogDatabase, settings: farmSettings, story: storyContent
-                    };
+                    const varietyNames = data.varieties.map(item => item.name.trim().toLocaleLowerCase('sk'));
+                    if (new Set(varietyNames).size !== varietyNames.length) {
+                        throw new Error('Záloha obsahuje duplicitné názvy odrôd. Pred importom ich rozlíš.');
+                    }
+                    if (!confirm('Import prepíše aktuálne odrody, sklad, karty, blog a nastavenia v Supabase. Odporúčame najskôr stiahnuť aktuálnu zálohu. Pokračovať?')) return;
+                    const pending = await Promise.all(Object.values(cloudSaveQueues));
+                    if (pending.some(saved => saved === false)) {
+                        throw new Error('Pred importom sa nepodarilo dokončiť staršie cloudové uloženia.');
+                    }
+                    const { data: existingRows, error: snapshotError } = await adminSupabase
+                        .from(cloudContentTable).select('id, content');
+                    if (snapshotError) throw snapshotError;
+                    const original = new Map((existingRows || []).map(row => [row.id, row.content]));
+                    const recordIds = ['sections', 'varieties', 'blog', 'settings'];
+                    const imported = [];
+                    setCloudSaveStatus('☁️ Obnovujem zálohu…', '#FDE68A');
+                    try {
+                        for (const id of recordIds) {
+                            await persistCloudContent(id, data[id]);
+                            imported.push(id);
+                        }
+                    } catch (saveError) {
+                        const rollbackProblems = [];
+                        for (const id of imported.reverse()) {
+                            try {
+                                if (original.has(id)) {
+                                    await persistCloudContent(id, original.get(id));
+                                } else {
+                                    const { error } = await adminSupabase.from(cloudContentTable).delete().eq('id', id);
+                                    if (error) throw error;
+                                }
+                            } catch (rollbackError) {
+                                rollbackProblems.push(id);
+                            }
+                        }
+                        if (rollbackProblems.length) {
+                            throw new Error('Import bol prerušený a časť záznamov sa nepodarila obnoviť (' + rollbackProblems.join(', ') + '). Skontroluj databázu a zálohu.');
+                        }
+                        throw new Error('Import zlyhal; pôvodné údaje sa podarilo obnoviť. ' + (saveError.message || 'Neznáma chyba.'));
+                    }
+                    // Older backups contain "story", but the database allows only four records.
                     sectionsDatabase = data.sections;
                     varietyDatabase = data.varieties;
                     blogDatabase = data.blog;
                     farmSettings = data.settings;
-                    if (data.story && typeof data.story === "object") storyContent = { ...storyContent, ...data.story };
+                    catalogReviewPending = false;
+                    homeStoryMigrationPending = false;
                     renderAll();
-                    setCloudSaveStatus('☁️ Obnovujem zálohu…', '#FDE68A');
-                    try {
-                        await persistCloudContent('sections', sectionsDatabase);
-                        await persistCloudContent('varieties', varietyDatabase);
-                        await persistCloudContent('blog', blogDatabase);
-                        await persistCloudContent('settings', farmSettings);
-                        await persistCloudContent('story', storyContent);
-                        setCloudSaveStatus('✓ Záloha obnovená a uložená', '#C6F6D5');
-                        showToast('📥 Záloha bola obnovená v online databáze.');
-                    } catch (saveError) {
-                        sectionsDatabase = previous.sections;
-                        varietyDatabase = previous.varieties;
-                        blogDatabase = previous.blog;
-                        farmSettings = previous.settings;
-                        storyContent = previous.story;
-                        renderAll();
-                        setCloudSaveStatus('⚠️ Obnova zálohy sa nepodarila', '#FEB2B2');
-                        throw saveError;
-                    }
+                    setCloudSaveStatus('✓ Záloha obnovená a uložená', '#C6F6D5');
+                    showToast('📥 Záloha bola obnovená v online databáze.');
                 } catch (err) {
+                    setCloudSaveStatus('⚠️ Import sa nepodaril', '#FEB2B2');
                     alert('Zálohu sa nepodarilo importovať: ' + (err.message || 'neznáma chyba'));
                 } finally {
                     event.target.value = '';
                 }
+            };
+            reader.onerror = () => {
+                alert('Nepodarilo sa prečítať záložný súbor.');
+                event.target.value = '';
             };
             reader.readAsText(file);
         }
