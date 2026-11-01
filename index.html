@@ -2171,10 +2171,9 @@
             const form = document.getElementById('contactForm');
             if (!form) return;
             form.action = `https://formsubmit.co/${farmSettings.email}`;
-            // Po odoslani sa vratime na presnu adresu, z ktorej bol formular otvoreny.
-            // Funguje aj pri hostingu v podpriecinku (napr. GitHub Pages /Herbaetfructus/).
+            // Potvrdenie je samostatný lokálny súbor; nevznikne 404 ani pri GitHub Pages v podpriečinku.
             const returnUrl = document.getElementById('formReturnUrl');
-            if (returnUrl) returnUrl.value = `${window.location.origin}${window.location.pathname}#kontaktSection`;
+            if (returnUrl) returnUrl.value = new URL('./dakujeme.html', window.location.href).href;
         }
 
         function renderNav() {
