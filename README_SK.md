@@ -396,6 +396,46 @@ prechode nepridajú späť. Trvalé uloženie do Supabase nastane po ďalšom
 úspešnom prihlásení správcu, dovtedy je nový článok dostupný verejne
 ako súčasť redakčného súboru.
 
+
+## Samostatné vlastnosti odrôd a bezpečné hromadné úpravy
+
+Pri každej odrode je v editore nová časť **Samostatné vlastnosti odrody**:
+rastový typ, skorosť/dozrievanie, chuť, využitie plodov, pestovanie/stanovište
+a overený pôvod osiva. Údaje sa ukladajú do voliteľného objektu `properties`.
+Staršie záznamy sú naďalej platné, aj keď `properties` neobsahujú.
+Hodnoty sa **automaticky neodhadujú** z poľa Typ/Pomológia, názvu alebo popisu;
+chýbajúce charakteristiky sa na stránke nezobrazujú. Zadané charakteristiky
+sa zobrazujú v kartách, podrobných detailoch odrôd a môžu sa vyhľadávať.
+
+V administračnej lište a v okne Tabuľka odrôd je nové tlačidlo
+**✏️ Hromadné vlastnosti**:
+
+1. Vyhľadaj odrody a označ iba tie, ktoré chceš upraviť (alebo
+   označ všetky aktuálne vyfiltrované).
+2. Vyber **jedno** z povolených šiestich polí a zadaj overenú hodnotu.
+3. Skontroluj náhľad, počet položiek a potvrď zápis.
+
+Hromadný editor neumožňuje úpravu skladových zásob, cien, názvov,
+fotografií, galérií, dostupnosti ani pôvodných popisov. Používa kopírovanie
+objektov, a preto existujúce polia zostávajú nezmenené. Pred zápisom počká
+na predchádzajúce cloudové ukladania, porovná celý záznam `varieties` v
+Supabase s lokálnym stavom a používa podmienku na `updated_at`. Ak obsah
+alebo časová značka medzitým nesúhlasí, **odmietne zápis** a upozorní na
+potrebu obnoviť údaje. V lokálnej pamäti sa zmena potvrdí až po úspešnom
+zápise do cloudu. Pri chybe sú údaje zachované. RLS pravidlá v Supabase
+musí mať správca naďalej správne nastavené.
+
+**Poznámka:** Súčasná databáza ukladá katalóg v jednom JSONB zázname.
+Podmienený zápis chráni tento hromadný editor pred väčšinou súbežných
+zmien. Staršie samostatné úpravy cez iné editory používajú pôvodný spôsob
+zápisu; pri úpravách z viacerých zariadení súčasne je stále rozumné
+využívať nástroj **Overiť cloud** a export JSON.
+
+Automatické testy `tests/variety-properties.mjs` preverujú zachovanie
+pôvodných polí, ochranu HTML, validáciu, úspešný hromadný zápis, odmietnutie
+zastaranej kópie a bezpečné správanie pri zamietnutí zápisu. Neoverujú
+skutočné prihlasovacie oprávnenia ani RLS na živom účte.
+
 ## Poznámky
 
 - **Fotografie:** správca môže vkladať URL alebo nahrávať súbory priamo pri kartách aj odrodách. Galérie odrôd majú vlastný editor a zmenšovanie obrázkov. Fotografie blogu sa zatiaľ nastavujú cez HTTPS URL. Bucket `site-images` musí mať bezpečné RLS politiky.
