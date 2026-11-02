@@ -2762,7 +2762,9 @@
                 card.className = `variety-card ${t.isFlagship ? 'flagship' : ''}`;
                 card.dataset.type = String(t.type || '').trim().toLowerCase();
                 card.dataset.color = String(t.color || '').toLowerCase();
-                card.dataset.search = [t.name, t.info, t.color, t.type].map(value => String(value || '').toLocaleLowerCase('sk')).join(' ');
+                card.dataset.search = [t.name, t.info, t.color, t.type,
+                    ...(window.HERBA_VARIETY_PROPERTIES?.visibleFacts(t).map(f=>f.value) || [])]
+                    .map(value => String(value || '').toLocaleLowerCase('sk')).join(' ');
                 card.dataset.name = String(t.name || '');
                 card.dataset.originalOrder = String(realIndex);
                 card.dataset.weightText = String(t.weight || '');
@@ -2776,10 +2778,16 @@
                 const seedsInfo = t.seedsPerPack ? `🌱 ${t.seedsPerPack}` : '';
                 const stockVal = Math.max(0, Number.isFinite(Number(t.stock)) ? Math.floor(Number(t.stock)) : 0);
                 const isSoldOut = stockVal <= 0;
-                const hasPhoto = safeImageUrl(t.img);
+                const mainPhoto = safeImageUrl(t.img) ? t.img : '';
+                const galleryPhoto = Array.isArray(t.gallery) ? t.gallery.find(safeImageUrl) || '' : '';
+                const cardPhoto = mainPhoto || galleryPhoto;
+                const hasPhoto = !!cardPhoto;
+                const cardPhotoFit = mainPhoto
+                    ? normalizedImageFit(t.imageFit)
+                    : normalizedImageFit(t.galleryImageFits?.[cardPhoto]);
 
                 card.innerHTML = `
-                    <div class="card-img-placeholder${hasPhoto ? ' has-photo' : ''}">${hasPhoto ? `<img src="${escapeHtml(t.img)}" alt="${escapeHtml(t.name)}" loading="lazy" decoding="async" style="object-fit:${normalizedImageFit(t.imageFit)}">` : ''}</div>
+                    <div class="card-img-placeholder${hasPhoto ? ' has-photo' : ''}">${hasPhoto ? `<img src="${escapeHtml(cardPhoto)}" alt="${escapeHtml(t.name)}" loading="lazy" decoding="async" style="object-fit:${cardPhotoFit}">` : ''}</div>
                     <div class="card-content">
                         <div class="badges-wrapper">
                             ${t.isFlagship ? '<span class="badge multiflora">🌟 Vlajková</span>' : ''}
@@ -2821,7 +2829,7 @@
                     photo.tabIndex = 0;
                     photo.setAttribute('role', 'button');
                     photo.setAttribute('aria-label', 'Zväčšiť fotografiu odrody ' + (t.name || ''));
-                    photo.addEventListener('click', () => openLightbox(t.img));
+                    photo.addEventListener('click', () => openLightbox(cardPhoto));
                     photo.addEventListener('keydown', event => {
                         if (event.key === 'Enter' || event.key === ' ') {
                             event.preventDefault();
