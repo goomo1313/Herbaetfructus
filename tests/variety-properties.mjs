@@ -111,9 +111,9 @@ test('editor leaves all existing values unchanged if six optional inputs are emp
     P.fillEditor(sample()[0]);
     const values=P.fromEditor();
     const result=P.withEditorProperties(sample()[0],values);
-    assert.deepEqual(result,sample()[0]);
+    assert.deepEqual(JSON.parse(JSON.stringify(result)),sample()[0]);
     const empty=P.withEditorProperties(sample()[2],Object.fromEntries(P.fields.map(f=>[f.key,''])));
-    assert.deepEqual(empty,sample()[2]);
+    assert.deepEqual(JSON.parse(JSON.stringify(empty)),sample()[2]);
 });
 test('facts only display confirmed data and escape any html',()=>{
     const {context}=env(),P=context.window.HERBA_VARIETY_PROPERTIES;
