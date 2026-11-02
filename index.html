@@ -24,6 +24,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="./catalogue-ui.css">
+    <link rel="stylesheet" href="./variety-properties.css">
     <link rel="stylesheet" href="./garden-calendar.css">
     <style>
         :root {
@@ -1041,6 +1042,7 @@
         <div class="admin-actions-scroll">
             <button class="admin-btn" style="background: #276749;" type="button" onclick="window.HERBA_IMPROVEMENTS?.dashboardOpen()">📊 Prehľad správcu</button>
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openTableManagerModal()">📊 Tabuľka odrôd & Sklad</button>
+            <button class="admin-btn" style="background: #375c78;" type="button" onclick="window.HERBA_BULK?.open()" title="Hromadná úprava rastového typu, skorosti a ďalších vlastností">✏️ Hromadné vlastnosti</button>
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openSectionTableModal()">📂 Správa kariet</button>
             <button class="admin-btn" style="background: #D97706;" onclick="openFormSettingsModal()">✉️ E-mail</button>
             <button class="admin-btn" id="toggleOrderFormBtn" type="button" style="background: #9B2C2C;" aria-pressed="false" title="Dočasne skryť formulár návštevníkom" onclick="toggleOrderFormPaused()">⏸ Pozastaviť formulár</button>
@@ -1533,6 +1535,7 @@
                     <option value="empty">Sklad 0</option>
                 </select>
                 <button class="admin-btn" onclick="openVarietyModal()">＋ Pridať odrodu</button>
+                <button class="admin-btn" type="button" onclick="closeTableManagerModal(); window.HERBA_BULK?.open()">✏️ Hromadne upraviť vlastnosti</button>
             </div>
 
             <div style="max-height: 450px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
@@ -1553,6 +1556,39 @@
                     <tbody id="adminTableBody"></tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- VOLITEĽNÉ HROMADNÉ ÚPRAVY PESTOVATEĽSKÝCH VLASTNOSTÍ -->
+    <div class="modal-overlay" id="bulkVarietyModal" aria-hidden="true">
+        <div class="modal-box bulk-dialog" role="dialog" aria-modal="true" aria-labelledby="bulkTitle">
+            <div class="bulk-header">
+                <h3 id="bulkTitle">✏️ Hromadné vlastnosti odrôd</h3>
+                <button id="bulkClose" type="button" class="admin-btn" style="background:#e7eee4;color:#2c4431">✕ Zatvoriť</button>
+            </div>
+            <p class="bulk-description">Vyber odrody, potom iba <strong>jednu vlastnosť</strong> a jej novú hodnotu. Zápis sa najprv overí v Supabase. Názvy, opisy, ceny, sklad, fotografie aj ich galérie zostanú nezmenené.</p>
+            <label for="bulkSearch">Vyhľadávanie odrôd</label>
+            <input type="search" id="bulkSearch" placeholder="Názov, farba, typ alebo sekcia…" autocomplete="off">
+            <div class="bulk-tools">
+                <button type="button" id="bulkSelectVisible">Označiť vyfiltrované</button>
+                <button type="button" id="bulkClear">Zrušiť výber</button>
+                <span id="bulkSelectedCount" role="status">Vybrané: 0 odrôd</span>
+            </div>
+            <p id="bulkSearchCount" class="image-fit-hint"></p>
+            <div id="bulkVarietyList" class="bulk-variety-list" aria-label="Odrody na úpravu"></div>
+            <div class="bulk-controls">
+                <label for="bulkField">Ktorú vlastnosť zmeniť?
+                    <select id="bulkField"></select>
+                </label>
+                <label for="bulkValue">Nová hodnota
+                    <input type="text" id="bulkValue" maxlength="180" placeholder="Zadaj potvrdenú informáciu">
+                </label>
+            </div>
+            <div id="bulkPreview" class="bulk-preview" aria-live="polite">Zatiaľ nič nie je vybrané.</div>
+            <div class="bulk-actions">
+                <button id="bulkApply" type="button" disabled>Skontrolovať a uložiť</button>
+            </div>
+            <p id="bulkStatus" role="status" aria-live="polite"></p>
         </div>
     </div>
 
@@ -1624,6 +1660,18 @@
                 <small style="display:block;line-height:1.6;color:#516658;">Môžeš vybrať najviac 6 fotografií naraz (JPG, PNG alebo WebP). Veľké snímky sa pred nahraním zmenšia, aby šetrili dáta. Ak hlavná fotografia ešte nie je vyplnená, prvá nahratá sa nastaví automaticky. Fotografie sa ukladajú do existujúceho úložiska Supabase „site-images“.</small>
                 <div id="varPhotoUploadStatus" role="status" aria-live="polite" style="margin-top:9px;font-size:.87rem;color:#42634b;"></div>
             </div>
+            <fieldset class="variety-properties-editor">
+                <legend>Samostatné vlastnosti odrody</legend>
+                <p class="variety-properties-help">Vypĺňaj len overené údaje. Pôvodné „Typ / Pomológia“ zostáva nezmenené; tieto položky ho dopĺňajú a nezamieňajú skorosť, rast či využitie.</p>
+                <div class="variety-properties-grid">
+                    <label for="varGrowth">Rastový typ<input type="text" id="varGrowth" maxlength="100" placeholder="napr. kolíková, kríčková"></label>
+                    <label for="varRipening">Skorosť / dozrievanie<input type="text" id="varRipening" maxlength="100" placeholder="napr. stredne skorá"></label>
+                    <label for="varFlavor">Chuť<input type="text" id="varFlavor" maxlength="180" placeholder="napr. sladkokyslá, aromatická"></label>
+                    <label for="varUsage">Využitie plodov<input type="text" id="varUsage" maxlength="180" placeholder="napr. čerstvé, omáčka"></label>
+                    <label for="varGrowing">Pestovanie / stanovište<input type="text" id="varGrowing" maxlength="180" placeholder="napr. voľná pôda, skleník"></label>
+                    <label for="varOrigin">Pôvod / zdroj osiva<input type="text" id="varOrigin" maxlength="180" placeholder="len overený pôvod"></label>
+                </div>
+            </fieldset>
             <div style="margin-bottom: 15px;"><label for="varInfo">Popis odrody</label><textarea id="varInfo" rows="5"></textarea></div>
             <div style="display: flex; gap: 15px; margin-bottom: 20px;">
                 <label class="checkbox-label"><input type="checkbox" id="varMultiflora"> 🌟 Multiflora</label>
@@ -2744,6 +2792,7 @@
                         <h3>${escapeHtml(t.name)}</h3>
                         ${t.weight ? `<div class="weight-info">⚖️ Hmotnosť: <span>${escapeHtml(t.weight)}</span></div>` : ''}
                         <p class="info">${escapeHtml(t.info)}</p>
+                        ${window.HERBA_VARIETY_PROPERTIES?.cardFacts(t) || ""}
                         
                         ${isOrderFormPaused() ? '<div class="form-pause-note" role="status">⏸ Nezáväzné dopyty sú dočasne pozastavené.</div>' : !isSoldOut && !t.hidden ? `
                             <div class="card-actions-row">
@@ -3844,6 +3893,7 @@
             document.getElementById('varPhotoFiles').value = '';
             document.getElementById('varPhotoUploadStatus').textContent = '';
             document.getElementById('varInfo').value = '';
+            window.HERBA_VARIETY_PROPERTIES?.fillEditor({});
             document.getElementById('varMultiflora').checked = false;
             document.getElementById('varHidden').checked = false;
             updateImageFitPreview('varImg', 'varPhotoFiles', 'varImageFit', 'varMainPhotoPreview');
@@ -3895,6 +3945,7 @@
             document.getElementById('varPhotoFiles').value = '';
             document.getElementById('varPhotoUploadStatus').textContent = '';
             document.getElementById('varInfo').value = t.info || '';
+            window.HERBA_VARIETY_PROPERTIES?.fillEditor(t);
             document.getElementById('varMultiflora').checked = t.multiflora;
             document.getElementById('varHidden').checked = t.hidden || false;
             updateImageFitPreview('varImg', 'varPhotoFiles', 'varImageFit', 'varMainPhotoPreview');
@@ -3966,6 +4017,14 @@
                 .map(url => url.trim()).filter(Boolean);
             const files = Array.from(document.getElementById('varPhotoFiles').files || []);
             const status = document.getElementById('varPhotoUploadStatus');
+            let propertyInputs;
+            try {
+                propertyInputs = window.HERBA_VARIETY_PROPERTIES.fromEditor();
+                window.HERBA_VARIETY_PROPERTIES.withEditorProperties({}, propertyInputs);
+            } catch (propertyError) {
+                alert('Oprav vlastnosti odrody: '+propertyError.message);
+                return;
+            }
 
             if (!name || !type || !section) { alert('Vyplň názov, typ a sekciu odrody.'); return; }
             if (varietyDatabase.some((v, i) => i !== idx && String(v.name || '').trim().toLocaleLowerCase('sk') === name.toLocaleLowerCase('sk'))) {
@@ -4015,13 +4074,13 @@
                 const galleryImageFits = Object.fromEntries(gallery.map(url =>
                     [url, normalizedImageFit(varietyGalleryFitDraft[url])]
                 ));
-                const item = {
+                const item = window.HERBA_VARIETY_PROPERTIES.withEditorProperties({
                     ...previousData, name, section, type, color,
                     price: priceValue.toFixed(2),
                     seedsPerPack: parseInt(seedsPerPack, 10) + ' ks',
                     stock, weight, img, imageFit, gallery, galleryImageFits,
                     info, multiflora, hidden
-                };
+                }, propertyInputs);
                 const originalDatabase = varietyDatabase;
                 varietyDatabase = idx === -1
                     ? [...varietyDatabase, item]
@@ -4267,7 +4326,9 @@
             if (window.HERBA_CATALOGUE) window.HERBA_CATALOGUE.routeFromHash();
         });
     </script>
+    <script src="./variety-properties.js"></script>
     <script src="./catalogue-ui.js"></script>
     <script src="./site-enhancements.js"></script>
+    <script src="./variety-bulk.js"></script>
 </body>
 </html>
