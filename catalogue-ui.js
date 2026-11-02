@@ -94,7 +94,8 @@
             ['Typ / pomológia', item.type],
             ['Farba plodu', item.color],
             ['Priemerná hmotnosť plodu', item.weight],
-            ['Obsah balenia', item.seedsPerPack || '10 ks']
+            ['Obsah balenia', item.seedsPerPack || '10 ks'],
+            ...(window.HERBA_VARIETY_PROPERTIES?.detailFacts(item) || [])
         ];
         byId('detailProperties').innerHTML = props
             .filter(entry => String(entry[1] || '').trim())
