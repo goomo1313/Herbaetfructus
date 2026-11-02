@@ -195,7 +195,9 @@ test('photo-fit selections are available in the admin and written to Supabase da
     assert.match(html, /stock, weight, img, imageFit, gallery, galleryImageFits/);
     assert.match(html, /const updated = \{ id, name, desc, content, image, imagePosition, imageFit, imageAlt \}/);
     assert.match(html, /normalizedImageFit\(t\.imageFit\)/);
-    assert.match(html, /<img src="\$\{escapeHtml\(t\.img\)\}"[^>]+style="object-fit:\$\{normalizedImageFit\(t\.imageFit\)\}"/);
+    assert.match(html, /<img src="\$\{escapeHtml\(cardPhoto\)\}"[^>]+style="object-fit:\$\{cardPhotoFit\}"/);
+    assert.match(html, /const galleryPhoto = Array\.isArray\(t\.gallery\)/);
+    assert.match(html, /const cardPhoto = mainPhoto \|\| galleryPhoto/);
     assert.match(html, /story-image-cover/);
     assert.match(html, /Zobraziť celú – bez orezania/);
     assert.match(html, /Vyplniť rámik – možné orezanie okrajov/);
