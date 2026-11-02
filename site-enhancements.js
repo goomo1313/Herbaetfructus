@@ -9,6 +9,7 @@
     }[c]));
     const compareNames = [];
     const previousSort = new Map();
+    const previousGrid = new Map();
     const collator = new Intl.Collator('sk', { sensitivity:'base', numeric:true });
     let focusBeforeOverlay = null;
 
@@ -225,6 +226,12 @@
             const match=matchText && matchType && matchColor && matchWeight && matchAvailability;
             card.style.display=match?'flex':'none';
             if(match) shown++;
+        }
+        // A newly rendered category has fresh cards even when the sort choice is unchanged.
+        // Invalidate only that category's sort cache when its grid element is replaced.
+        if (previousGrid.get(sectionId) !== grid) {
+            previousSort.delete(sectionId);
+            previousGrid.set(sectionId, grid);
         }
         // Sorting may move tens/hundreds of DOM nodes. Only do it if the selected
         // ordering changes; text search and stock filters should change visibility only.

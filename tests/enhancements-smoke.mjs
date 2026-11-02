@@ -127,3 +127,51 @@ test('catalogue optimization renders only the active section initially',()=>{
     assert.match(html,/id="enhancedCompareOverlay"/);
     assert.match(html,/site-enhancements\.js/);
 });
+
+
+test('a re-rendered catalogue grid keeps the chosen sort and stable grids are not reordered again', () => {
+    const {doc, window} = makeEnvironment();
+    const controls = {
+        searchInput_paradajky: {value: ''},
+        filterAvailability_paradajky: {value: 'all'},
+        filterWeight_paradajky: {value: 'all'},
+        filterSort_paradajky: {value: 'name'},
+        filterCount_paradajky: {textContent: ''}
+    };
+    const makeGrid = names => {
+        const cards = names.map((name, i) => ({
+            dataset: {
+                name, price: '1.5', weight: '20', weightText: '20g',
+                stock: '2', originalOrder: String(i), hidden: 'false',
+                hasPhoto: 'false', search: name.toLocaleLowerCase('sk'),
+                type: 'cherry', color: 'červená'
+            },
+            style: {}
+        }));
+        let moves = 0;
+        const grid = {
+            querySelectorAll() { return cards.slice(); },
+            appendChild(card) {
+                moves++;
+                const i = cards.indexOf(card);
+                if (i >= 0) cards.splice(i, 1);
+                cards.push(card);
+            }
+        };
+        return {grid, cards, moves: () => moves};
+    };
+    let current = makeGrid(['Zulu', 'Ábel']);
+    doc.querySelector = selector => selector.includes('paradajky') ? current.grid : null;
+    doc.getElementById = id => controls[id] || null;
+
+    window.HERBA_IMPROVEMENTS.applyFilters('paradajky');
+    assert.deepEqual(current.cards.map(card => card.dataset.name), ['Ábel', 'Zulu']);
+    const initialMoves = current.moves();
+    window.HERBA_IMPROVEMENTS.applyFilters('paradajky');
+    assert.equal(current.moves(), initialMoves, 'An unchanged grid should not move its cards');
+
+    current = makeGrid(['Zulu', 'Beta', 'Ábel']);
+    window.HERBA_IMPROVEMENTS.applyFilters('paradajky');
+    assert.deepEqual(current.cards.map(card => card.dataset.name), ['Ábel', 'Beta', 'Zulu']);
+    assert.equal(controls.filterCount_paradajky.textContent, 'Zobrazených 3 z 3 odrôd');
+});
