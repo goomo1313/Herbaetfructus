@@ -1,0 +1,37 @@
+/* Samostatné charakteristiky a bezpečná hromadná správa odrôd. */
+.variety-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0 0 16px; }
+.variety-facts>div { min-width:0; padding:9px 11px; background:#f4f8f2; border-radius:9px; border:1px solid #e2ebdf; }
+.variety-facts dt { font-size:.72rem; font-weight:600; color:#57705c; }
+.variety-facts dd { margin:3px 0 0; font-size:.84rem; line-height:1.45; font-weight:650; color:#244d32; overflow-wrap:anywhere; }
+.variety-properties-editor { border:1px solid #cddfcb; border-radius:12px; background:#f7faf6; padding:16px; margin:15px 0; }
+.variety-properties-editor legend { font-size:1rem; font-weight:700; color:#2c5530; padding:0 6px; }
+.variety-properties-help { font-size:.82rem; color:#4f6b56; margin:4px 0 13px; line-height:1.55; }
+.variety-properties-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.variety-properties-grid label { font-size:.84rem; font-weight:700; color:#36573c; }
+.variety-properties-grid input { display:block; width:100%; min-width:0; min-height:42px; margin-top:6px; padding:8px 10px; border:1px solid #abc6ab; background:white; border-radius:8px; font:inherit; font-weight:400; }
+.bulk-dialog { width:min(98vw,840px); max-height:90dvh; overflow:auto; }
+.bulk-header { display:flex; align-items:center; justify-content:space-between; gap:15px; }
+.bulk-header h3 { color:#285936; margin:0; }
+.bulk-description { font-size:.87rem; color:#455b49; line-height:1.6; margin:9px 0 15px; }
+.bulk-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.bulk-controls label { font-weight:700; color:#37583e; }
+.bulk-controls input,.bulk-controls select { display:block; width:100%; min-height:43px; margin-top:7px; border-radius:8px; border:1px solid #a9c3ab; padding:8px 10px; background:white; }
+.bulk-variety-list { overflow:auto; max-height:260px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:4px 12px; padding:10px; border:1px solid #d7e4d5; border-radius:10px; background:#fbfdf9; margin:10px 0; }
+.bulk-variety-row { display:flex; align-items:center; gap:9px; margin:0; padding:7px 6px; border-bottom:1px solid #e7eee5; min-width:0; cursor:pointer; font-size:.86rem; }
+.bulk-variety-row input { flex:none; width:18px; height:18px; accent-color:#2d653e; }
+.bulk-variety-row span { min-width:0; overflow-wrap:anywhere; }
+.bulk-variety-row small { margin-left:auto; color:#718578; font-size:.71rem; }
+.bulk-tools { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:10px 0; }
+.bulk-tools button { border-radius:8px; border:1px solid #abc9ad; padding:8px 11px; color:#285a39; background:#edf5ec; cursor:pointer; }
+.bulk-preview { padding:13px; margin:13px 0; background:#eff6ed; border-left:4px solid #2f6840; border-radius:0 9px 9px 0; color:#24492f; line-height:1.55; overflow-wrap:anywhere; }
+.bulk-preview p { margin:0 0 4px; }
+.bulk-preview small { color:#56695a; }
+.bulk-actions { display:flex; justify-content:flex-end; gap:10px; }
+.bulk-actions button { min-height:43px; padding:10px 16px; border-radius:9px; border:1px solid #bdcdb9; cursor:pointer; font-weight:700; }
+#bulkApply { color:#fff; background:#2d633c; border-color:#2d633c; }
+#bulkApply:disabled { cursor:not-allowed; opacity:.48; }
+#bulkStatus { min-height:22px; font-size:.85rem; color:#7a3129; margin:12px 0 0; }
+@media(max-width:620px) {
+  .variety-facts,.variety-properties-grid,.bulk-controls,.bulk-variety-list { grid-template-columns:1fr; }
+  .bulk-dialog { width:100%; padding:17px; }
+}
