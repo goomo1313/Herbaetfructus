@@ -100,6 +100,7 @@
     }
     function changeField() {
         if(busy)return;
+        if($('bulkStatus'))$('bulkStatus').textContent='';
         const def=defs()?.field($('bulkField')?.value||'');
         if(!def)return;
         const choice=$('bulkChoice'),input=$('bulkValue'),
@@ -203,7 +204,7 @@
             warning.textContent='Pozor: tá istá fotografia sa zobrazí pri každej vybranej odrode. Nezvoľ rôzne odrody, ak ich fotografie nesúvisia.';
             result.appendChild(warning);
         }
-        if($('bulkStatus') && !busy)$('bulkStatus').textContent='';
+        // Výsledok neúspešného zápisu nevymazávaj pri prekreslení náhľadu.
     }
     function open() {
         if(!requireAdmin())return false;
@@ -213,6 +214,7 @@
         }
         selected.clear();openedSignature=signature(varietyDatabase);
         busy=false;
+        if($('bulkStatus'))$('bulkStatus').textContent='';
         $('bulkSearch').value='';
         $('bulkField').value=defs().fields()[0].key;
         changeField();renderRows();
