@@ -34,8 +34,8 @@ function env(){
     const controls=new Map();
     for(const id of ['bulkVarietyModal','bulkSearch','bulkField','bulkValue','bulkVarietyList','bulkSearchCount','bulkSelectedCount','bulkPreview','bulkApply','bulkClose','bulkSelectVisible','bulkClear','bulkStatus','bulkLongValue','bulkChoice','bulkPhotoFiles','bulkClearValue','bulkFieldHelp', 'varGrowth','varRipening','varFlavor','varUsage','varGrowing','varOrigin']) controls.set(id,element());
     const source=sample(),record={content:structuredClone(source),updated_at:'2026-11-02T07:00:00+00:00'};
-    const alerts=[],messages=[],written=[];
-    let fail=false;
+    const alerts=[],messages=[],written=[],uploads=[],removed=[];
+    let fail=false,uploadHook=null;
     const fakeDb={
         from(table){
             assert.equal(table,'site_content');
@@ -63,6 +63,20 @@ function env(){
                         }
                     };
                 }
+            };
+        }
+    };
+    fakeDb.storage={
+        from(bucket){
+            assert.equal(bucket,'site-images');
+            return {
+                async upload(path,file) {
+                    uploads.push({path,type:file.type});
+                    if(uploadHook)uploadHook();
+                    return {error:null};
+                },
+                getPublicUrl(path){return {data:{publicUrl:'https://cdn.example/'+path}};},
+                async remove(paths){removed.push(...paths);return {error:null};}
             };
         }
     };
@@ -94,7 +108,8 @@ function env(){
         showToast:msg=>messages.push(msg)
     });
     runInContext(bulkCode,context);
-    return {context,controls,record,alerts,written,messages,failWrites(){fail=true;}};
+    return {context,controls,record,alerts,written,messages,uploads,removed,
+        failWrites(){fail=true;}, onUpload(cb){uploadHook=cb;}};
 }
 
 test('properties schema is optional and preserves unknown fields and legacy price, stock, photos',()=>{
@@ -263,4 +278,36 @@ test('ukladanie novej ceny do cloudu zachová fotografie a zásoby iných odrôd
         assert.deepEqual(e.record.content[i].gallery,sample()[i].gallery);
         assert.equal(e.record.content[i].img,sample()[i].img);
     }
+});
+
+
+test('hromadné nahratie jednej fotografie mení len hlavný obrázok označených odrôd',async()=>{
+    const e=env(),B=e.context.window.HERBA_BULK;
+    B.open();B.selectVisible();
+    e.controls.get('bulkField').value='photoUploadMain';
+    e.controls.get('bulkPhotoFiles').files=[{name:'plody.jpg',type:'image/jpeg',size:1200}];
+    assert.equal(await B.apply(),true);
+    assert.equal(e.uploads.length,1);
+    assert.equal(e.removed.length,0);
+    assert.equal(e.written.length,1);
+    const url=e.record.content[0].img;
+    assert.ok(url.startsWith('https://cdn.example/varieties/bulk-'));
+    assert.equal(e.record.content[1].img,url);
+    assert.equal(e.record.content[2].img,url);
+    assert.equal(e.record.content[0].price,'1.50');
+    assert.equal(e.record.content[0].stock,5);
+    assert.deepEqual(e.record.content[0].gallery,['https://cdn.example/2.jpg']);
+});
+test('súbežná zmena počas uploadu zastaví hromadný zápis a vyčistí nahraný súbor',async()=>{
+    const e=env(),B=e.context.window.HERBA_BULK;
+    B.open();B.selectVisible();
+    e.controls.get('bulkField').value='photoUploadGallery';
+    e.controls.get('bulkPhotoFiles').files=[{name:'rastlina.png',type:'image/png',size:1800}];
+    e.onUpload(()=>{e.record.content[0].stock=999;});
+    assert.equal(await B.apply(),false);
+    assert.equal(e.written.length,0);
+    assert.equal(e.uploads.length,1);
+    assert.equal(e.removed.length,1);
+    assert.equal(e.context.varietyDatabase[0].stock,5);
+    assert.match(e.controls.get('bulkStatus').textContent,/inom zariadení/);
 });
