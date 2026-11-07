@@ -232,15 +232,15 @@ test('názvy, sekcie, typy, farby, popisy, prepínače a vlastnosti sa upravujú
 test('hromadné fotografie pridajú a nahradia len zvolený obrázok alebo galériu',()=>{
     const e=env(),B=e.context.window.HERBA_BULK,items=sample();
     const add=B.candidateFor(items,[0],'galleryAdd','https://cdn.example/new.jpg');
-    assert.deepEqual(add[0].gallery,['https://cdn.example/2.jpg','https://cdn.example/new.jpg']);
+    assert.deepEqual(JSON.parse(JSON.stringify(add[0].gallery)),['https://cdn.example/2.jpg','https://cdn.example/new.jpg']);
     assert.equal(add[0].img,'https://cdn.example/1.jpg');
     assert.deepEqual(add[1],items[1]);
     const replace=B.candidateFor(items,[0],'galleryReplace','https://cdn.example/3.jpg');
-    assert.deepEqual(replace[0].gallery,['https://cdn.example/3.jpg']);
+    assert.deepEqual(JSON.parse(JSON.stringify(replace[0].gallery)),['https://cdn.example/3.jpg']);
     assert.equal(replace[0].img,items[0].img);
     assert.equal(B.candidateFor(items,[0],'imageFit','cover')[0].imageFit,'cover');
     assert.equal(B.candidateFor(items,[0],'galleryFit','contain')[0].galleryImageFits['https://cdn.example/2.jpg'],'contain');
-    assert.deepEqual(B.candidateFor(items,[0],'galleryClear','')[0].gallery,[]);
+    assert.deepEqual(JSON.parse(JSON.stringify(B.candidateFor(items,[0],'galleryClear','')[0].gallery)),[]);
     assert.equal(B.candidateFor(items,[0],'imgClear','')[0].img,undefined);
     assert.equal(B.candidateFor(items,[0],'img','https://cdn.example/2.jpg')[0].gallery.length,0);
     assert.throws(()=>B.candidateFor(items,[0],'img','javascript:alert(1)'),/HTTPS/);
