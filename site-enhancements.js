@@ -111,6 +111,7 @@
             dashboardClose();
             callback();
         };
+        actions.appendChild(dashAction('🛠️ Hromadné operácie',()=>go(()=>window.HERBA_BULK?.open())));
         actions.appendChild(dashAction('📋 Správa skladu',()=>go(openTableManagerModal)));
         actions.appendChild(dashAction('🌱 Pridať odrodu',()=>go(openVarietyModal)));
         actions.appendChild(dashAction('📦 Zálohovať JSON',()=>exportJsonData()));
