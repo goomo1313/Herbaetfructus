@@ -1026,6 +1026,17 @@
     .story-photo-placeholder { min-height:320px; width:100%; display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center; color:#66745f; font-size:2.2rem; text-align:center; padding:24px; }
     .story-photo-placeholder span { font-size:.95rem; max-width:260px; line-height:1.5; }
     @media(max-width:760px) { .story-inner { grid-template-columns:1fr; gap:24px; } .story-photo-wrap { min-height:240px; } .story-photo-wrap img { min-height:240px; } .story-copy { text-align:left; } }
+
+        /* Spoločné nastavenie cien a formulára v administrácii. */
+        .visibility-settings-dialog { max-width: 660px; }
+        .visibility-settings-dialog h3 { color: var(--primary-color); margin: 0 0 9px; }
+        .visibility-settings-help { line-height: 1.6; color: #4b6251; margin: 0 0 19px; }
+        .visibility-setting-row { display:flex; gap:16px; align-items:center; justify-content:space-between; padding:17px 0; border-top:1px solid #dfe8dd; }
+        .visibility-setting-row p { font-size:.84rem; color:#586f5e; line-height:1.55; margin:5px 0 0; }
+        .visibility-setting-row .admin-btn { flex-shrink:0; min-width:175px; min-height:44px; }
+        .visibility-setting-status { font-size:.83rem; color:#45654d; margin:12px 0; }
+        .visibility-setting-footer { text-align:right; margin-top:18px; }
+        @media(max-width:600px) { .visibility-setting-row { align-items:stretch; flex-direction:column; } .visibility-setting-row .admin-btn { width:100%; } }
 </style>
     <link rel="stylesheet" href="./site-polish.css">
     <link rel="stylesheet" href="./site-enhancements.css">
@@ -1045,7 +1056,7 @@
             <button class="admin-btn" style="background: #375c78;" type="button" onclick="window.HERBA_BULK?.open()" title="Hromadné ceny, sklad, fotografie, vlastnosti a ďalšie údaje odrôd">🛠️ Hromadné operácie</button>
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openSectionTableModal()">📂 Správa kariet</button>
             <button class="admin-btn" style="background: #D97706;" onclick="openFormSettingsModal()">✉️ E-mail</button>
-            <button class="admin-btn" id="toggleOrderFormBtn" type="button" style="background: #9B2C2C;" aria-pressed="false" title="Dočasne skryť formulár návštevníkom" onclick="toggleOrderFormPaused()">⏸ Pozastaviť formulár</button>
+            <button class="admin-btn" id="openVisibilitySettingsBtn" type="button" style="background: #375C50;" onclick="openVisibilitySettingsModal()">⚙️ Ceny a formulár</button>
             <button class="admin-btn" style="background: var(--primary-color);" onclick="openVarietyModal()">+ Odroda</button>
             <button class="admin-btn" style="background: #805AD5;" onclick="openBlogModal()">+ Blog</button>
             <button class="admin-btn" style="background: #3182CE;" onclick="exportJsonData()">📦 Zálohovať JSON</button>
@@ -1323,7 +1334,7 @@
     </footer>
 
     <button type="button" class="floating-selection" id="floatingCounter" onclick="openOrderForm()" aria-label="Prejsť na vybrané semená a nezáväzný dopyt">
-        🛒 Môj výber: <span class="count">0</span> bal. | Spolu: <span class="totalPrice">0.00 €</span>
+        🛒 Môj výber: <span class="count">0</span> bal.<span id="floatingPriceTotal"> | Spolu: <span class="totalPrice">0.00 €</span></span>
     </button>
 
     <div class="toast" id="toast">Akcia prebehla úspešne!</div>
@@ -1350,7 +1361,7 @@
                     <p class="product-detail-description" id="detailDescription"></p>
                     <dl class="product-detail-properties" id="detailProperties"></dl>
                     <div class="product-detail-price" id="detailPrice"></div>
-                    <small class="product-detail-info">Cena za balenie. Uvedená hmotnosť plodu je orientačná a závisí od podmienok pestovania.</small>
+                    <small class="product-detail-info" id="detailPriceHint">Cena za balenie. Uvedená hmotnosť plodu je orientačná a závisí od podmienok pestovania.</small>
                     <span class="product-detail-availability" id="detailAvailability"></span>
                     <div class="product-detail-quantity">
                         <label for="detailQuantity" style="margin:0;">Počet balení:</label>
@@ -1429,6 +1440,24 @@
                 <button class="admin-btn" style="flex: 1; background: #CBD5E0; color: #2D3748;" onclick="closeLoginModal()">Zrušiť</button>
             </div>
         </div>
+    </div>
+
+    <!-- Spoločné nastavenia verejného zobrazenia. -->
+    <div class="modal-overlay" id="visibilitySettingsModal" role="presentation" aria-hidden="true">
+        <section class="modal-box visibility-settings-dialog" role="dialog" aria-modal="true" aria-labelledby="visibilitySettingsTitle">
+            <h3 id="visibilitySettingsTitle">⚙️ Ceny a formulár</h3>
+            <p class="visibility-settings-help">Tieto voľby menia len verejné zobrazenie. Ceny, sklad a fotografie zostávajú v databáze Supabase. Každá voľba sa ukladá samostatne.</p>
+            <div class="visibility-setting-row">
+                <div><strong>Zobrazenie cien</strong><p>Skryje ceny v katalógu, detaile, porovnaní aj súhrne výberu.</p></div>
+                <button class="admin-btn" id="togglePricesBtn" type="button" style="background: #805AD5;" aria-pressed="false" onclick="togglePricesHidden()">🙈 Skryť ceny</button>
+            </div>
+            <div class="visibility-setting-row">
+                <div><strong>Nezáväzný formulár</strong><p>Pozastaví verejný formulár a pridávanie odrôd do výberu.</p></div>
+                <button class="admin-btn" id="toggleOrderFormBtn" type="button" style="background: #9B2C2C;" aria-pressed="false" onclick="toggleOrderFormPaused()">⏸ Pozastaviť formulár</button>
+            </div>
+            <p class="visibility-setting-status" id="visibilitySettingsStatus" role="status" aria-live="polite"></p>
+            <div class="visibility-setting-footer"><button class="admin-btn" type="button" style="background:#4A5568;" onclick="closeVisibilitySettingsModal()">Zavrieť</button></div>
+        </section>
     </div>
 
     <!-- MODÁLNE OKNO - NASTAVENIE E-MAILU -->
@@ -2311,10 +2340,95 @@
             renderFormTomatoCheckboxes();
             updateFormAction();
             updateOrderFormVisibility();
+            updatePriceVisibility();
         }
 
         function isOrderFormPaused() {
             return farmSettings.orderFormPaused === true;
+        }
+
+        function arePricesHidden() {
+            return farmSettings.pricesHidden === true;
+        }
+
+        function openVisibilitySettingsModal() {
+            if (!requireAdmin()) return false;
+            updateOrderFormVisibility();
+            updatePriceVisibility();
+            const modal = document.getElementById('visibilitySettingsModal');
+            if (!modal) return false;
+            modal.classList.add('active');
+            modal.setAttribute('aria-hidden', 'false');
+            document.getElementById('togglePricesBtn')?.focus();
+            return true;
+        }
+
+        function closeVisibilitySettingsModal() {
+            const modal = document.getElementById('visibilitySettingsModal');
+            if (!modal) return;
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+            document.getElementById('openVisibilitySettingsBtn')?.focus();
+        }
+
+        function updatePriceVisibility() {
+            const hidden = arePricesHidden();
+            const button = document.getElementById('togglePricesBtn');
+            if (button) {
+                button.textContent = hidden ? '👁️ Zobraziť ceny' : '🙈 Skryť ceny';
+                button.style.background = hidden ? '#276749' : '#805AD5';
+                button.setAttribute('aria-pressed', String(hidden));
+                button.title = hidden ? 'Zobraziť ceny návštevníkom' : 'Skryť ceny návštevníkom';
+            }
+            const floatingTotal = document.getElementById('floatingPriceTotal');
+            if (floatingTotal) floatingTotal.style.display = hidden ? 'none' : '';
+            const status = document.getElementById('visibilitySettingsStatus');
+            if (status) status.textContent = 'Ceny: ' + (hidden ? 'skryté' : 'zobrazené') +
+                ' · Formulár: ' + (isOrderFormPaused() ? 'pozastavený' : 'aktívny');
+        }
+
+        // Zmeny oboch prepínačov sa serializujú, aby jeden nezrušil druhý.
+        let visibilitySettingsSaving = false;
+        async function saveVisibilitySetting(key, name) {
+            if (!requireAdmin()) return false;
+            if (!cloudDatabaseReady) {
+                alert('Databáza Supabase nie je pripravená. Zmena stavu ' + name + ' sa nedá bezpečne uložiť.');
+                return false;
+            }
+            if (visibilitySettingsSaving) return false;
+            visibilitySettingsSaving = true;
+            const buttons = ['toggleOrderFormBtn', 'togglePricesBtn']
+                .map(id => document.getElementById(id)).filter(Boolean);
+            for (const button of buttons) button.disabled = true;
+            try {
+                const nextValue = farmSettings[key] !== true;
+                const nextSettings = { ...farmSettings, [key]: nextValue };
+                const saved = await queueCloudSave('settings', nextSettings);
+                if (!saved) {
+                    alert('Nastavenie ' + name + ' sa nepodarilo uložiť. Predchádzajúci stav zostal zachovaný.');
+                    return false;
+                }
+                farmSettings = nextSettings;
+                renderAll();
+                if (key === 'pricesHidden') {
+                    showToast(nextValue ? '🙈 Ceny sú na webe skryté.' : '👁️ Ceny sa opäť zobrazujú.');
+                } else {
+                    showToast(nextValue
+                        ? '⏸ Formulár je pozastavený a návštevníkom sa nezobrazuje.'
+                        : '▶ Formulár je opäť aktívny.');
+                }
+                return true;
+            } catch (error) {
+                alert('Zmena ' + name + ' zlyhala: ' + (error.message || 'neznáma chyba'));
+                return false;
+            } finally {
+                visibilitySettingsSaving = false;
+                for (const button of buttons) button.disabled = false;
+            }
+        }
+
+        async function togglePricesHidden() {
+            return saveVisibilitySetting('pricesHidden', 'zobrazovania cien');
         }
 
         // Stav formulára je súčasťou existujúceho záznamu settings v Supabase.
@@ -2342,33 +2456,7 @@
         }
 
         async function toggleOrderFormPaused() {
-            if (!requireAdmin()) return false;
-            if (!cloudDatabaseReady) {
-                alert('Databáza Supabase nie je pripravená. Zmena stavu formulára sa nedá bezpečne uložiť.');
-                return false;
-            }
-            const button = document.getElementById('toggleOrderFormBtn');
-            if (button) button.disabled = true;
-            try {
-                const nextPaused = !isOrderFormPaused();
-                const nextSettings = { ...farmSettings, orderFormPaused: nextPaused };
-                const saved = await queueCloudSave('settings', nextSettings);
-                if (!saved) {
-                    alert('Nastavenie formulára sa nepodarilo uložiť. Predchádzajúci stav zostal zachovaný.');
-                    return false;
-                }
-                farmSettings = nextSettings;
-                renderAll();
-                showToast(nextPaused
-                    ? '⏸ Formulár je pozastavený a návštevníkom sa nezobrazuje.'
-                    : '▶ Formulár je opäť aktívny.');
-                return true;
-            } catch (error) {
-                alert('Zmena formulára zlyhala: ' + (error.message || 'neznáma chyba'));
-                return false;
-            } finally {
-                if (button) button.disabled = false;
-            }
+            return saveVisibilitySetting('orderFormPaused', 'formulára');
         }
 
         function updateFormAction() {
