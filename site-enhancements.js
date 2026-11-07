@@ -118,13 +118,7 @@
         actions.appendChild(dashAction('☁️ Overiť cloud',()=>downloadSiteCode()));
         actions.appendChild(dashAction('📂 Správa kariet',()=>go(openSectionTableModal)));
         actions.appendChild(dashAction('📝 Pridať článok',()=>go(openBlogModal)));
-        const paused = typeof isOrderFormPaused === 'function' && isOrderFormPaused();
-        actions.appendChild(dashAction(paused ? '▶ Obnoviť formulár' : '⏸ Pozastaviť formulár',async() => {
-            if (typeof toggleOrderFormPaused === 'function') {
-                await toggleOrderFormPaused();
-                dashboardRender();
-            }
-        }));
+        actions.appendChild(dashAction('⚙️ Ceny a formulár',()=>go(openVisibilitySettingsModal)));
         const hint = $('enhancedDashboardHint');
         if (hint) hint.textContent = 'Diagnostika aktuálne načítaného katalógu. Neúplné údaje sú len upozornenie a neprepisujú sa automaticky. Objednávky sa neevidujú v tejto databáze.';
         dashboardFilter();
@@ -331,7 +325,7 @@
             const list=document.createElement('dl');
             [
                 ['Farba',item.color],['Typ',item.type],['Hmotnosť',item.weight],
-                ['Cena/balenie',item.price ? String(item.price)+' €':'Neuvedená'],
+                ...(typeof arePricesHidden === 'function' && arePricesHidden() ? [] : [['Cena/balenie',item.price ? String(item.price)+' €':'Neuvedená']]),
                 ['Semená/balenie',item.seedsPerPack],
                 ['Dostupnosť',Number(item.stock)>0 ? String(item.stock)+' bal.':'Vypredané']
             ].forEach(([key,value])=>{
