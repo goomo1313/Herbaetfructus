@@ -1559,14 +1559,14 @@
         </div>
     </div>
 
-    <!-- VOLITEĽNÉ HROMADNÉ ÚPRAVY PESTOVATEĽSKÝCH VLASTNOSTÍ -->
+    <!-- HROMADNÉ ÚPRAVY ÚDAJOV, CIEN, SKLADU A FOTOGRAFIÍ ODRODY -->
     <div class="modal-overlay" id="bulkVarietyModal" aria-hidden="true">
         <div class="modal-box bulk-dialog" role="dialog" aria-modal="true" aria-labelledby="bulkTitle">
             <div class="bulk-header">
-                <h3 id="bulkTitle">✏️ Hromadné vlastnosti odrôd</h3>
+                <h3 id="bulkTitle">🛠️ Hromadné operácie s odrodami</h3>
                 <button id="bulkClose" type="button" class="admin-btn" style="background:#e7eee4;color:#2c4431">✕ Zatvoriť</button>
             </div>
-            <p class="bulk-description">Vyber odrody, potom iba <strong>jednu vlastnosť</strong> a jej novú hodnotu. Zápis sa najprv overí v Supabase. Názvy, opisy, ceny, sklad, fotografie aj ich galérie zostanú nezmenené.</p>
+            <p class="bulk-description">Označ len odrody, ktoré chceš upraviť. Vyber jednu operáciu, pred uložením uvidíš zmeny a potvrdíš ich. Existujúce ostatné údaje zostanú zachované. Zápis sa vykoná iba po overení Supabase.</p>
             <label for="bulkSearch">Vyhľadávanie odrôd</label>
             <input type="search" id="bulkSearch" placeholder="Názov, farba, typ alebo sekcia…" autocomplete="off">
             <div class="bulk-tools">
@@ -1577,16 +1577,24 @@
             <p id="bulkSearchCount" class="image-fit-hint"></p>
             <div id="bulkVarietyList" class="bulk-variety-list" aria-label="Odrody na úpravu"></div>
             <div class="bulk-controls">
-                <label for="bulkField">Ktorú vlastnosť zmeniť?
+                <label for="bulkField">Ktoré pole zmeniť?
                     <select id="bulkField"></select>
                 </label>
-                <label for="bulkValue">Nová hodnota
-                    <input type="text" id="bulkValue" maxlength="180" placeholder="Zadaj potvrdenú informáciu">
-                </label>
+                <div class="bulk-input-wrapper">
+                    <label for="bulkValue" class="bulk-value-label">Nová hodnota</label>
+                    <input type="text" id="bulkValue" maxlength="500" placeholder="Zadaj novú hodnotu">
+                    <select id="bulkChoice" aria-label="Vyber novú hodnotu" hidden></select>
+                    <textarea id="bulkLongValue" rows="4" aria-label="Nová hodnota – text alebo HTTPS adresy" hidden></textarea>
+                    <input type="file" id="bulkPhotoFiles" accept="image/jpeg,image/png,image/webp" multiple aria-label="Nahraj spoločné fotografie pre označené odrody" hidden>
+                    <label class="bulk-clear-value" for="bulkClearValue" hidden>
+                        <input type="checkbox" id="bulkClearValue"> Vymazať existujúcu hodnotu pri vybraných odrodách
+                    </label>
+                </div>
             </div>
+            <p id="bulkFieldHelp" class="bulk-field-help"></p>
             <div id="bulkPreview" class="bulk-preview" aria-live="polite">Zatiaľ nič nie je vybrané.</div>
             <div class="bulk-actions">
-                <button id="bulkApply" type="button" disabled>Skontrolovať a uložiť</button>
+                <button id="bulkApply" type="button" disabled>Skontrolovať a uložiť hromadnú zmenu</button>
             </div>
             <p id="bulkStatus" role="status" aria-live="polite"></p>
         </div>
@@ -4337,6 +4345,7 @@
     <script src="./variety-properties.js"></script>
     <script src="./catalogue-ui.js"></script>
     <script src="./site-enhancements.js"></script>
+    <script src="./variety-bulk-fields.js"></script>
     <script src="./variety-bulk.js"></script>
 </body>
 </html>
