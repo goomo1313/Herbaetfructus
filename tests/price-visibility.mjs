@@ -124,7 +124,7 @@ test('súbežné prepínanie nemožno odoslať a prepísať druhú voľbu',async
     context.window.__pending.resolve(true);
     assert.equal(await first,true);
     assert.equal(runInContext('farmSettings.pricesHidden',context),true);
-    assert.equal(runInContext('farmSettings.orderFormPaused',context),false);
+    assert.equal(runInContext('isOrderFormPaused()',context),false);
 });
 
 test('verejné karty, zoradenie, detail aj porovnávač rešpektujú skryté ceny',()=>{
