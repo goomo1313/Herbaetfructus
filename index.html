@@ -2740,8 +2740,7 @@
                                 <select id="filterSort_${sec.id}" onchange="applyFilters('${sec.id}')">
                                     <option value="default">Pôvodné poradie</option>
                                     <option value="name">Podľa názvu A–Z</option>
-                                    <option value="price-asc">Cena: najnižšia</option>
-                                    <option value="price-desc">Cena: najvyššia</option>
+                                    ${arePricesHidden() ? '' : '<option value="price-asc">Cena: najnižšia</option><option value="price-desc">Cena: najvyššia</option>'}
                                     <option value="weight-asc">Hmotnosť: najmenšia</option>
                                     <option value="weight-desc">Hmotnosť: najväčšia</option>
                                 </select>
@@ -2870,7 +2869,7 @@
                 card.dataset.hidden = String(!!t.hidden);
                 card.dataset.hasPhoto = String(safeImageUrl(t.img) || (Array.isArray(t.gallery) && t.gallery.some(safeImageUrl)));
 
-                const priceFormatted = t.price ? (String(t.price).includes('€') ? String(t.price) : String(t.price) + ' €') : '';
+                const priceFormatted = !arePricesHidden() && t.price ? (String(t.price).includes('€') ? String(t.price) : String(t.price) + ' €') : '';
                 const seedsInfo = t.seedsPerPack ? `🌱 ${t.seedsPerPack}` : '';
                 const stockVal = Math.max(0, Number.isFinite(Number(t.stock)) ? Math.floor(Number(t.stock)) : 0);
                 const isSoldOut = stockVal <= 0;
@@ -3141,7 +3140,7 @@
                 itemDiv.innerHTML = `
                     <label class="checkbox-label" style="flex-grow: 1; ${isSoldOut ? 'opacity: 0.5;' : ''}">
                         <input type="checkbox" id="${safeId}" name="odrody_checkbox" value="${escapeHtml(t.name)}" data-price="${priceNum}" ${isSoldOut ? 'disabled' : ''} onchange="toggleFormCheckboxRow(this)">
-                        <span><b>${escapeHtml(t.name)}</b> (${escapeHtml(priceClean)}) ${isSoldOut ? '<span style="color:#E53E3E; font-size:0.8rem;">(Vypredané)</span>' : ''}</span>
+                        <span><b>${escapeHtml(t.name)}</b>${arePricesHidden() ? '' : ` (${escapeHtml(priceClean)})`} ${isSoldOut ? '<span style="color:#E53E3E; font-size:0.8rem;">(Vypredané)</span>' : ''}</span>
                     </label>
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Počet bal.:</span>
@@ -3291,7 +3290,7 @@
                                 <button type="button" onclick="changeSummaryQty(${index}, 1)" aria-label="Zvýšiť počet balení odrody ${safeName}">+</button>
                                 <button class="cart-remove" type="button" onclick="removeSummaryVariety(${index})" aria-label="Odstrániť odrodu ${safeName} z výberu">Odstrániť</button>
                             </div>
-                            <strong class="cart-line-price">${itemTotal} €</strong>
+                            ${arePricesHidden() ? '' : `<strong class="cart-line-price">${itemTotal} €</strong>`}
                         </div>`;
                 }
             });
@@ -3301,7 +3300,8 @@
                 if (totalCount > 0 && !isOrderFormPaused()) {
                     counterEl.style.display = 'flex';
                     counterEl.querySelector('.count').innerText = totalCount;
-                    counterEl.querySelector('.totalPrice').innerText = totalPrice.toFixed(2) + ' €';
+                    const floatingPrice = counterEl.querySelector('.totalPrice');
+                    if (floatingPrice && !arePricesHidden()) floatingPrice.innerText = totalPrice.toFixed(2) + ' €';
                 } else {
                     counterEl.style.display = 'none';
                 }
@@ -3312,8 +3312,8 @@
                 if (totalCount > 0) {
                     cartSummaryContent.innerHTML = `<div class="cart-total-meta">Vybrané odrody: ${selectedItemsList.length} · Počet balení: ${totalCount}</div>` +
                         cartSummaryHtml +
-                        `<div style="margin-top: 10px; font-weight: 700; color: var(--primary-color);">Orientačná hodnota výberu: ${totalPrice.toFixed(2)} €</div>` +
-                        `<div class="cart-total-meta">Suma nezahŕňa prípadné doručenie. Nejde o potvrdenú objednávku ani rezerváciu.</div>`;
+                        (arePricesHidden() ? '' : `<div style="margin-top: 10px; font-weight: 700; color: var(--primary-color);">Orientačná hodnota výberu: ${totalPrice.toFixed(2)} €</div>`) +
+                        `<div class="cart-total-meta">${arePricesHidden() ? 'Ide o nezáväzný dopyt, nie o rezerváciu ani potvrdenú objednávku.' : 'Suma nezahŕňa prípadné doručenie. Nejde o potvrdenú objednávku ani rezerváciu.'}</div>`;
                 } else {
                     cartSummaryContent.innerHTML = 'Zatiaľ nemáte vybrané žiadne odrody. V katalógu stlačte „Pridať do výberu“, alebo otvorte úpravu výberu pod týmto súhrnom.';
                 }
@@ -3322,7 +3322,7 @@
             const orderSummary = document.getElementById('orderSummary');
             if (orderSummary) {
                 orderSummary.value = totalCount > 0
-                    ? selectedItemsList.join('\n') + `\nCelkový počet balíčkov: ${totalCount}\nOrientačná hodnota výberu: ${totalPrice.toFixed(2)} €`
+                    ? selectedItemsList.join('\n') + `\nCelkový počet balíčkov: ${totalCount}` + (arePricesHidden() ? '' : `\nOrientačná hodnota výberu: ${totalPrice.toFixed(2)} €`)
                     : 'Bez výberu odrôd';
             }
         }
