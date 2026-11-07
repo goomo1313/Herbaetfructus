@@ -6,8 +6,8 @@ import test from 'node:test';
 const html=readFileSync('index.html','utf8');
 const catalogue=readFileSync('catalogue-ui.js','utf8');
 const enhancements=readFileSync('site-enhancements.js','utf8');
-const app=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)]
-    .map(m=>m[1]).filter(Boolean).join('\\n');
+const app=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
+    .map(m=>m[1]).filter(Boolean).join('\n');
 
 function environment() {
     const alerts=[], saves=[], toasts=[];
@@ -67,8 +67,8 @@ test('spoločné administračné okno ponúka obe nezávislé voľby',()=>{
 test('ceny sa skryjú v súhrne výberu aj odosielanom dopyte, počet balení zostane',()=>{
     const {context,controls,count}=environment();
     runInContext("currentActiveSection='paradajky'; updateSelectionCounter(); updatePriceVisibility();",context);
-    assert.match(controls.cartSummaryContent.innerHTML,/3\\.00 €/);
-    assert.match(controls.orderSummary.value,/3\\.00 €/);
+    assert.match(controls.cartSummaryContent.innerHTML,/3\.00 €/);
+    assert.match(controls.orderSummary.value,/3\.00 €/);
     runInContext("farmSettings.pricesHidden=true; updateSelectionCounter(); updatePriceVisibility();",context);
     assert.equal(runInContext('arePricesHidden()',context),true);
     assert.doesNotMatch(controls.cartSummaryContent.innerHTML,/€|hodnota výberu|Suma nezahŕňa/);
@@ -79,7 +79,7 @@ test('ceny sa skryjú v súhrne výberu aj odosielanom dopyte, počet balení zo
     assert.equal(controls.togglePricesBtn.attrs['aria-pressed'],'true');
     assert.match(controls.togglePricesBtn.textContent,/Zobraziť ceny/);
     runInContext("farmSettings.pricesHidden=false; updateSelectionCounter(); updatePriceVisibility();",context);
-    assert.match(controls.cartSummaryContent.innerHTML,/3\\.00 €/);
+    assert.match(controls.cartSummaryContent.innerHTML,/3\.00 €/);
     assert.equal(controls.floatingPriceTotal.style.display,'');
 });
 
@@ -128,10 +128,10 @@ test('súbežné prepínanie nemožno odoslať a prepísať druhú voľbu',async
 });
 
 test('verejné karty, zoradenie, detail aj porovnávač rešpektujú skryté ceny',()=>{
-    assert.match(html,/const priceFormatted = !arePricesHidden\\(\\) && t.price/);
-    assert.match(html,/arePricesHidden\\(\\) \\? '' : '<option value="price-asc"/);
-    assert.match(html,/arePricesHidden\\(\\) \\? '' : \` \\(\\$\\{escapeHtml\\(priceClean\\)\\}\\)\\`/);
-    assert.match(catalogue,/byId\\('detailPrice'\\)\\.style\\.display = pricesHidden/);
-    assert.match(enhancements,/arePricesHidden\\(\\) \\? \\[\\] : \\[\\['Cena\\/balenie'/);
+    assert.match(html,/const priceFormatted = !arePricesHidden\(\) && t.price/);
+    assert.match(html,/arePricesHidden\(\) \? '' : '<option value="price-asc"/);
+    assert.match(html,/arePricesHidden\(\) \? '' : \` \(\$\{escapeHtml\(priceClean\)\}\)\`/);
+    assert.match(catalogue,/byId\('detailPrice'\)\.style\.display = pricesHidden/);
+    assert.match(enhancements,/arePricesHidden\(\) \? \[\] : \[\['Cena\/balenie'/);
     assert.match(html,/id="floatingPriceTotal"/);
 });
