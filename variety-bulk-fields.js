@@ -156,6 +156,14 @@
         }else{
             result[key]=value;
         }
+        // Hlavná fotografia nesmie byť zároveň duplicitne v galérii.
+        if((key==='img'||key==='photoUploadMain')&&Array.isArray(result.gallery)){
+            result.gallery=result.gallery.filter(url=>url!==result.img);
+            if(result.galleryImageFits&&typeof result.galleryImageFits==='object')
+                result.galleryImageFits=Object.fromEntries(
+                    result.gallery.map(url=>[url,result.galleryImageFits[url]||'contain'])
+                );
+        }
         const total=(result.img?1:0)+(Array.isArray(result.gallery)?result.gallery.length:0);
         if(total>8)throw Error('Odroda „'+old.name+'“ by mala viac než 8 fotografií. Zvoľ menší výber alebo nahraď galériu.');
         return result;
