@@ -18,7 +18,7 @@
         return n===1?'1 odroda':n<5?n+' odrody':n+' odrôd';
     }
     function sectionIds() {
-        return sectionsDatabase.filter(s=>s&&!s.hidden&&
+        return sectionsDatabase.filter(s=>s&&
             !['domov','blog','podmienky'].includes(s.id)).map(s=>s.id);
     }
     function visibleIndices() {
@@ -85,7 +85,7 @@
         if(def.kind==='fit')return [['contain','Zobraziť celú – bez orezania'],['cover','Vyplniť rámik – s orezaním']];
         if(def.kind==='color')return defs().colors.map(c=>[c,c]);
         if(def.kind==='section')return sectionsDatabase.filter(s=>
-            s && !s.hidden && sectionIds().includes(s.id)).map(s=>[s.id,s.name]);
+            s && sectionIds().includes(s.id)).map(s=>[s.id,s.name]);
         return [];
     }
     function setOptions(select,entries) {
