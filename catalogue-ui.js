@@ -101,8 +101,15 @@
             .filter(entry => String(entry[1] || '').trim())
             .map(entry => '<div><dt>' + esc(entry[0]) + '</dt><dd>' + esc(entry[1]) + '</dd></div>')
             .join('');
+        const pricesHidden = typeof arePricesHidden === 'function' && arePricesHidden();
         const price = String(item.price || '').trim();
-        byId('detailPrice').textContent = price ? (price.includes('€') ? price : price + ' €') : 'Cena na vyžiadanie';
+        byId('detailPrice').textContent = pricesHidden ? '' :
+            (price ? (price.includes('€') ? price : price + ' €') : 'Cena na vyžiadanie');
+        byId('detailPrice').style.display = pricesHidden ? 'none' : '';
+        const priceHint = byId('detailPriceHint');
+        if (priceHint) priceHint.textContent = pricesHidden
+            ? 'Uvedená hmotnosť plodu je orientačná a závisí od podmienok pestovania.'
+            : 'Cena za balenie. Uvedená hmotnosť plodu je orientačná a závisí od podmienok pestovania.';
         byId('detailAvailability').textContent = formPaused ? '⏸ Nezáväzné dopyty sú momentálne pozastavené' :
             item.hidden ? 'Momentálne nedostupné' :
             stock ? 'Na sklade: ' + stock + ' bal.' : 'Momentálne vypredané';
