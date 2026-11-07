@@ -436,6 +436,65 @@ pôvodných polí, ochranu HTML, validáciu, úspešný hromadný zápis, odmiet
 zastaranej kópie a bezpečné správanie pri zamietnutí zápisu. Neoverujú
 skutočné prihlasovacie oprávnenia ani RLS na živom účte.
 
+
+## Kompletné hromadné operácie s odrodami
+
+Po prihlásení klikni na **🛠️ Hromadné operácie** v hornej administračnej
+lište alebo v **📊 Prehľade správcu**. Vyhľadaj a označ konkrétne odrody
+(tlačidlo *Označiť vyfiltrované* vyberie iba aktuálne vyfiltrované položky).
+Potom zvoľ **jednu operáciu**, skontroluj náhľad pôvodná → nová hodnota
+a potvrď uloženie. Pri opakovaných zmenách vyber ďalšie pole znova.
+
+Dostupné skupiny polí:
+
+- **Základné údaje:** názov (šablóna s `{name}`, aby každý názov zostal
+  unikátny), sekcia, typ/pomológia, farba, hmotnosť, popis, multiflora,
+  viditeľnosť a označenie vlajkovej odrody.
+- **Ceny a zásoby:** nastavenie jednotnej ceny v EUR, percentuálne zvýšenie
+  či zníženie pôvodných cien, nastavenie počtu balení na sklade, pripočítanie
+  alebo odpočítanie určitého počtu balení, počet semien v balíčku.
+- **Fotografie:** nastaviť alebo vymazať hlavný HTTPS obrázok; jeho zobrazenie
+  `contain`/`cover`; pridať, nahradiť, odobrať konkrétne URL, vymazať
+  galériu; nastaviť zobrazenie všetkých fotiek v galérii;
+  nahrať spoločnú hlavnú fotografiu alebo spoločné fotografie do galérie.
+- **Pestovateľské vlastnosti:** rastový typ, skorosť, chuť, využitie,
+  stanovište a pôvod osiva. Pri voliteľných textových poliach je možné
+  explicitne vymazať hodnotu.
+
+**Príklady:**
+- Vyber desať odrôd → *Cena za balenie (€) – nastaviť* → `1,50`.
+- Vyber päť odrôd → *Cena – zmeniť o %* → `-10` (každá cena sa zníži
+  o 10 % zo svojej pôvodnej hodnoty).
+- Vyber tri odrody → *Sklad – pridať / odobrať* → `+5`.
+- Vyber pomenované odrody → *Názov (šablóna)* → `{name} – 2026`.
+- Vyber odrody, ktoré zdieľajú fotografiu → nahraj JPEG, PNG alebo WebP.
+  **Rovnaké nahraté fotografie sa priradia všetkým označeným odrodám.**
+  Tento režim nepoužívaj na rôzne odrody, ktoré nemajú spoločný záber.
+
+**Bezpečnosť a hranice:**
+- Systém neposiela zmeny pri výbere alebo písaní do poľa.
+  Zápis vyžaduje označené odrody, platné hodnoty a potvrdenie.
+- Mení sa iba zvolené pole. Všetky ostatné hodnoty vrátane cien, zásob
+  a URL fotografií zostávajú nedotknuté, pokiaľ si práve ich nezvolíš.
+- Ceny sú v rozsahu viac než 0 až 1000 €; sklad 0 až 100 000 celých balení.
+  Pri neplatnom výsledku sa zamietne **celá** operácia.
+- Maximálne osem fotografií vrátane hlavnej na odrodu; najviac šesť súborov
+  pri jednom nahratí. URL musia používať HTTPS.
+- Vymazanie odkazu na fotografiu neodstraňuje fyzický súbor v Supabase Storage.
+  Nahrávanie spoločných fotografií vytvorí jeden súbor a jeho URL sa použije
+  pre všetky označené odrody.
+- Pred uložením sa porovnajú aktuálne údaje s tým, čo bolo načítané pri
+  otvorení editora. Zápis do Supabase používa podmienenú aktualizáciu
+  `updated_at`; súbežné zmeny sú odmietnuté. Počas nahrávania sa
+  čerstvosť dát overí druhýkrát a nepoužité súbory sa pri chybe
+  pokúsi odstrániť.
+- Hromadné operácie nemažú celé odrody ani automaticky neprepisujú
+  celú databázu odrôd zo vzorových hodnôt. Nové správcovské funkcie
+  nevyžadujú SQL migráciu.
+- Automatické testy kontrolujú validačné pravidlá a simulované
+  cloudové zlyhania; skutočné pravidlá Supabase RLS a práva Storage
+  je potrebné overiť v účte.
+
 ## Poznámky
 
 - **Fotografie:** správca môže vkladať URL alebo nahrávať súbory priamo pri kartách aj odrodách. Galérie odrôd majú vlastný editor a zmenšovanie obrázkov. Fotografie blogu sa zatiaľ nastavujú cez HTTPS URL. Bucket `site-images` musí mať bezpečné RLS politiky.
