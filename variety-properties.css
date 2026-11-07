@@ -35,3 +35,16 @@
   .variety-facts,.variety-properties-grid,.bulk-controls,.bulk-variety-list { grid-template-columns:1fr; }
   .bulk-dialog { width:100%; padding:17px; }
 }
+
+/* Rozšírené ovládanie hromadných operácií. Skryté typy vstupu sa nesmú
+   objaviť cez všeobecné CSS pravidlo pre input/select. */
+.bulk-input-wrapper { min-width:0; }
+.bulk-input-wrapper [hidden], .bulk-clear-value[hidden] { display:none !important; }
+.bulk-input-wrapper textarea { width:100%; min-height:105px; resize:vertical; padding:10px; border:1px solid #a9c3ab; border-radius:8px; font:inherit; background:#fff; }
+.bulk-input-wrapper input[type=file] { padding:10px; border:1px dashed #8dac94; border-radius:8px; background:#f6faf5; }
+.bulk-value-label { display:block; font-weight:700; margin-bottom:7px; color:#37583e; }
+.bulk-clear-value { display:flex; align-items:center; gap:9px; margin:9px 0 0; font-size:.84rem; }
+.bulk-clear-value input { width:auto; min-height:auto; margin:0; flex:none; }
+.bulk-field-help { color:#536757; font-size:.83rem; line-height:1.6; margin:9px 0; }
+.bulk-preview small { display:block; line-height:1.6; margin:7px 0; }
+.bulk-input-wrapper select, .bulk-input-wrapper input { max-width:100%; }
