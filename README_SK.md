@@ -500,3 +500,34 @@ Dostupné skupiny polí:
 - **Fotografie:** správca môže vkladať URL alebo nahrávať súbory priamo pri kartách aj odrodách. Galérie odrôd majú vlastný editor a zmenšovanie obrázkov. Fotografie blogu sa zatiaľ nastavujú cez HTTPS URL. Bucket `site-images` musí mať bezpečné RLS politiky.
 - Objednávkový formulár naďalej používa existujúce nastavenie FormSubmit. Databázové ukladanie objednávok zatiaľ nie je súčasťou tejto úpravy.
 - Pri prvom spustení sa do cloudu prenesú údaje dostupné v prehliadači, z ktorého sa správca prvýkrát prihlási. Ak ste v minulosti upravovali obsah iba v inom prehliadači alebo zariadení, najprv z neho vyexportujte JSON a použite Import JSON po nastavení databázy.
+
+## Spoločné nastavenia zobrazovania cien a formulára (november 2026)
+
+Po prihlásení správcu otvor tlačidlo **⚙️ Ceny a formulár** v hornej lište
+(alebo v **📊 Prehľade správcu**). V jednom okne sú dve nezávislé voľby:
+
+- **🙈 Skryť ceny / 👁️ Zobraziť ceny** — prepína `farmSettings.pricesHidden`
+  uložený v existujúcom zázname `settings` v Supabase. Vypnuté ceny sa
+  nezobrazujú na kartách odrôd, v detailoch, v porovnaní, pri výbere
+  odrôd, v plávajúcom súčte ani v súhrne nezáväzného dopytu. V katalógu
+  vtedy nezobrazujeme ani možnosti zoradenia podľa ceny. **Údaje o cenách
+  odrôd sa neprepíšu ani nevymažú**; v správe skladu a v editore zostávajú
+  dostupné. Východiskový stav pre staršie nastavenia je „ceny zobrazené“.
+- **⏸ Pozastaviť formulár / ▶ Obnoviť formulár** — pôvodný prepínač
+  `farmSettings.orderFormPaused` je presunutý do rovnakého okna, jeho
+  funkcia zostala zachovaná. Vypnutie formulára nesúvisí s vypnutím cien.
+
+Každá voľba sa uloží do Supabase **ešte pred aktualizáciou verejného
+zobrazenia**. Ak ukladanie zlyhá alebo správca nie je prihlásený,
+predchádzajúci stav zostáva zachovaný. Pri prebiehajúcom ukladaní
+nie je možné spustiť druhé prepnutie a omylom prepísať prvé.
+Nastavenia sa načítajú pri ďalšom otvorení stránky.
+
+**Bezpečnostná hranica:** skrytie cien je iba zmena verejného rozhrania.
+Ceny zostávajú uložené v katalógových záznamoch, ktoré statická stránka
+načítava do prehliadača; preto **nejde o utajenie cien pred technicky
+zdatným návštevníkom**. Na skutočné obmedzenie prístupu k cenám
+by bol potrebný oddelený chránený zdroj údajov na serveri.
+
+Kontrolné testy sú v `tests/price-visibility.mjs`.
+
