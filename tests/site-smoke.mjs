@@ -124,3 +124,9 @@ test('JSON importer never writes the removed story row to Supabase', () => {
     assert.equal(allowed.length, 4);
     assert.ok(!html.includes("persistCloudContent('story', storyContent)"));
 });
+
+test('order quantity buttons expose distinct accessible labels', () => {
+    assert.match(html, /aria-label="Odobrať balenie \$\{escapeHtml\(t\.name\)\}"/);
+    assert.match(html, /aria-label="Pridať balenie \$\{escapeHtml\(t\.name\)\}"/);
+    assert.match(html, /class="form-qty-input"[^>]*aria-label="Počet balení odrody/);
+});
