@@ -3145,7 +3145,7 @@
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span style="font-size: 0.75rem; color: var(--text-muted);">Počet bal.:</span>
                         <div class="quantity-selector">
-                            <button class="qty-btn" type="button" onclick="changeFormQty(this, -1)">-</button>
+                            <button class="qty-btn" type="button" onclick="changeFormQty(this, -1)" aria-label="Odobrať balenie ${escapeHtml(t.name)}">−</button>
                             <input type="text" class="qty-input form-qty-input" value="1" readonly data-index="${index}" data-max="${stockVal}" aria-label="Počet balení odrody ${escapeHtml(t.name)}">
                             <button class="qty-btn" type="button" onclick="changeFormQty(this, 1)" aria-label="Pridať balenie ${escapeHtml(t.name)}">+</button>
                         </div>
