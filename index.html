@@ -182,6 +182,8 @@
             background: linear-gradient(135deg, rgba(232,240,233,1) 0%, rgba(249,249,247,1) 100%);
             border-bottom: 1px solid var(--border-color);
         }
+        /* Zelený úvod patrí iba do sekcie Náš príbeh. */
+        .hero[hidden] { display: none !important; }
 
         .hero h1 {
             font-size: clamp(2.2rem, 5vw, 3.5rem);
@@ -1086,7 +1088,7 @@
         </nav>
     </header>
 
-    <div class="hero">
+    <div class="hero" id="homeHero">
         <h1 id="heroTitle">Herba et Fructus</h1>
         <p id="heroDesc">Herba et Fructus je rodinná semenná farma venovaná pestovaniu, uchovávaniu a dokumentovaniu zaujímavých odrôd paradajok a ďalších rastlín. Rozvíjame ich rozmanitosť a delíme sa o skúsenosti z vlastnej záhrady.</p>
         <div class="hero-links" aria-label="Kam sa pozrieť ďalej">
@@ -2334,7 +2336,13 @@
             reader.readAsText(file);
         }
 
+        function updateHomeHeroVisibility() {
+            const hero = document.getElementById('homeHero');
+            if (hero) hero.hidden = currentActiveSection !== 'domov';
+        }
+
         function renderAll() {
+            updateHomeHeroVisibility();
             renderNav();
             renderMainContent();
             renderFormTomatoCheckboxes();
@@ -2524,6 +2532,7 @@
                 currentColor = 'all';
             }
             currentActiveSection = secId;
+            updateHomeHeroVisibility();
             renderNav();
             
             document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active-section'));
