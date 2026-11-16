@@ -3,7 +3,7 @@
 Verejné redakčné články z `editorial-content.js` majú vlastné statické stránky pod
 `/clanky/<id-bez-hf->/`. Sú viditeľné aj bez JavaScriptu a majú vlastné
 `title`, `description`, `canonical`, štruktúrované údaje BlogPosting a
-normálne odkazy. Slogan projektu je „osobný pestovateľský projekt“.
+normálne odkazy. Slogan projektu je „Rodinná semenná farma“.
 
 ## Ako aktualizovať obsah
 

@@ -106,13 +106,13 @@ test('visitor page omits the removed legal-status section while preserving basic
     assert.match(legalNotes, /zberateľské/);
 });
 
-test('personal growing project branding is consistent in title, hero and SEO', () => {
-    assert.match(html, /<title>Herba et Fructus \| Odrody paradajok a rady zo záhrady<\/title>/);
-    assert.match(html, /OSOBNÝ PESTOVATEĽSKÝ PROJEKT/);
-    assert.match(html, /id="heroDesc">Herba et Fructus je osobný projekt/);
-    assert.match(html, /<meta name="description" content="Herba et Fructus je osobný projekt/);
-    assert.match(html, /<meta property="og:description" content="Herba et Fructus je osobný projekt/);
-    assert.doesNotMatch(html, /rodinná semenná farma/i);
+test('family seed farm branding is consistent in title, hero and SEO', () => {
+    assert.match(html, /<title>Herba et Fructus \| Rodinná semenná farma<\/title>/);
+    assert.match(html, /RODINNÁ SEMENNÁ FARMA/);
+    assert.match(html, /id="heroDesc">Herba et Fructus je rodinná semenná farma/);
+    assert.match(html, /<meta name="description" content="Herba et Fructus je rodinná semenná farma/);
+    assert.match(html, /<meta property="og:description" content="Herba et Fructus je rodinná semenná farma/);
+    assert.doesNotMatch(html, /osobný projekt|osobný pestovateľský projekt/i);
 });
 
 test('after submitting, FormSubmit redirects to a real non-binding confirmation page', () => {
