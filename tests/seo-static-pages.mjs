@@ -48,3 +48,16 @@ test('blog uchoval rozbaľovanie, nové statické odkazy a názov osobný projek
  assert.doesNotMatch(html,/rodinná semenná farma/i);
  assert.match(html,/Herba et Fructus je osobný projekt/);
 });
+
+
+test('všetky články aj archív používajú rovnaké originálne SVG logo ako hlavný web',()=>{
+ const first=html.indexOf('<a class="logo"'),last=html.indexOf('</a>',first);
+ assert.ok(first>=0 && last>first);
+ const expected=html.slice(first,last+4).replace('href="./"','href="/"').replace(' onclick="switchSection(\'domov\'); return false;"','');
+ for(const path of ['clanky/index.html',...posts.map(post=>'clanky/'+post.id.slice(3)+'/index.html')]){
+   const page=readFileSync(path,'utf8'),start=page.indexOf('<a class="logo"'),end=page.indexOf('</a>',start);
+   assert.ok(start>=0 && end>start,path);
+   assert.equal(page.slice(start,end+4),expected,path);
+   assert.doesNotMatch(page,/class="brand-icon"|🍅/);
+ }
+});

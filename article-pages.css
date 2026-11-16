@@ -5,10 +5,12 @@ body{margin:0;font:16px/1.78 system-ui,-apple-system,"Segoe UI",sans-serif;color
 a{color:var(--green);text-underline-offset:.2em}a:hover{color:var(--accent)}
 :focus-visible{outline:3px solid #c05621;outline-offset:3px}
 .skip-link{position:absolute;top:-90px;left:12px;z-index:999;padding:9px 16px;background:white}.skip-link:focus{top:12px}
-.page-header{background:#fff;border-bottom:1px solid var(--border)}
+.page-header{position:sticky;top:0;z-index:1000;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 4px 6px -1px rgba(0,0,0,.05)}
 .header-inner{max-width:1100px;margin:auto;min-height:85px;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-family:Georgia,serif;font-weight:bold;font-size:1.35rem;line-height:1.3}
-.brand-icon{font-size:2rem}.brand small{display:block;font-family:system-ui,sans-serif;font-size:.62rem;letter-spacing:1.1px;color:var(--accent);margin-top:3px}
+.page-header .logo{display:flex;align-items:center;gap:12px;min-width:0;flex-shrink:0;color:var(--green);text-decoration:none;font-family:"Playfair Display",Georgia,serif;font-size:1.6rem;font-weight:700;line-height:1.3}
+.page-header .logo svg{width:42px;height:42px;flex-shrink:0}
+.page-header .logo>div{min-width:0}
+.page-header .logo:hover{color:var(--green)}
 .page-header nav{display:flex;flex-wrap:wrap;gap:17px;font-weight:600}
 .article-container{max-width:920px;margin:0 auto;padding:24px 18px 60px}
 .breadcrumbs{font-size:.84rem;color:var(--muted);margin:0 0 22px;line-height:1.5}
@@ -40,5 +42,5 @@ h1{font-size:clamp(1.9rem,4.4vw,3rem);margin:12px 0 14px}
 .archive-card h2{font-size:1.3rem;margin:9px 0}.archive-card h2 a{text-decoration:none}
 .archive-card p{font-size:.94rem;color:#4f5e53}.read-more{font-weight:700}
 .page-footer{text-align:center;padding:25px 16px;border-top:1px solid var(--border);color:var(--muted);font-size:.88rem;background:#fff}
-@media(max-width:620px){.header-inner{align-items:flex-start;flex-direction:column;gap:8px}.page-header nav{gap:15px}.article-card{padding:22px}.article-container{padding-top:18px}}
+@media(max-width:620px){.header-inner{align-items:flex-start;flex-direction:column;gap:8px}.page-header .logo{max-width:100%;gap:10px}.page-header .logo svg{width:38px;height:38px}.page-header .logo>div span:last-child{letter-spacing:1px!important;font-size:.57rem!important}.page-header nav{gap:15px}.article-card{padding:22px}.article-container{padding-top:18px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}

@@ -39,6 +39,18 @@ function seoTitle(post) {
   return titles[post.id];
 }
 
+function mainSiteLogo() {
+  const source = readFileSync('index.html', 'utf8');
+  const first = source.indexOf('<a class="logo"');
+  const last = source.indexOf('</a>', first);
+  if (first === -1 || last === -1) throw new Error('Logo chýba v index.html');
+  const markup = source.slice(first, last + 4)
+    .replace('href="./"', 'href="/"')
+    .replace(' onclick="switchSection(\'domov\'); return false;"', '');
+  if (!markup.includes('<svg') || markup.includes('onclick=')) throw new Error('Logo nie je pripravené na publikovanie');
+  return markup;
+}
+
 function renderArticle(p,all){
  const url=articleUrl(p),title=esc(p.title),description=esc(String(p.excerpt||"").slice(0,156)),image=/^https:\/\/[a-z0-9.-]+\/[^\s"<>]+$/i.test(p.img||"")?String(p.img):"",pub=publishDate(p);
  const schema={"@context":"https://schema.org","@type":"BlogPosting",headline:p.title,description:p.excerpt,inLanguage:"sk-SK",mainEntityOfPage:url};
@@ -63,6 +75,9 @@ function renderArticle(p,all){
 ${image?`<meta property="og:image" content="${esc(image)}">`:""}
 <meta name="twitter:card" content="${image?"summary_large_image":"summary"}">
 <meta name="theme-color" content="#2c5530">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../article-pages.css">
 <script type="application/ld+json">${structuredData(schema)}</script>
 </head>
@@ -70,7 +85,7 @@ ${image?`<meta property="og:image" content="${esc(image)}">`:""}
 <a class="skip-link" href="#obsah">Preskočiť na článok</a>
 <header class="page-header">
   <div class="header-inner">
-    <a href="/" class="brand" aria-label="Herba et Fructus – úvod"><span class="brand-icon" aria-hidden="true">🍅</span><span>Herba et Fructus<small>OSOBNÝ PESTOVATEĽSKÝ PROJEKT</small></span></a>
+    ${mainSiteLogo()}
     <nav aria-label="Hlavná navigácia"><a href="/clanky/">Články</a><a href="/">Katalóg a náš príbeh</a></nav>
   </div>
 </header>
@@ -111,11 +126,14 @@ function renderArchive(posts){
 <meta property="og:description" content="Pestovateľské rady o odrodách paradajok, tekviciach, semenárstve a záhrade.">
 <meta property="og:url" content="https://herbaetfructus.sk/clanky/">
 <meta name="theme-color" content="#2c5530">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../article-pages.css">
 </head>
 <body>
 <a class="skip-link" href="#obsah">Preskočiť na články</a>
-<header class="page-header"><div class="header-inner"><a href="/" class="brand"><span class="brand-icon" aria-hidden="true">🍅</span><span>Herba et Fructus<small>OSOBNÝ PESTOVATEĽSKÝ PROJEKT</small></span></a><nav aria-label="Hlavná navigácia"><a href="/">Domov a katalóg</a></nav></div></header>
+<header class="page-header"><div class="header-inner">${mainSiteLogo()}<nav aria-label="Hlavná navigácia"><a href="/">Domov a katalóg</a></nav></div></header>
 <main id="obsah" class="article-container">
 <nav class="breadcrumbs" aria-label="Omrvinková navigácia"><a href="/">Domov</a> <span aria-hidden="true">›</span> Články</nav>
 <section class="archive-heading"><div class="article-kicker">Rady zo záhrady</div><h1>Pestovateľské články</h1><p>Výber praktických návodov, skúseností a zaujímavostí o paradajkách, tekviciach, uchovávaní semien a starostlivosti o záhradu.</p></section>
