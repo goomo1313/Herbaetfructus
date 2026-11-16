@@ -1,0 +1,26 @@
+# SEO články – Herba et Fructus
+
+Verejné redakčné články z `editorial-content.js` majú vlastné statické stránky pod
+`/clanky/<id-bez-hf->/`. Sú viditeľné aj bez JavaScriptu a majú vlastné
+`title`, `description`, `canonical`, štruktúrované údaje BlogPosting a
+normálne odkazy. Slogan projektu je „osobný pestovateľský projekt“.
+
+## Ako aktualizovať obsah
+
+1. Uprav redakčný zdroj `editorial-content.js`.
+2. Spusť `node scripts/generate-seo.mjs --write`.
+3. Commitni aktualizované súbory v `clanky/` a `sitemap.xml`.
+4. CI automaticky kontroluje súlad pomocou `--check` a zabráni tomu, aby zmeny
+   redakčného zdroja potichu nechali neaktuálnu sitemap.
+5. Nový súbor sitemap sa potom publikuje na GitHub Pages.
+
+**Pozor na Supabase:** redakčné články upravené výlučne v administrácii
+Supabase sa na statické HTML neprepisujú automaticky. Tento bezpečný export
+vytvára stránky výhradne z verejného redakčného zdrojového súboru.
+Súkromné/nezverejnené odrody, zásoby, ceny ani údaje objednávok sa neexportujú.
+Pred aktualizáciou článku, ktorý bol medzičasom upravený v Supabase, zosúlaď
+najprv jeho verejný text so zdrojovým súborom, aby statická verzia nebola zastaraná.
+Samostatné stránky pre odrody vyžadujú dôveryhodný export aktuálnych verejných
+odrôd zo Supabase a kontrolu ich viditeľnosti.
+
+Pre články vytvorené výlučne v administrácii zatiaľ zostáva interaktívny blog.

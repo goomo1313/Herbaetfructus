@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Herba et Fructus - Rodinná semenná farma</title>
+    <title>Herba et Fructus | Odrody paradajok a rady zo záhrady</title>
     
     <!-- SEO a Open Graph Meta Tagy pre sociálne siete -->
-    <meta name="description" content="Herba et Fructus je rodinná semenná farma, ktorá pestuje a uchováva rozmanité odrody paradajok a ďalších rastlín. Objavte odrody, fotografie a rady z našej záhrady.">
-    <meta property="og:title" content="Herba et Fructus - Rodinná semenná farma">
-    <meta property="og:description" content="Herba et Fructus je rodinná semenná farma, ktorá pestuje a uchováva rozmanité odrody paradajok a ďalších rastlín. Objavte odrody, fotografie a rady z našej záhrady.">
+    <meta name="description" content="Herba et Fructus je osobný projekt o pestovaní a uchovávaní odrôd paradajok a ďalších rastlín. Objavte katalóg, fotografie a rady zo záhrady.">
+    <meta property="og:title" content="Herba et Fructus | Odrody paradajok a rady zo záhrady">
+    <meta property="og:description" content="Herba et Fructus je osobný projekt o pestovaní a uchovávaní odrôd paradajok a ďalších rastlín. Objavte katalóg, fotografie a rady zo záhrady.">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Herba et Fructus">
     <meta property="og:url" content="https://herbaetfructus.sk/">
@@ -1071,7 +1071,7 @@
 
     <header>
         <nav>
-            <a class="logo" href="./index.html" onclick="switchSection('domov'); return false;" aria-label="Herba et Fructus – úvodná stránka">
+            <a class="logo" href="./" onclick="switchSection('domov'); return false;" aria-label="Herba et Fructus – úvodná stránka">
                 <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="50" cy="55" r="32" fill="#C05621"/>
                     <path d="M50 23C50 15 57 6 66 3C66 3 63 14 54 19Z" fill="#2C5530"/>
@@ -1081,7 +1081,7 @@
                 </svg>
                 <div style="display: flex; flex-direction: column;">
                     <span style="font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; color: var(--primary-color); line-height: 1.1;">Herba et Fructus</span>
-                    <span style="font-family: 'Poppins', sans-serif; font-size: 0.65rem; font-weight: 600; letter-spacing: 1.5px; color: var(--accent-color); margin-top: 2px;">RODINNÁ SEMENNÁ FARMA</span>
+                    <span style="font-family: 'Poppins', sans-serif; font-size: 0.65rem; font-weight: 600; letter-spacing: 1.5px; color: var(--accent-color); margin-top: 2px;">OSOBNÝ PESTOVATEĽSKÝ PROJEKT</span>
                 </div>
             </a>
             <ul class="nav-links" id="mainNavLinks"></ul>
@@ -1090,7 +1090,7 @@
 
     <div class="hero" id="homeHero">
         <h1 id="heroTitle">Herba et Fructus</h1>
-        <p id="heroDesc">Herba et Fructus je rodinná semenná farma venovaná pestovaniu, uchovávaniu a dokumentovaniu zaujímavých odrôd paradajok a ďalších rastlín. Rozvíjame ich rozmanitosť a delíme sa o skúsenosti z vlastnej záhrady.</p>
+        <p id="heroDesc">Herba et Fructus je osobný projekt venovaný pestovaniu, uchovávaniu a dokumentovaniu rozmanitých odrôd paradajok a ďalších rastlín. Delíme sa o skúsenosti z vlastnej záhrady.</p>
         <div class="hero-links" aria-label="Kam sa pozrieť ďalej">
             <button type="button" onclick="switchSection('paradajky')">Prezrieť odrody paradajok</button>
             <button type="button" onclick="switchSection('blog')">Pestovateľské články</button>
@@ -1217,7 +1217,7 @@
                 <h2>Ako funguje nezáväzný dopyt</h2>
             </div>
             <p class="description" style="margin-bottom: 2rem;">
-                Herba et Fructus je rodinná semenná farma zameraná na pestovanie a uchovávanie zaujímavých odrôd paradajok a tekvíc.
+                Herba et Fructus je osobný pestovateľský projekt zameraný na uchovávanie a dokumentovanie zaujímavých odrôd paradajok a tekvíc.
                 Formulár umožňuje nezáväzne sa opýtať na odrody a ich dostupnosť.
                 Odoslaním formulára nevzniká rezervácia, dohoda o dodaní ani povinnosť platiť.
                 Prípadné poskytovanie osiva je možné iba za podmienok príslušných právnych predpisov.
@@ -1332,6 +1332,7 @@
 
 
     <footer>
+        <p><a href="/clanky/">Pestovateľské články</a> · <a href="/clanky/odroda-ma-svoj-charakter/">Sprievodca odrodami</a></p>
         <p>&copy; Herba et Fructus. Všetky práva vyhradené. | <a onclick="openLoginModal()">Prihlásenie správcu</a></p>
     </footer>
 
@@ -2582,6 +2583,7 @@
                     <aside class="catalogue-readmore" aria-label="Sprievodca výberom odrôd">
                         <span>🌱 Neviete, ktorú paradajku si vybrať?</span>
                         <button type="button" onclick="openEditorialArticle('hf-odroda-ma-svoj-charakter')">Prečítať článok Odroda má svoj charakter →</button>
+                        <a href="/clanky/odroda-ma-svoj-charakter/">Samostatná stránka článku</a>
                     </aside>
                 `;
             }
@@ -2590,6 +2592,7 @@
                     <aside class="catalogue-readmore" aria-label="Sprievodca tekvicami a cuketami">
                         <span>🎃 Zber, pestovanie a skladovanie tekvíc</span>
                         <button type="button" onclick="openEditorialArticle('hf-od-letnej-cukety-po-zimnu-tekvicu')">Prečítať článok Od letnej cukety po zimnú tekvicu →</button>
+                        <a href="/clanky/od-letnej-cukety-po-zimnu-tekvicu/">Samostatná stránka článku</a>
                     </aside>
                 `;
             }
@@ -3073,6 +3076,16 @@
                 if (typeof post.video === 'string' && /^https:\/\//i.test(post.video)) {
                     mediaHtml += '<iframe src="' + escapeHtml(post.video) + '" title="' + escapeHtml(post.title) + '" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" referrerpolicy="strict-origin-when-cross-origin" frameborder="0" allowfullscreen></iframe>';
                 }
+                // Pevné URL majú len redakčné články publikované aj v súboroch GitHub Pages.
+                // Používateľské články zo Supabase zostávajú v pôvodnom blogu.
+                const seoArticle = (window.HERBA_EDITORIAL_POSTS || []).some(item =>
+                    item.id === post.id && item.title === post.title
+                );
+                const seoUrl = seoArticle && /^hf-[a-z0-9-]+$/.test(post.id)
+                    ? '/clanky/' + post.id.slice(3) + '/' : '';
+                const seoLink = seoUrl
+                    ? '<p class="blog-permalink"><a href="' + seoUrl + '">Čítať a zdieľať samostatnú stránku článku →</a></p>'
+                    : '';
                 const richArticle = !!post.excerpt;
                 const meta = richArticle
                     ? '<div class="blog-meta"><span class="blog-topic">' + escapeHtml(post.category || 'Zo záhrady') +
@@ -3080,6 +3093,7 @@
                     : '';
                 const contentHtml = richArticle
                     ? '<p class="blog-excerpt">' + escapeHtml(post.excerpt) + '</p>' +
+                      seoLink +
                       '<details class="blog-details"><summary>Prečítať celý článok</summary>' +
                       '<div class="article-body">' + sanitizeRichHtml(post.content) + '</div></details>'
                     : '<div class="article-body">' + sanitizeRichHtml(post.content) + '</div>';

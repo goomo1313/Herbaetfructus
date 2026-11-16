@@ -1,0 +1,144 @@
+// Generuje verejné, statické SEO stránky zo schválených redakčných článkov.
+// Spustenie: node scripts/generate-seo.mjs --write
+// Kontrola bez zmien: node scripts/generate-seo.mjs --check
+import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { runInNewContext } from 'node:vm';
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+function slug(p){if(!/^hf-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(p.id))throw Error("Unsafe article ID "+p.id);return p.id.slice(3);}
+
+function articleUrl(p){return "https://herbaetfructus.sk/clanky/"+slug(p)+"/";}
+
+function structuredData(value){return JSON.stringify(value).replace(/</g,"\\u003c").replace(/>/g,"\\u003e").replace(/&/g,"\\u0026");}
+
+function articleMarkup(p){
+ if(/<\s*(script|iframe|object|embed)\b|on[a-z]+\s*=|javascript:/i.test(p.content))throw Error("Unsafe editorial HTML in "+p.id);
+ return String(p.content).replace(/<h4>/g,"<h2>").replace(/<\/h4>/g,"</h2>").replace(/<h3>/g,"<h2>").replace(/<\/h3>/g,"</h2>");
+}
+
+function publishDate(p){const months={"január":"01","február":"02","marec":"03","apríl":"04","máj":"05","jún":"06","júl":"07","august":"08","september":"09","október":"10","november":"11","december":"12"};const m=String(p.date||"").match(/^(\d{1,2})\.\s+(\S+)\s+(\d{4})$/);return m&&months[m[2]]?m[3]+"-"+months[m[2]]+"-"+m[1].padStart(2,"0"):"";}
+
+function renderArticle(p,all){
+ const url=articleUrl(p),title=esc(p.title),description=esc(String(p.excerpt||"").slice(0,156)),image=/^https:\/\/[a-z0-9.-]+\/[^\s"<>]+$/i.test(p.img||"")?String(p.img):"",pub=publishDate(p);
+ const schema={"@context":"https://schema.org","@type":"BlogPosting",headline:p.title,description:p.excerpt,inLanguage:"sk-SK",mainEntityOfPage:url};
+ if(pub)schema.datePublished=pub;
+ if(image)schema.image=[image];
+ const n=all.findIndex(a=>a.id===p.id),prev=n>0?all[n-1]:null,next=n<all.length-1?all[n+1]:null;
+ return `<!-- AUTO-GENERATED: scripts/generate-seo.mjs; do not edit manually. -->
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${title} | Herba et Fructus</title>
+<meta name="description" content="${description}">
+<link rel="canonical" href="${esc(url)}">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Herba et Fructus">
+<meta property="og:locale" content="sk_SK">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:url" content="${esc(url)}">
+${image?`<meta property="og:image" content="${esc(image)}">`:""}
+<meta name="twitter:card" content="${image?"summary_large_image":"summary"}">
+<meta name="theme-color" content="#2c5530">
+<link rel="stylesheet" href="../../article-pages.css">
+<script type="application/ld+json">${structuredData(schema)}</script>
+</head>
+<body>
+<a class="skip-link" href="#obsah">Preskočiť na článok</a>
+<header class="page-header">
+  <div class="header-inner">
+    <a href="/" class="brand" aria-label="Herba et Fructus – úvod"><span class="brand-icon" aria-hidden="true">🍅</span><span>Herba et Fructus<small>OSOBNÝ PESTOVATEĽSKÝ PROJEKT</small></span></a>
+    <nav aria-label="Hlavná navigácia"><a href="/clanky/">Články</a><a href="/">Katalóg a náš príbeh</a></nav>
+  </div>
+</header>
+<main id="obsah" class="article-container">
+<nav class="breadcrumbs" aria-label="Omrvinková navigácia"><a href="/">Domov</a> <span aria-hidden="true">›</span> <a href="/clanky/">Články</a> <span aria-hidden="true">›</span> ${title}</nav>
+<article class="article-card">
+  <div class="article-kicker">${esc(p.category||"Zo záhrady")}${p.readTime?" · "+esc(p.readTime)+" čítania":""}</div>
+  <h1>${title}</h1>
+  ${pub?`<p class="date"><time datetime="${pub}">${esc(p.date)}</time></p>`:`<p class="date">${esc(p.date||"")}</p>`}
+  <p class="dek">${esc(p.excerpt)}</p>
+  ${image?`<figure class="article-hero"><img src="${esc(image)}" alt="${title}" loading="eager" decoding="async"></figure>`:""}
+  <div class="article-body">${articleMarkup(p)}</div>
+</article>
+<nav class="article-pager" aria-label="Ďalšie články">
+${prev?`<a href="/clanky/${slug(prev)}/"><span>← Predchádzajúci článok</span><strong>${esc(prev.title)}</strong></a>`:""}
+${next?`<a href="/clanky/${slug(next)}/"><span>Nasledujúci článok →</span><strong>${esc(next.title)}</strong></a>`:""}
+</nav>
+<p class="back-to-blog"><a href="/clanky/">← Všetky pestovateľské články</a></p>
+</main>
+<footer class="page-footer">© Herba et Fructus · Osobný pestovateľský projekt · <a href="/">Späť na hlavnú stránku</a></footer>
+</body></html>
+`;
+}
+
+function renderArchive(posts){
+ const cards=posts.map(p=>`<li class="archive-card"><div class="article-kicker">${esc(p.category)}</div><h2><a href="/clanky/${slug(p)}/">${esc(p.title)}</a></h2><p>${esc(p.excerpt)}</p><a class="read-more" href="/clanky/${slug(p)}/">Prečítať článok →</a></li>`).join("\n");
+ return `<!-- AUTO-GENERATED: scripts/generate-seo.mjs; do not edit manually. -->
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pestovateľské články a rady zo záhrady | Herba et Fructus</title>
+<meta name="description" content="Praktické články o paradajkách, semenárstve, tekviciach, čučoriedkach a pestovaní. Skúsenosti a overené postupy z projektu Herba et Fructus.">
+<link rel="canonical" href="https://herbaetfructus.sk/clanky/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pestovateľské články | Herba et Fructus">
+<meta property="og:description" content="Pestovateľské rady o odrodách paradajok, tekviciach, semenárstve a záhrade.">
+<meta property="og:url" content="https://herbaetfructus.sk/clanky/">
+<meta name="theme-color" content="#2c5530">
+<link rel="stylesheet" href="../article-pages.css">
+</head>
+<body>
+<a class="skip-link" href="#obsah">Preskočiť na články</a>
+<header class="page-header"><div class="header-inner"><a href="/" class="brand"><span class="brand-icon" aria-hidden="true">🍅</span><span>Herba et Fructus<small>OSOBNÝ PESTOVATEĽSKÝ PROJEKT</small></span></a><nav aria-label="Hlavná navigácia"><a href="/">Domov a katalóg</a></nav></div></header>
+<main id="obsah" class="article-container">
+<nav class="breadcrumbs" aria-label="Omrvinková navigácia"><a href="/">Domov</a> <span aria-hidden="true">›</span> Články</nav>
+<section class="archive-heading"><div class="article-kicker">Rady zo záhrady</div><h1>Pestovateľské články</h1><p>Výber praktických návodov, skúseností a zaujímavostí o paradajkách, tekviciach, uchovávaní semien a starostlivosti o záhradu.</p></section>
+<ul class="archive-grid">${cards}</ul>
+</main>
+<footer class="page-footer">© Herba et Fructus · Osobný pestovateľský projekt · <a href="/">Späť na hlavnú stránku</a></footer>
+</body></html>
+`;
+}
+
+function renderSitemap(posts){
+ const urls=["https://herbaetfructus.sk/","https://herbaetfructus.sk/clanky/",...posts.map(articleUrl)];
+ return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.map(u=>"  <url><loc>"+esc(u)+"</loc></url>").join("\n")+"\n</urlset>\n";
+}
+
+const context={window:{}};
+runInNewContext(readFileSync('editorial-content.js','utf8'),context,{timeout:1000});
+const posts=context.window.HERBA_EDITORIAL_POSTS;
+if(!Array.isArray(posts)||!posts.length)throw new Error('Chýbajú redakčné články');
+if(new Set(posts.map(p=>p.id)).size!==posts.length)throw new Error('Duplicitné ID článkov');
+const outputs=new Map();
+outputs.set('clanky/index.html',renderArchive(posts));
+for(const post of posts)outputs.set('clanky/'+slug(post)+'/index.html',renderArticle(post,posts));
+outputs.set('sitemap.xml',renderSitemap(posts));
+const mode=process.argv.includes('--write')?'write':process.argv.includes('--check')?'check':null;
+if(!mode)throw new Error('Použi --write alebo --check');
+const stale=[];
+if(existsSync('clanky'))for(const entry of readdirSync('clanky',{withFileTypes:true})){
+  if(!entry.isDirectory())continue;
+  const target=join('clanky',entry.name,'index.html');
+  if(existsSync(target)&&!outputs.has(target)&&readFileSync(target,'utf8').startsWith('<!-- AUTO-GENERATED: scripts/generate-seo.mjs'))stale.push(target);
+}
+let differences=0;
+for(const [path,content] of outputs){
+  if(!existsSync(path)||readFileSync(path,'utf8')!==content){
+    differences++;
+    if(mode==='write'){
+      mkdirSync(dirname(path),{recursive:true});writeFileSync(path,content,'utf8');
+      process.stdout.write('Vygenerované: '+path+'\\n');
+    }else process.stderr.write('Neaktuálny alebo chýbajúci súbor: '+path+'\\n');
+  }
+}
+for(const path of stale){differences++;if(mode==='write'){rmSync(dirname(path),{recursive:true,force:true});process.stdout.write('Odstránená stará SEO stránka: '+path+'\\n');}else process.stderr.write('Zastaralá stránka: '+path+'\\n');}
+if(mode==='check'&&differences)process.exitCode=1;
+else process.stdout.write('SEO: '+posts.length+' článkov, '+(posts.length+2)+' URL v sitemap. '+(differences?'Zmeny: '+differences:'Všetko aktuálne')+'\\n');

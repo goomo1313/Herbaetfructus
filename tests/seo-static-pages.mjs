@@ -1,0 +1,48 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync, existsSync } from 'node:fs';
+import { runInNewContext } from 'node:vm';
+const ctx={window:{}};
+runInNewContext(readFileSync('editorial-content.js','utf8'),ctx);
+const posts=ctx.window.HERBA_EDITORIAL_POSTS;
+const html=readFileSync('index.html','utf8');
+const sitemap=readFileSync('sitemap.xml','utf8');
+test('dvanásť SEO článkov má obsah v HTML bez JavaScriptu',()=>{
+ assert.equal(posts.length,12);
+ for(const post of posts){
+   const slug=post.id.slice(3);
+   const path='clanky/'+slug+'/index.html';
+   assert.ok(existsSync(path),path);
+   const page=readFileSync(path,'utf8');
+   assert.match(page,/<main id="obsah"/);
+   assert.match(page,/<h1>/);
+   assert.match(page,/<article class="article-card">/);
+   assert.match(page,/class="article-body"/);
+   assert.match(page,/application\/ld\+json/);
+   assert.match(page,/rel="canonical"/);
+   assert.ok(page.includes('https://herbaetfructus.sk/clanky/'+slug+'/'));
+   assert.ok(page.includes(post.title.replaceAll('&','&amp;'))||page.includes(post.title.replaceAll('"','&quot;')));
+   assert.match(sitemap,new RegExp('https://herbaetfructus\\.sk/clanky/'+slug+'/'));
+   assert.ok(page.length>2500);
+ }
+});
+test('archív má na všetkých dvanásť článkov priame HTML odkazy',()=>{
+ const archive=readFileSync('clanky/index.html','utf8');
+ assert.match(archive,/<h1>Pestovateľské články<\/h1>/);
+ for(const post of posts)assert.ok(archive.includes('/clanky/'+post.id.slice(3)+'/'));
+});
+test('sitemap obsahuje iba skutočné kanonické stránky',()=>{
+ const urls=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
+ assert.equal(urls.length,posts.length+2);
+ assert.equal(new Set(urls).size,urls.length);
+ assert.ok(urls.includes('https://herbaetfructus.sk/'));
+ assert.ok(urls.includes('https://herbaetfructus.sk/clanky/'));
+ assert.ok(!urls.some(url=>url.endsWith('/index.html')));
+});
+test('blog uchoval rozbaľovanie, nové statické odkazy a názov osobný projekt',()=>{
+ assert.match(html,/class="blog-details"/);
+ assert.match(html,/blog-permalink/);
+ assert.match(html,/href="\/clanky\/"/);
+ assert.doesNotMatch(html,/rodinná semenná farma/i);
+ assert.match(html,/Herba et Fructus je osobný projekt/);
+});
