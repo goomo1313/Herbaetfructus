@@ -1,5 +1,5 @@
-# Herba et Fructus – useful primarily after connecting a custom domain.
-# GitHub Pages project sites are subject to the domain-root robots.txt.
+# Herba et Fructus – verejne dostupný web na vlastnej doméne.
+# Hlavná stránka a redakčný obsah môžu byť indexované vyhľadávačmi.
 User-agent: *
 Allow: /
-Sitemap: https://goomo1313.github.io/Herbaetfructus/sitemap.xml
+Sitemap: https://herbaetfructus.sk/sitemap.xml
