@@ -157,7 +157,11 @@
         try { name = decodeURIComponent(hash.slice('#odroda='.length)); }
         catch (error) { return; }
         const item = currentVariety(name);
-        if (!item || (item.hidden && !isAdmin())) return;
+        if (!item || (item.hidden && !isAdmin())) {
+            // An invalid or private deep link must not leave the previous detail visible.
+            if (activeName) close(false);
+            return;
+        }
         if (currentActiveSection !== item.section && typeof switchSection === 'function') {
             switchSection(item.section);
         }
