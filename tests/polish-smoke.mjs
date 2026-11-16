@@ -75,7 +75,7 @@ test('website metadata and navigation are available without changing catalogue d
     const sitemap=readFileSync('sitemap.xml','utf8');
     const robots=readFileSync('robots.txt','utf8');
     const css=readFileSync('site-polish.css','utf8');
-    assert.match(sitemap,/https:\/\/goomo1313\.github\.io\/Herbaetfructus\//);
+    assert.match(sitemap,/https:\/\/herbaetfructus\.sk\//);
     assert.match(robots,/Sitemap:/);
     assert.match(html,/rel="canonical"/);
     assert.match(html,/og:image/);
