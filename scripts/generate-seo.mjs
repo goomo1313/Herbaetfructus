@@ -20,6 +20,25 @@ function articleMarkup(p){
 
 function publishDate(p){const months={"január":"01","február":"02","marec":"03","apríl":"04","máj":"05","jún":"06","júl":"07","august":"08","september":"09","október":"10","november":"11","december":"12"};const m=String(p.date||"").match(/^(\d{1,2})\.\s+(\S+)\s+(\d{4})$/);return m&&months[m[2]]?m[3]+"-"+months[m[2]]+"-"+m[1].padStart(2,"0"):"";}
 
+function seoTitle(post) {
+  const titles={
+  "hf-ako-odobrat-semena": "Semená paradajok: zber a sušenie | Herba et Fructus",
+  "hf-vysev-paradajok": "Výsev paradajok: silné priesady | Herba et Fructus",
+  "hf-typy-paradajok": "Typy paradajok: cherry a biftek | Herba et Fructus",
+  "hf-praskanie-spicky-plesen": "Čierne špičky a pleseň paradajok | Herba et Fructus",
+  "hf-tekvice-krizenie": "Kríženie cukiet a tekvíc | Herba et Fructus",
+  "hf-cucoriedky-nadoby": "Čučoriedky v nádobe: pH a zálievka | Herba et Fructus",
+  "hf-zahon-jarny-plan": "Príprava pôdy pred výsadbou | Herba et Fructus",
+  "hf-zahradny-dennik": "Záhradný denník a odrody | Herba et Fructus",
+  "hf-deti-v-zahrade": "Pestovanie s deťmi | Herba et Fructus",
+  "hf-hybridy-a-semena": "F1 hybrid a vlastné semená | Herba et Fructus",
+  "hf-odroda-ma-svoj-charakter": "Výber odrôd paradajok | Herba et Fructus",
+  "hf-od-letnej-cukety-po-zimnu-tekvicu": "Cukety a tekvice: zber a skladovanie | Herba et Fructus"
+};
+  if(!Object.prototype.hasOwnProperty.call(titles,post.id))throw new Error('Chýba SEO titulok článku: '+post.id);
+  return titles[post.id];
+}
+
 function renderArticle(p,all){
  const url=articleUrl(p),title=esc(p.title),description=esc(String(p.excerpt||"").slice(0,156)),image=/^https:\/\/[a-z0-9.-]+\/[^\s"<>]+$/i.test(p.img||"")?String(p.img):"",pub=publishDate(p);
  const schema={"@context":"https://schema.org","@type":"BlogPosting",headline:p.title,description:p.excerpt,inLanguage:"sk-SK",mainEntityOfPage:url};
@@ -32,7 +51,7 @@ function renderArticle(p,all){
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${title} | Herba et Fructus</title>
+<title>${esc(seoTitle(p))}</title>
 <meta name="description" content="${description}">
 <link rel="canonical" href="${esc(url)}">
 <meta property="og:type" content="article">

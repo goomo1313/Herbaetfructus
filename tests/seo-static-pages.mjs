@@ -16,6 +16,8 @@ test('dvanásť SEO článkov má obsah v HTML bez JavaScriptu',()=>{
    const page=readFileSync(path,'utf8');
    assert.match(page,/<main id="obsah"/);
    assert.match(page,/<h1>/);
+   const title=page.match(/<title>([^<]+)<\/title>/)?.[1];
+   assert.ok(title && title.length<=60,'SEO titulok nie je primerane krátky: '+post.id);
    assert.match(page,/<article class="article-card">/);
    assert.match(page,/class="article-body"/);
    assert.match(page,/application\/ld\+json/);
