@@ -224,3 +224,23 @@ test('paused inquiry form disables order controls in the individual product deta
     assert.equal(controls.get('detailAdd').disabled, false);
     assert.equal(controls.get('detailOrder').disabled, false);
 });
+
+
+test('invalid or hidden deep links close an already open product detail', () => {
+    const {vm, controls, window} = site();
+    const name = runInContext('varietyDatabase[0].name', vm);
+    assert.equal(window.HERBA_CATALOGUE.open(name, true), true);
+    assert.equal(controls.get('productDetailOverlay').classList.contains('active'), true);
+    window.location.hash = '#odroda=' + encodeURIComponent('Nonexistent variety');
+    window.HERBA_CATALOGUE.routeFromHash();
+    assert.equal(controls.get('productDetailOverlay').classList.contains('active'), false);
+    assert.equal(controls.get('productDetailOverlay').attrs['aria-hidden'], 'true');
+
+    assert.equal(window.HERBA_CATALOGUE.open(name, true), true);
+    runInContext('varietyDatabase[1].hidden = true', vm);
+    const hiddenName = runInContext('varietyDatabase[1].name', vm);
+    window.location.hash = '#odroda=' + encodeURIComponent(hiddenName);
+    window.HERBA_CATALOGUE.routeFromHash();
+    assert.equal(controls.get('productDetailOverlay').classList.contains('active'), false);
+    assert.equal(controls.get('productDetailOverlay').attrs['aria-hidden'], 'true');
+});
