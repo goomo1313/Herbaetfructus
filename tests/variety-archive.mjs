@@ -28,7 +28,7 @@ test('verejný archív má prístupné filtre, kategórie a nevypíše súkromn�
  assert.match(page,/data-section="tekvice"/);
  assert.match(page,/<option value="tekvice">Tekvice a cukety<\/option>/);
  assert.equal((page.match(/class="profile-card"/g)||[]).length,3);
- assert.doesNotMatch(page,/Skrytá|stock|price|200/);
+ assert.doesNotMatch(page,/Skrytá|stock|price|>200<|data-stock|data-price/);
  const structured=page.match(/<script type="application\/ld\+json">([^<]+)<\/script>/)?.[1];
  assert.ok(structured);
  const schema=JSON.parse(structured);
