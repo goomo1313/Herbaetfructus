@@ -32,3 +32,11 @@
 .profile-empty{margin:18px 0 25px;padding:16px;border:1px dashed #c2d3bd;border-radius:10px;color:#41634a}
 .profile-card[hidden],.profile-empty[hidden]{display:none!important}
 @media(max-width:600px){.profile-filters{padding:14px}.profile-filter-field{flex-basis:100%}.profile-reset{width:100%}}
+
+/* Odkazy na ďalšie verejné odrody a existujúce pestovateľské články */
+.profile-explore{margin:30px 0 4px;padding:20px;border:1px solid #dce7d8;border-radius:13px;background:#f7faf5}
+.profile-explore h2{margin:0 0 14px;font-size:1.3rem}
+.profile-explore h3{margin:16px 0 8px;font-size:.98rem;color:#315b3b}
+.profile-explore ul{display:flex;flex-wrap:wrap;gap:9px;list-style:none;padding:0;margin:0}
+.profile-explore li a{display:inline-block;padding:9px 12px;border:1px solid #c4d7c0;border-radius:9px;background:white;color:#285139;text-decoration:none}
+.profile-explore li a:hover,.profile-explore li a:focus-visible{background:#eaf3e8;text-decoration:underline}
