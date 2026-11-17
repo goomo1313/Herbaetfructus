@@ -21,6 +21,8 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '22'
+      - name: Overiť verejné SEO profily
+        run: node scripts/generate-varieties.mjs --check
       - name: Overiť generované SEO články a sitemap
         run: node scripts/generate-seo.mjs --check
       - name: Spustiť automatické kontroly
