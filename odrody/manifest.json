@@ -1,0 +1,257 @@
+[
+  {
+    "name": "Allegany sunset",
+    "slug": "allegany-sunset",
+    "section": "paradajky"
+  },
+  {
+    "name": "Banana Legs",
+    "slug": "banana-legs",
+    "section": "paradajky"
+  },
+  {
+    "name": "Black Strawberry",
+    "slug": "black-strawberry",
+    "section": "paradajky"
+  },
+  {
+    "name": "Citronek Groniasty",
+    "slug": "citronek-groniasty",
+    "section": "paradajky"
+  },
+  {
+    "name": "Costoluto Fiorentino",
+    "slug": "costoluto-fiorentino",
+    "section": "paradajky"
+  },
+  {
+    "name": "Dívčí prs",
+    "slug": "divci-prs",
+    "section": "paradajky"
+  },
+  {
+    "name": "Flamantyno F4",
+    "slug": "flamantyno-f4",
+    "section": "paradajky"
+  },
+  {
+    "name": "Gialletto Brindisino",
+    "slug": "gialletto-brindisino",
+    "section": "paradajky"
+  },
+  {
+    "name": "Golden Canary",
+    "slug": "golden-canary",
+    "section": "paradajky"
+  },
+  {
+    "name": "Heinz 1370",
+    "slug": "heinz-1370",
+    "section": "paradajky"
+  },
+  {
+    "name": "Hellfrucht",
+    "slug": "hellfrucht",
+    "section": "paradajky"
+  },
+  {
+    "name": "Hokkaido",
+    "slug": "hokkaido",
+    "section": "tekvice"
+  },
+  {
+    "name": "Hugo",
+    "slug": "hugo",
+    "section": "paradajky"
+  },
+  {
+    "name": "Ildi",
+    "slug": "ildi",
+    "section": "paradajky"
+  },
+  {
+    "name": "Iva's Red Berry",
+    "slug": "iva-s-red-berry",
+    "section": "paradajky"
+  },
+  {
+    "name": "Kajkyna kytica",
+    "slug": "kajkyna-kytica",
+    "section": "paradajky"
+  },
+  {
+    "name": "Koťja",
+    "slug": "kotja",
+    "section": "paradajky"
+  },
+  {
+    "name": "Malinowy Grant",
+    "slug": "malinowy-grant",
+    "section": "paradajky"
+  },
+  {
+    "name": "Malinowy Kapturek",
+    "slug": "malinowy-kapturek",
+    "section": "paradajky"
+  },
+  {
+    "name": "Malinowy Retro",
+    "slug": "malinowy-retro",
+    "section": "paradajky"
+  },
+  {
+    "name": "Matt's Hornet",
+    "slug": "matt-s-hornet",
+    "section": "paradajky"
+  },
+  {
+    "name": "Midnight Roma",
+    "slug": "midnight-roma",
+    "section": "paradajky"
+  },
+  {
+    "name": "Muškátová",
+    "slug": "muskatova",
+    "section": "tekvice"
+  },
+  {
+    "name": "Or Pera d'Abruzzo",
+    "slug": "or-pera-d-abruzzo",
+    "section": "paradajky"
+  },
+  {
+    "name": "Orange",
+    "slug": "orange",
+    "section": "tekvice"
+  },
+  {
+    "name": "Pascal de Picardie",
+    "slug": "pascal-de-picardie",
+    "section": "paradajky"
+  },
+  {
+    "name": "Peper-shaped striped red",
+    "slug": "peper-shaped-striped-red",
+    "section": "paradajky"
+  },
+  {
+    "name": "Perun",
+    "slug": "perun",
+    "section": "paradajky"
+  },
+  {
+    "name": "Phil's Two",
+    "slug": "phil-s-two",
+    "section": "paradajky"
+  },
+  {
+    "name": "Pink Jumbo Banana",
+    "slug": "pink-jumbo-banana",
+    "section": "tekvice"
+  },
+  {
+    "name": "Pižmová tekvica Muscade de Provence",
+    "slug": "pizmova-tekvica-muscade-de-provence",
+    "section": "tekvice"
+  },
+  {
+    "name": "Podororo de saint jean de beauregard",
+    "slug": "podororo-de-saint-jean-de-beauregard",
+    "section": "paradajky"
+  },
+  {
+    "name": "Pomidor oxheart",
+    "slug": "pomidor-oxheart",
+    "section": "paradajky"
+  },
+  {
+    "name": "Queen of the night",
+    "slug": "queen-of-the-night",
+    "section": "paradajky"
+  },
+  {
+    "name": "Red pear",
+    "slug": "red-pear",
+    "section": "paradajky"
+  },
+  {
+    "name": "Rouge Vif d'Etampes",
+    "slug": "rouge-vif-d-etampes",
+    "section": "tekvice"
+  },
+  {
+    "name": "S. Marzano 3",
+    "slug": "s-marzano-3",
+    "section": "paradajky"
+  },
+  {
+    "name": "Scatolone 3",
+    "slug": "scatolone-3",
+    "section": "paradajky"
+  },
+  {
+    "name": "Siberian Panther",
+    "slug": "siberian-panther",
+    "section": "paradajky"
+  },
+  {
+    "name": "Sladké setkání",
+    "slug": "sladke-setkani",
+    "section": "paradajky"
+  },
+  {
+    "name": "Slivka Gurman",
+    "slug": "slivka-gurman",
+    "section": "paradajky"
+  },
+  {
+    "name": "Sofia's Fire Comet",
+    "slug": "sofia-s-fire-comet",
+    "section": "paradajky"
+  },
+  {
+    "name": "Striped roman",
+    "slug": "striped-roman",
+    "section": "paradajky"
+  },
+  {
+    "name": "Striperanoid",
+    "slug": "striperanoid",
+    "section": "paradajky"
+  },
+  {
+    "name": "Tapir",
+    "slug": "tapir",
+    "section": "tekvice"
+  },
+  {
+    "name": "Terion",
+    "slug": "terion",
+    "section": "paradajky"
+  },
+  {
+    "name": "Tiger Zebra",
+    "slug": "tiger-zebra",
+    "section": "paradajky"
+  },
+  {
+    "name": "Tigerella",
+    "slug": "tigerella",
+    "section": "paradajky"
+  },
+  {
+    "name": "Vyšnička žltá",
+    "slug": "vysnicka-zlta",
+    "section": "paradajky"
+  },
+  {
+    "name": "Yellowstone",
+    "slug": "yellowstone",
+    "section": "paradajky"
+  },
+  {
+    "name": "Zyska",
+    "slug": "zyska",
+    "section": "paradajky"
+  }
+]
