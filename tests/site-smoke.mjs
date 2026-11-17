@@ -130,3 +130,64 @@ test('order quantity buttons expose distinct accessible labels', () => {
     assert.match(html, /aria-label="Pridať balenie \$\{escapeHtml\(t\.name\)\}"/);
     assert.match(html, /class="qty-input form-qty-input"[^>]*aria-label="Počet balení odrody/);
 });
+
+
+test('číslo na karte vidno: úzke textové pole má nulové vnútorné odsadenie',()=>{
+    const css=readFileSync('site-enhancements.css','utf8');
+    assert.match(css,/\.variety-card \.card-actions-row \.quantity-selector input\[type="text"\]\.qty-input\s*\{/);
+    assert.match(css,/padding:\s*0\s*;/);
+    assert.match(css,/-webkit-text-fill-color:\s*#214d31/);
+    assert.match(css,/min-width:\s*38px/);
+    assert.match(html,/class="qty-input" value="1" data-max="\$\{stockVal\}"/);
+});
+
+test('pridanie, zmena počtu a odstránenie obnovujú zelené označenie karty',()=>{
+    const {context,document}=makeSite();
+    const styles=new Set(),buttonStyles=new Set();
+    const indicator={textContent:''};
+    const addButton={
+        textContent:'',attributes:{},
+        classList:{toggle(name,on){if(on)buttonStyles.add(name);else buttonStyles.delete(name);}},
+        setAttribute(name,value){this.attributes[name]=value;}
+    };
+    const card={
+        dataset:{name:'Kajkyna kytica'},
+        classList:{toggle(name,on){if(on)styles.add(name);else styles.delete(name);}},
+        querySelector(sel){return sel==='.btn-select'?addButton:sel==='.card-selection-indicator'?indicator:null;}
+    };
+    const cb={checked:false,disabled:false,value:'Kajkyna kytica',dataset:{price:'1.5'}};
+    const qty={value:'1',dataset:{max:'4'}};
+    const item={querySelector(sel){return sel.includes('checkbox')?cb:qty;}};
+    document.querySelectorAll=sel=>sel==='.variety-card'?[card]:[item];
+    runInContext('showToast=()=>{};',context);
+    runInContext('updateSelectionCounter()',context);
+    assert.equal(styles.has('in-selection'),false);
+    runInContext("addVarietyQuantityToForm('Kajkyna kytica',2)",context);
+    assert.equal(qty.value,2);
+    assert.equal(styles.has('in-selection'),true);
+    assert.equal(buttonStyles.has('selected'),true);
+    assert.equal(indicator.textContent,'✓ Vo výbere · 2 bal.');
+    runInContext("addVarietyQuantityToForm('Kajkyna kytica',1)",context);
+    assert.equal(qty.value,3);
+    assert.equal(indicator.textContent,'✓ Vo výbere · 3 bal.');
+    runInContext('removeSummaryVariety(0)',context);
+    assert.equal(cb.checked,false);
+    assert.equal(styles.has('in-selection'),false);
+    assert.equal(indicator.textContent,'');
+    assert.equal(addButton.textContent,'+ Pridať');
+});
+
+test('vybraná odroda ostáva označená aj po znovuvykreslení katalógu',()=>{
+    const {context,document}=makeSite();
+    const chosen=new Set();
+    const card={
+        dataset:{name:'Black Cherry'},
+        classList:{toggle(name,enabled){if(enabled)chosen.add(name);}},
+        querySelector(){return null;}
+    };
+    const cb={checked:true,value:'Black Cherry'};
+    const item={querySelector(sel){return sel.includes('checkbox')?cb:{value:'2'};}};
+    document.querySelectorAll=sel=>sel==='.variety-card'?[card]:[item];
+    runInContext('syncSelectedVarietyCards()',context);
+    assert.equal(chosen.has('in-selection'),true);
+});
