@@ -64,3 +64,20 @@ test('skutočne publikované profily sú zosúladené s verejným manifestom a s
   assert.doesNotMatch(html,/data-stock|data-price|seedsPerPack|name="price"/);
  }
 });
+
+
+test('SEO titulky a meta popisy zostávajú stručné a výstižné',()=>{
+ const profile=publicProfiles(fixtures)[0];
+ const page=renderProfile(profile,mainLogo(readFileSync('index.html','utf8')));
+ const title=page.match(/<title>([^<]+)<\/title>/)?.[1]||'';
+ const description=page.match(/<meta name="description" content="([^"]+)"/)?.[1]||'';
+ assert.ok(title.length>0&&title.length<=60,title);
+ assert.ok(description.length>=75&&description.length<=155,description);
+ if(existsSync('odrody/manifest.json')){
+  const published=JSON.parse(readFileSync('odrody/manifest.json','utf8'));
+  for(const p of published){
+   const html=readFileSync('odrody/'+p.slug+'/index.html','utf8');
+   assert.match(html,/<title>[^<]+<\/title>/);
+  }
+ }
+});

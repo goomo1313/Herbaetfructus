@@ -54,14 +54,25 @@ const header=logo=>'<a class="skip-link" href="#obsah">Preskočiť na obsah</a><
 const footer='<footer class="page-footer">© Herba et Fructus · Rodinná semenná farma · <a href="/">Domov</a></footer>';
 const head=title=>'<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title>';
 const xmljson=v=>JSON.stringify(v).replace(/</g,'\\u003c');
-const describe=p=>p.info.replace(/\s+/g,' ').slice(0,154)||'Fotografie a vlastnosti odrody '+p.name+' zo zbierky Herba et Fructus.';
+const describe=p=>{
+ const desc=p.info.replace(/\s+/g,' ');
+ const full=(desc?desc+(desc.endsWith('.')?'':'.')+' ':'')+'Fotografie a vlastnosti odrody '+p.name+' nájdete v zbierke Herba et Fructus.';
+ return full.length>155?full.slice(0,155).replace(/\s+\S*$/,''):full;
+};
+const seoTitle=p=>{
+ const brand=' | Herba et Fructus';
+ const long=p.name+(p.section==='paradajky'?' – paradajka':' – odroda')+brand;
+ if(long.length<=60)return long;
+ const shorter=p.name+brand;
+ return shorter.length<=60?shorter:p.name.slice(0,60-brand.length-1).trimEnd()+'…'+brand;
+};
 const startTag='<!-- AUTO-GENERATED: scripts/generate-varieties.mjs; do not edit. -->\n';
 export function renderProfile(p,logo){
  const canonical=SITE+'/odrody/'+p.slug+'/',description=describe(p);
  const facts=[['Typ / pomológia',p.type],['Farba plodu',p.color],['Hmotnosť plodu',p.weight],...p.facts.map(x=>[x.label,x.value])].filter(x=>x[1]);
  const schema={'@context':'https://schema.org','@type':'WebPage',url:canonical,name:p.name+' – profil odrody',description,inLanguage:'sk-SK'};
  if(p.photos[0])schema.primaryImageOfPage=p.photos[0];
- return startTag+head(p.name+' – vlastnosti a fotografie | Herba et Fructus')+
+ return startTag+head(seoTitle(p))+
  '<meta name="description" content="'+esc(description)+'"><link rel="canonical" href="'+esc(canonical)+'">'+
  '<meta property="og:title" content="'+esc(p.name+' | Herba et Fructus')+'">'+
  '<meta property="og:description" content="'+esc(description)+'"><meta property="og:url" content="'+esc(canonical)+'">'+
