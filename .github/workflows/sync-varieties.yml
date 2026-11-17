@@ -21,9 +21,9 @@ jobs:
     timeout-minutes: 8
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Node 22
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
       - name: Verejný export aktuálnych odrôd
@@ -42,7 +42,25 @@ jobs:
           git add -A odrody/ sitemap.xml
           if ! git diff --cached --quiet; then
             git commit -m "SEO: synchronizácia verejných odrôd"
-            git push
+            pushed=false
+          for attempt in 1 2 3 4; do
+            if git push origin HEAD:main; then
+              pushed=true
+              break
+            fi
+            echo "Medzitým pribudol nový commit. Bezpečne aktualizujem vetvu (pokus $attempt/4)."
+            git fetch origin main
+            if ! git rebase FETCH_HEAD; then
+              git rebase --abort || true
+              echo "Zmeny sa nepodarilo bezpečne zlúčiť. Nič neprepisujem."
+              exit 1
+            fi
+            sleep 2
+          done
+          if [ "$pushed" != true ]; then
+            echo "Nepodarilo sa odoslať SEO profily ani po opakovaných pokusoch."
+            exit 1
+          fi
           fi
       - name: Vyžiadať obnovu GitHub Pages
         env:
