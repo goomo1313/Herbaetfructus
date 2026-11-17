@@ -67,11 +67,26 @@ const seoTitle=p=>{
  return shorter.length<=60?shorter:p.name.slice(0,60-brand.length-1).trimEnd()+'…'+brand;
 };
 const startTag='<!-- AUTO-GENERATED: scripts/generate-varieties.mjs; do not edit. -->\n';
-export function renderProfile(p,logo){
+export function renderProfile(p,logo,all=[]){
  const canonical=SITE+'/odrody/'+p.slug+'/',description=describe(p);
  const facts=[['Typ / pomológia',p.type],['Farba plodu',p.color],['Hmotnosť plodu',p.weight],...p.facts.map(x=>[x.label,x.value])].filter(x=>x[1]);
  const schema={'@context':'https://schema.org','@type':'WebPage',url:canonical,name:p.name+' – profil odrody',description,inLanguage:'sk-SK'};
  if(p.photos[0])schema.primaryImageOfPage=p.photos[0];
+ const group=all.filter(item=>item.section===p.section);
+ const current=group.findIndex(item=>item.slug===p.slug);
+ const related=current<0?[]:[...group.slice(current+1),...group.slice(0,current)].filter(item=>item.slug!==p.slug).slice(0,4);
+ const tips=p.section==='paradajky'?
+  [['Výsev paradajok','/clanky/vysev-paradajok/'],['Ako odobrať a usušiť semená paradajok','/clanky/ako-odobrat-semena/']]:
+  p.section==='tekvice'?
+  [['Zber a skladovanie cukiet a tekvíc','/clanky/od-letnej-cukety-po-zimnu-tekvicu/'],['Kríženie cukiet a tekvíc','/clanky/tekvice-krizenie/']]:[];
+ const extras=(related.length||tips.length)?
+  '<aside class="profile-explore" aria-label="Ďalšie odrody a pestovateľské rady"><h2>Objavte viac</h2>'+
+  (related.length?'<h3>Ďalšie odrody z tejto skupiny</h3><ul>'+related.map(item=>
+   '<li><a href="/odrody/'+esc(item.slug)+'/">'+esc(item.name)+'</a></li>').join('')+'</ul>':'')+
+  (tips.length?'<h3>Pestovateľské rady</h3><ul>'+tips.map(([label,url])=>
+   '<li><a href="'+url+'">'+esc(label)+'</a></li>').join('')+'</ul>':'')+
+  '</aside>':'';
+
  return startTag+head(seoTitle(p))+
  '<meta name="description" content="'+esc(description)+'"><link rel="canonical" href="'+esc(canonical)+'">'+
  '<meta property="og:title" content="'+esc(p.name+' | Herba et Fructus')+'">'+
@@ -87,7 +102,7 @@ export function renderProfile(p,logo){
  (p.photos.length>1?'<h2>Fotogaléria</h2><div class="profile-gallery">'+p.photos.slice(1).map((src,i)=>
  '<a href="'+esc(src)+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(src)+'" alt="'+esc(p.name)+' – fotografia '+(i+2)+'" loading="lazy"></a>').join('')+'</div>':'')+
  '<p class="profile-actions"><a class="profile-primary" href="/#odroda='+encodeURIComponent(p.name)+'">Zobraziť v katalógu a poslať nezáväzný dopyt</a></p>'+
- '</article><p class="back-to-blog"><a href="/odrody/">← Všetky odrody</a></p></main>'+footer+'</body></html>\n';
+ extras+'</article><p class="back-to-blog"><a href="/odrody/">← Všetky odrody</a></p></main>'+footer+'</body></html>\n';
 }
 export function renderArchive(profiles,logo){
  const sections=new Map(profiles.map(p=>[p.section,p.sectionTitle]));
