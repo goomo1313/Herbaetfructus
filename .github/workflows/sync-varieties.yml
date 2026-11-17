@@ -1,0 +1,51 @@
+name: SEO profily odrôd – synchronizácia Supabase
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/generate-varieties.mjs'
+      - 'scripts/variety-seo-lib.mjs'
+      - '.github/workflows/sync-varieties.yml'
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: herba-varieties-seo
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verejný export aktuálnych odrôd
+        run: node scripts/generate-varieties.mjs --write
+      - name: Aktualizovať sitemap
+        run: node scripts/generate-seo.mjs --write
+      - name: Overiť export a testy
+        run: |
+          node scripts/generate-varieties.mjs --check
+          node scripts/generate-seo.mjs --check
+          node --test tests/*.mjs
+      - name: Zverejniť zmenené profily
+        run: |
+          git config user.name "Herba SEO Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A odrody/ sitemap.xml
+          if ! git diff --cached --quiet; then
+            git commit -m "SEO: synchronizácia verejných odrôd"
+            git push
+          fi
+      - name: Vyžiadať obnovu GitHub Pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds" || echo "Pages sa obnoví pri ďalšom publikovaní."

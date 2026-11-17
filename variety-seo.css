@@ -1,0 +1,21 @@
+.variety-seo-profile h2{font-size:1.45rem;margin:28px 0 12px}
+.profile-hero{margin:24px 0;border-radius:14px;background:#edf2eb;overflow:hidden;min-height:240px;display:flex;justify-content:center;align-items:center}
+.profile-hero img{width:100%;height:min(52vw,410px);object-position:center}
+.profile-placeholder{font-weight:650;color:#68786b;padding:24px;text-align:center}
+.profile-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:14px 0 25px}
+.profile-facts div{padding:11px 14px;border:1px solid #dce7d8;background:#f4f8f1;border-radius:10px}
+.profile-facts dt{font-size:.78rem;font-weight:650;color:#597563}
+.profile-facts dd{margin:4px 0 0;color:#285139;font-weight:700;overflow-wrap:anywhere}
+.profile-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px;margin:16px 0 22px}
+.profile-gallery img{display:block;width:100%;aspect-ratio:4/3;object-fit:contain;background:#f3f6f1;border-radius:9px}
+.profile-primary{display:inline-flex;background:#2d603c;color:white;border-radius:10px;padding:12px 18px;text-decoration:none;font-weight:700}
+.profile-primary:hover{color:white;background:#204b2e}
+.profile-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,235px),1fr));gap:16px}
+.profile-card{background:white;border:1px solid #dce5d9;border-radius:13px;overflow:hidden}
+.profile-card-link{display:block;text-decoration:none;color:#275536}
+.profile-card-link:hover{background:#f6faf4;color:#275536}
+.profile-card-link img,.profile-thumb-fallback{width:100%;height:174px;display:flex;align-items:center;justify-content:center;background:#f0f4ed;object-fit:contain}
+.profile-card-content{display:grid;gap:5px;padding:14px}
+.profile-card-content small{font-size:.72rem;color:#69806a}
+.profile-card-content strong{font-family:Georgia,serif;font-size:1.22rem}
+@media(max-width:600px){.profile-hero img{height:290px}.profile-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,165px),1fr))}.profile-card-link img,.profile-thumb-fallback{height:130px}}
