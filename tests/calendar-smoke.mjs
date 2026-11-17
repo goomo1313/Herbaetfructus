@@ -43,3 +43,15 @@ test('úvodné odkazy smerujú na katalóg, blog a kalendár',()=>{
         assert.match(html,new RegExp('onclick="switchSection\\(\\x27'+section+'\\x27\\)"'));
     }
 });
+
+
+test('kalendár nenechá horný nadpis ani hlavnú navigáciu prilepené pri čítaní',()=>{
+    const polishCss = readFileSync('site-polish.css','utf8');
+    assert.match(html,/body > header \{\s*background-color:/);
+    assert.doesNotMatch(html,/\n\s*header \{\s*background-color: var\(--surface-color\)/);
+    assert.match(html,/classList\.toggle\?\.\('calendar-reading', secId === 'kalendar'\)/);
+    assert.match(calendarCss,/body\.calendar-reading > header[\s\S]*?position:\s*static/);
+    assert.match(calendarCss,/\.garden-calendar > \.garden-calendar-header[\s\S]*?position:\s*static/);
+    assert.doesNotMatch(polishCss,/body\.admin-mode header\s*\{/);
+    assert.match(polishCss,/body\.admin-mode > header\s*\{/);
+});

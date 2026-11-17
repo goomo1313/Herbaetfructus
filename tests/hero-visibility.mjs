@@ -20,6 +20,7 @@ function buildPage() {
         podmienkySection: conditions,
         gardenCalendarSection: calendar
     };
+    const bodyClasses = new Set();
     const document = {
         addEventListener() {},
         getElementById(id) {return controls[id] || null;},
@@ -28,7 +29,10 @@ function buildPage() {
         createElement() {
             return {classList: {add() {}, toggle() {}}, appendChild() {}, style: {}};
         },
-        body: {classList: {contains() {return false;}}}
+        body: {classList: {
+            contains(name) {return bodyClasses.has(name);},
+            toggle(name, enabled) {if (enabled) bodyClasses.add(name); else bodyClasses.delete(name);}
+        }}
     };
     const context = createContext({
         window: {HERBA_CONFIG: {}, scrollTo() {}},
@@ -38,7 +42,7 @@ function buildPage() {
         setTimeout() {}
     });
     runInContext(inline, context);
-    return {context, hero};
+    return {context, hero, bodyClasses};
 }
 
 test('zelený úvod má vlastný identifikátor a pravidlo pre skrytie', () => {
@@ -73,4 +77,15 @@ test('zmeny príbehu neodstránili spoločné administračné nastavenie cien a 
     assert.match(html, /id="togglePricesBtn"/);
     assert.match(html, /id="toggleOrderFormBtn"/);
     assert.match(html, /return farmSettings\.pricesHidden === true/);
+});
+
+test('prepínanie kalendára vypne prichytenú navigáciu a návrat ho obnoví', () => {
+    const {context, bodyClasses} = buildPage();
+    assert.equal(bodyClasses.has('calendar-reading'), false);
+    runInContext("switchSection('kalendar')",context);
+    assert.equal(bodyClasses.has('calendar-reading'), true);
+    runInContext("switchSection('blog')",context);
+    assert.equal(bodyClasses.has('calendar-reading'), false);
+    runInContext("switchSection('kalendar'); switchSection('domov')",context);
+    assert.equal(bodyClasses.has('calendar-reading'), false);
 });

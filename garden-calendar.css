@@ -24,3 +24,17 @@
 .garden-note { padding: 16px 20px; margin: 22px 0; background:#fff7e8; border-left:4px solid #bd862e; color:#66512a; line-height:1.75; border-radius: 0 10px 10px 0; }
 @media (max-width: 900px) { .garden-month-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media (max-width: 610px) { .garden-month-grid { grid-template-columns:1fr; } .garden-month { padding: 16px; } }
+
+/* Čítací režim: navigácia sa posúva prirodzene s obsahom a nezakrýva mesiace.
+   Úvodný <header> kalendára nie je navigácia, preto nesmie byť sticky. */
+body.calendar-reading > header,
+body.admin-mode.calendar-reading > header {
+    position: static;
+    top: auto;
+}
+.garden-calendar > .garden-calendar-header {
+    position: static;
+    top: auto;
+    z-index: auto;
+    box-shadow: none;
+}
