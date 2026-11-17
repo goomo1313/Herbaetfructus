@@ -266,3 +266,10 @@ test('kartičky sú kompaktnejšie, porovnanie používa ikonku v rohu',()=>{
     assert.doesNotMatch(html,/Detail odrody a fotografie/);
     assert.match(html,/aria-label="Porovnať odrodu \$\{escapeHtml\(t\.name\)\}"/);
 });
+
+test('SEO profily sú prepojené z detailu podľa verejného manifestu',()=>{
+    assert.match(html,/id="detailProfileLink"/);
+    assert.match(catalogueCode,/fetch\('\/odrody\/manifest\.json'/);
+    assert.match(catalogueCode,/profilePaths\.get\(activeName\)/);
+    assert.match(catalogueCode,/new URL\('\/odrody\//);
+});

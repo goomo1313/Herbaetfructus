@@ -3,6 +3,21 @@
     'use strict';
     let activeName = null;
     let previousFocus = null;
+    const profilePaths=new Map();
+    function syncProfileLink() {
+        const link=document.getElementById('detailProfileLink');
+        if(!link)return;
+        const slug=profilePaths.get(activeName);
+        link.hidden=!slug;
+        if(slug)link.href='/odrody/'+encodeURIComponent(slug)+'/';
+    }
+    if(typeof fetch==='function')fetch('/odrody/manifest.json',{cache:'no-cache'})
+        .then(r=>r.ok?r.json():[])
+        .then(rows=>{
+            if(!Array.isArray(rows))return;
+            for(const row of rows)if(row&&typeof row.name==='string'&&typeof row.slug==='string'&&/^[a-z0-9-]+$/.test(row.slug))profilePaths.set(row.name,row.slug);
+            syncProfileLink();
+        }).catch(()=>{});
 
     const byId = id => document.getElementById(id);
     const isAdmin = () => document.body.classList.contains('admin-mode');
@@ -84,6 +99,7 @@
         if (!overlay) return false;
         if (!activeName) previousFocus = document.activeElement;
         activeName = item.name;
+        syncProfileLink();
         const stock = Math.max(0, Math.floor(Number(item.stock) || 0));
         const soldOut = stock === 0 || !!item.hidden;
         const formPaused = typeof isOrderFormPaused === 'function' && isOrderFormPaused();
@@ -189,8 +205,9 @@
 
     async function copyLink() {
         if (!activeName) return;
-        const url = new URL(window.location.href);
-        url.hash = 'odroda=' + encodeURIComponent(activeName);
+        const slug=profilePaths.get(activeName);
+        const url=slug?new URL('/odrody/'+encodeURIComponent(slug)+'/',window.location.href):new URL(window.location.href);
+        if(!slug)url.hash='odroda='+encodeURIComponent(activeName);
         try {
             if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error('Clipboard unavailable');
             await navigator.clipboard.writeText(url.href);
@@ -213,7 +230,7 @@
             if (!overlay.classList.contains('active')) return;
             if (event.key === 'Escape') close();
             if (event.key === 'Tab') {
-                const focusable = [...overlay.querySelectorAll('button:not(:disabled), input:not(:disabled)')];
+                const focusable = [...overlay.querySelectorAll('button:not(:disabled), input:not(:disabled), a[href]:not([hidden])')];
                 if (!focusable.length) return;
                 const first = focusable[0], last = focusable[focusable.length - 1];
                 if (event.shiftKey && document.activeElement === first) {

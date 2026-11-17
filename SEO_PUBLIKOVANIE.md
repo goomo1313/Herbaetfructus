@@ -24,3 +24,9 @@ Samostatné stránky pre odrody vyžadujú dôveryhodný export aktuálnych vere
 odrôd zo Supabase a kontrolu ich viditeľnosti.
 
 Pre články vytvorené výlučne v administrácii zatiaľ zostáva interaktívny blog.
+
+## Profily odrôd zo Supabase
+
+Automatická synchronizácia `.github/workflows/sync-varieties.yml` pravidelne načíta len aktuálne údaje Supabase (`sections` a `varieties`) cez verejný kľúč a vyberie výhradne odrody a sekcie s `hidden === false`. Vytvorí jednotlivé HTML profily v `/odrody/`, archív, verejný manifest a aktualizovaný sitemap.
+
+V profiloch sú iba vlastnosti, opis a fotografie; **neuvádzajú sa ceny, sklad, údaje o dopytoch ani interné nastavenia**. Aktualizácia sa vykonáva každých šesť hodín alebo ručným spustením workflow. Skrytá odroda sa pri ďalšej úspešnej synchronizácii odstráni zo súborov (dočasná cache CDN alebo Google môže existovať). Žiadne rezervácie ani zásoby sa tým nemenia.

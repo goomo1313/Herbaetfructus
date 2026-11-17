@@ -51,3 +51,7 @@
     .product-detail-properties { gap: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .product-detail-overlay *, .product-detail-overlay *::before { scroll-behavior: auto !important; } }
+
+.product-detail-profile-link{display:inline-flex;align-items:center;min-height:42px;border:1px solid #8aaa8c;border-radius:9px;padding:9px 13px;text-decoration:none;color:#245c35;background:#f1f7ee;font-weight:700}
+.product-detail-profile-link:hover{background:#dfefda}
+.product-detail-profile-link[hidden]{display:none!important}
