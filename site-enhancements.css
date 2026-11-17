@@ -56,3 +56,63 @@
     /* Let the browser skip off-screen rendering; do not remove cards from the DOM. */
     .variety-grid .variety-card { content-visibility:auto; contain-intrinsic-size:auto 510px; }
 }
+
+/* Kompaktný katalóg: klikateľná plocha, kompaktný opis a ikonka porovnania. */
+.variety-grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr)); gap:16px; }
+.variety-card { cursor:pointer; transition:box-shadow .18s ease,transform .18s ease; }
+.variety-card:hover { transform:translateY(-2px); box-shadow:0 10px 24px rgba(24,67,35,.12); }
+.variety-card:focus-within { box-shadow:0 0 0 2px #8bb890,0 9px 22px rgba(24,67,35,.1); }
+.variety-card .card-img-placeholder { height:190px; cursor:pointer; }
+.variety-card .card-img-placeholder::before {
+    content:"↗ Detail"; position:absolute; z-index:2; right:11px; bottom:10px;
+    border-radius:7px; background:rgba(255,255,255,.94); color:#245336;
+    font-size:.72rem; font-weight:700; line-height:1.2; padding:6px 9px;
+    pointer-events:none; opacity:0; transform:translateY(3px); transition:opacity .18s,transform .18s;
+}
+.variety-card:hover .card-img-placeholder::before,
+.variety-card .card-img-placeholder:focus-visible::before { opacity:1; transform:none; }
+.variety-card .card-img-placeholder:not(.has-photo)::after { content:"🌱 Fotografia sa pripravuje"; }
+.variety-card .card-img-placeholder:focus-visible { outline:3px solid #c47924; outline-offset:-3px; }
+.variety-card .card-content { padding:15px 17px 17px; }
+.variety-card .badges-wrapper { gap:5px; margin-bottom:9px; }
+.variety-card .badge { padding:3px 8px; font-size:.69rem; }
+.variety-card h3 { font-size:1.18rem; line-height:1.32; margin-bottom:7px; }
+.variety-card .variety-title-link { color:inherit; text-decoration:none; }
+.variety-card .variety-title-link:hover, .variety-card .variety-title-link:focus-visible { text-decoration:underline; text-underline-offset:3px; }
+.variety-card .weight-info { margin-bottom:7px; font-size:.82rem; }
+.variety-card p.info {
+    font-size:.86rem; line-height:1.55; margin-bottom:9px; flex-grow:0;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+}
+.variety-card .variety-facts { gap:6px; margin:5px 0 9px; }
+.variety-card .variety-facts>div { padding:7px 9px; }
+.variety-card .variety-facts>div:nth-child(n+3) { display:none; }
+.variety-card .variety-facts dt { font-size:.67rem; }
+.variety-card .variety-facts dd { font-size:.79rem; margin-top:2px; }
+.variety-card .card-actions-row { margin-top:auto; padding-top:9px; gap:7px; }
+.variety-card .quantity-selector { flex:0 0 auto; height:39px; }
+.variety-card .qty-btn { min-width:28px; padding:0 6px; font-size:1rem; }
+.variety-card .qty-input { width:32px; font-size:.86rem; }
+.variety-card .btn-select {
+    flex:1 1 auto; min-width:0; min-height:39px; padding:8px 9px;
+    font-size:.83rem; font-weight:700; border-width:1.5px; white-space:nowrap;
+}
+.variety-card .enhanced-compare-btn {
+    position:absolute; top:10px; right:10px; z-index:5;
+    display:inline-flex; align-items:center; justify-content:center;
+    width:40px; height:40px; min-width:40px; padding:0; margin:0;
+    border:1px solid #b7ccb8; border-radius:50%; background:rgba(255,255,255,.96);
+    color:#245735; font-size:1.18rem; line-height:1; cursor:pointer;
+    box-shadow:0 2px 8px rgba(17,50,24,.14);
+}
+.variety-card .enhanced-compare-btn:hover { background:#e8f3e7; border-color:#5b9162; }
+.variety-card .enhanced-compare-btn[aria-pressed="true"] { background:#255f38; color:#fff; border-color:#255f38; }
+.variety-card .card-admin-actions { position:relative; z-index:1; }
+@media(max-width:510px) {
+    .variety-grid { grid-template-columns:minmax(0,1fr); gap:14px; }
+    .variety-card .card-img-placeholder { height:205px; }
+    .variety-card .card-img-placeholder::before { opacity:1; transform:none; }
+}
+@media(prefers-reduced-motion:reduce) {
+    .variety-card, .variety-card .card-img-placeholder::before { transition:none; }
+}

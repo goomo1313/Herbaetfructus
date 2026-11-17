@@ -65,7 +65,7 @@ test('detail code and HTML have correct modal structure and links', () => {
     assert.match(html, /id="productDetailOverlay"/);
     assert.match(html, /src="\.\/catalogue-ui\.js"/);
     assert.match(html, /href="\.\/catalogue-ui\.css"/);
-    assert.match(html, /class="variety-more"/);
+    assert.doesNotMatch(html, /class="variety-more"/);
     const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
     assert.equal(ids.length, new Set(ids).size, 'Static element IDs must be unique');
 });
@@ -243,4 +243,26 @@ test('invalid or hidden deep links close an already open product detail', () => 
     window.HERBA_CATALOGUE.routeFromHash();
     assert.equal(controls.get('productDetailOverlay').classList.contains('active'), false);
     assert.equal(controls.get('productDetailOverlay').attrs['aria-hidden'], 'true');
+});
+
+
+test('voľná plocha a fotografia otvárajú detail; ovládače nie',()=>{
+    const {vm}=site();
+    assert.equal(runInContext("shouldOpenVarietyCardDetail({target:{closest(){return null;}}})",vm),true);
+    assert.equal(runInContext("shouldOpenVarietyCardDetail({target:{closest(){return {classList:{contains(){return false;}}};}}})",vm),false);
+    assert.equal(runInContext("shouldOpenVarietyCardDetail({target:{closest(){return {classList:{contains(name){return name==='card-img-placeholder';}}};}}})",vm),true);
+    assert.match(html,/card\.addEventListener\('click', event =>/);
+    assert.match(html,/photo\.addEventListener\('keydown', event =>/);
+    assert.match(html,/const titleLink = card\.querySelector\('\.variety-title-link'\)/);
+    assert.doesNotMatch(html,/openLightbox\(cardPhoto\)/);
+});
+
+test('kartičky sú kompaktnejšie, porovnanie používa ikonku v rohu',()=>{
+    const css=readFileSync('site-enhancements.css','utf8');
+    assert.match(css,/\.variety-card \.card-img-placeholder \{ height:190px;/);
+    assert.match(css,/\.variety-card \.enhanced-compare-btn \{[\s\S]*?position:absolute;/);
+    assert.match(css,/\.variety-card p\.info \{[\s\S]*?-webkit-line-clamp:3;/);
+    assert.match(html,/>\+ Pridať<\/button>/);
+    assert.doesNotMatch(html,/Detail odrody a fotografie/);
+    assert.match(html,/aria-label="Porovnať odrodu \$\{escapeHtml\(t\.name\)\}"/);
 });

@@ -24,8 +24,7 @@ select:focus-visible, textarea:focus-visible, summary:focus-visible,
 .modal-box img { max-width: 100%; }
 #tableManagerModal .modal-box,
 #sectionTableModal .modal-box { overflow-x: auto; }
-.variety-card .card-actions-row button,
-.variety-card .variety-more { min-height: 40px; }
+.variety-card .card-actions-row button { min-height: 39px; }
 #floatingCounter { max-width: calc(100vw - 24px); }
 @media (max-width: 760px) {
     nav { gap: 9px; }

@@ -252,12 +252,18 @@
         const counter=$('filterCount_' + sectionId);
         if(counter) counter.textContent='Zobrazených ' + shown + ' z ' + cards.length + ' odrôd';
     }
+    function updateCompareButton(button, name) {
+        const chosen=compareNames.includes(name);
+        button.setAttribute('aria-pressed',String(chosen));
+        button.textContent=chosen ? '✓' : '⚖';
+        const label=chosen ? 'Odobrať odrodu ' + name + ' z porovnania' : 'Porovnať odrodu ' + name;
+        button.setAttribute('aria-label',label);
+        button.title=label;
+    }
     function bindCompareCard(card, item) {
         const button=card.querySelector('.enhanced-compare-btn');
         if(!button) return;
-        const selected=compareNames.includes(item.name);
-        button.setAttribute('aria-pressed',String(selected));
-        button.textContent=selected ? '✓ Vo výbere na porovnanie' : '⚖️ Porovnať odrodu';
+        updateCompareButton(button,item.name);
         button.addEventListener('click',()=>toggleCompare(item.name));
     }
     function renderTray() {
@@ -273,9 +279,7 @@
         if(button) button.disabled=compareNames.length<2;
         document.querySelectorAll('.enhanced-compare-btn').forEach(btn=>{
             const name=btn.dataset.name;
-            const chosen=compareNames.includes(name);
-            btn.setAttribute('aria-pressed',String(chosen));
-            btn.textContent=chosen?'✓ Vo výbere na porovnanie':'⚖️ Porovnať odrodu';
+            updateCompareButton(btn,name);
         });
     }
     function toggleCompare(name) {

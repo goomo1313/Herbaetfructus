@@ -452,7 +452,7 @@
 
         .variety-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(100%,260px), 1fr));
             gap: 25px;
         }
 
@@ -501,7 +501,7 @@
         .card-img-placeholder img:not([src]) { display: none; }
 
         .card-img-placeholder::after {
-            content: '🌿 Miesto pre fotku (kliknite pre zväčšenie)';
+            content: '🌱 Fotografia sa pripravuje';
             position: absolute;
             color: #94A3B8;
             font-size: 0.85rem;
@@ -2854,6 +2854,14 @@
             });
         }
 
+        // Kliknutie na voľnú časť karty otvorí detail, nie pri práci s jej ovládačmi.
+        function shouldOpenVarietyCardDetail(event) {
+            const target = event?.target;
+            if (!target || typeof target.closest !== 'function') return false;
+            const control = target.closest('button, a, input, select, textarea, [role="button"], .quantity-selector, .card-actions-row, .card-admin-actions, [contenteditable="true"]');
+            return !control || control.classList?.contains('card-img-placeholder');
+        }
+
         function renderVarietyGridForSection(secId) {
             const grid = document.querySelector(`[data-section-grid="${secId}"]`);
             if (!grid) return;
@@ -2906,7 +2914,7 @@
                             ${isSoldOut ? '<span class="badge hidden-badge">❌ Vypredané</span>' : ''}
                             ${t.hidden ? '<span class="badge hidden-badge">🚫 Nedostupné</span>' : ''}
                         </div>
-                        <h3>${escapeHtml(t.name)}</h3>
+                        <h3><a class="variety-title-link" href="#odroda=${encodeURIComponent(t.name)}">${escapeHtml(t.name)}</a></h3>
                         ${t.weight ? `<div class="weight-info">⚖️ Hmotnosť: <span>${escapeHtml(t.weight)}</span></div>` : ''}
                         <p class="info">${escapeHtml(t.info)}</p>
                         ${window.HERBA_VARIETY_PROPERTIES?.cardFacts(t) || ""}
@@ -2914,16 +2922,15 @@
                         ${isOrderFormPaused() ? '<div class="form-pause-note" role="status">⏸ Nezáväzné dopyty sú dočasne pozastavené.</div>' : !isSoldOut && !t.hidden ? `
                             <div class="card-actions-row">
                                 <div class="quantity-selector">
-                                    <button class="qty-btn" type="button" onclick="changeCardQty(this, -1)">-</button>
+                                    <button class="qty-btn" type="button" onclick="changeCardQty(this, -1)" aria-label="Znížiť počet balení">−</button>
                                     <input type="text" class="qty-input" value="1" data-max="${stockVal}" readonly aria-label="Počet balení">
-                                    <button class="qty-btn" type="button" onclick="changeCardQty(this, 1)">+</button>
+                                    <button class="qty-btn" type="button" onclick="changeCardQty(this, 1)" aria-label="Zvýšiť počet balení">+</button>
                                 </div>
-                                <button class="btn-select" type="button">+ Pridať do výberu</button>
+                                <button class="btn-select" type="button" aria-label="Pridať odrodu ${escapeHtml(t.name)} do výberu" title="Pridať do výberu">+ Pridať</button>
                             </div>
                         ` : '<div style="color: #E53E3E; font-weight: 600; font-size: 0.9rem; text-align: center; padding: 8px;">Vypredané</div>'}
                         
-                        <button class="variety-more" type="button">Detail odrody a fotografie</button>
-                        <button class="enhanced-compare-btn" type="button" data-name="${escapeHtml(t.name)}" aria-pressed="false">⚖️ Porovnať odrodu</button>
+                        <button class="enhanced-compare-btn" type="button" data-name="${escapeHtml(t.name)}" aria-pressed="false" aria-label="Porovnať odrodu ${escapeHtml(t.name)}" title="Porovnať odrodu ${escapeHtml(t.name)}">⚖</button>
                         <div class="card-admin-actions">
                             <button class="btn-edit-card" onclick="editVariety(${realIndex})">✏️</button>
                             <button style="background: #3182CE; color:white; border:none; border-radius:4px;" onclick="moveVariety(${realIndex}, -1)">⬆️</button>
@@ -2932,29 +2939,30 @@
                         </div>
                     </div>
                 `;
-                if (hasPhoto) {
-                    const photo = card.querySelector('.card-img-placeholder');
-                    photo.style.cursor = 'zoom-in';
+                const showCardDetail = () => window.HERBA_CATALOGUE?.open(t.name);
+                const photo = card.querySelector('.card-img-placeholder');
+                if (photo) {
                     photo.tabIndex = 0;
                     photo.setAttribute('role', 'button');
-                    photo.setAttribute('aria-label', 'Zväčšiť fotografiu odrody ' + (t.name || ''));
-                    photo.addEventListener('click', () => openLightbox(cardPhoto));
+                    photo.setAttribute('aria-label', 'Otvoriť detail odrody ' + t.name);
                     photo.addEventListener('keydown', event => {
                         if (event.key === 'Enter' || event.key === ' ') {
                             event.preventDefault();
-                            openLightbox(t.img);
+                            showCardDetail();
                         }
                     });
                 }
+                const titleLink = card.querySelector('.variety-title-link');
+                if (titleLink) titleLink.addEventListener('click', event => {
+                    event.preventDefault();
+                    showCardDetail();
+                });
+                card.addEventListener('click', event => {
+                    if (shouldOpenVarietyCardDetail(event)) showCardDetail();
+                });
                 const selectButton = card.querySelector('.btn-select');
                 if (selectButton) {
                     selectButton.addEventListener('click', () => addVarietyToForm(t.name, selectButton));
-                }
-                const detailButton = card.querySelector('.variety-more');
-                if (detailButton) {
-                    detailButton.addEventListener('click', () => {
-                        if (window.HERBA_CATALOGUE) window.HERBA_CATALOGUE.open(t.name);
-                    });
                 }
                 if (window.HERBA_IMPROVEMENTS) window.HERBA_IMPROVEMENTS.bindCompareCard(card, t);
                 grid.appendChild(card);
