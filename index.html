@@ -2904,7 +2904,7 @@
                     : normalizedImageFit(t.galleryImageFits?.[cardPhoto]);
 
                 card.innerHTML = `
-                    <div class="card-img-placeholder${hasPhoto ? ' has-photo' : ''}">${hasPhoto ? `<img src="${escapeHtml(cardPhoto)}" alt="${escapeHtml(t.name)}" loading="lazy" decoding="async" style="object-fit:${cardPhotoFit}">` : ''}</div>
+                    <div class="card-img-placeholder${hasPhoto ? ' has-photo' : ''}">${hasPhoto ? `<img src="${escapeHtml(cardPhoto)}" alt="${escapeHtml(t.name)}" loading="lazy" decoding="async" style="object-fit:${cardPhotoFit}">` : ''}<span class="card-selection-indicator" aria-hidden="true"></span></div>
                     <div class="card-content">
                         <div class="badges-wrapper">
                             ${t.isFlagship ? '<span class="badge multiflora">🌟 Vlajková</span>' : ''}
@@ -2968,6 +2968,7 @@
                 grid.appendChild(card);
             });
             if (window.HERBA_IMPROVEMENTS) window.HERBA_IMPROVEMENTS.applyFilters(secId);
+            syncSelectedVarietyCards();
         }
 
         function changeCardQty(btn, delta) {
@@ -3296,6 +3297,31 @@
             updateSelectionCounter();
         }
 
+        // Jediným zdrojom výberu sú zaškrtnuté odrody v objednávkovom formulári.
+        function syncSelectedVarietyCards() {
+            const selected = new Map();
+            document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (!checkbox?.checked) return;
+                const qty = item.querySelector('.form-qty-input');
+                selected.set(checkbox.value, Math.max(1, Number.parseInt(qty?.value, 10) || 1));
+            });
+            document.querySelectorAll('.variety-card').forEach(card => {
+                if (!card.dataset) return;
+                const count = selected.get(card.dataset.name) || 0;
+                const chosen = count > 0;
+                card.classList?.toggle('in-selection', chosen);
+                const indicator = card.querySelector?.('.card-selection-indicator');
+                if (indicator) indicator.textContent = chosen ? '✓ Vo výbere · ' + count + ' bal.' : '';
+                const addButton = card.querySelector?.('.btn-select');
+                if (addButton) {
+                    addButton.classList?.toggle('selected', chosen);
+                    addButton.textContent = chosen ? '✓ Pridať ďalšie' : '+ Pridať';
+                    addButton.setAttribute?.('aria-label', (chosen ? 'Pridať ďalšie balenia odrody ' : 'Pridať odrodu ') + card.dataset.name + ' do výberu');
+                }
+            });
+        }
+
         function updateSelectionCounter() {
             const selectorItems = document.querySelectorAll('#formTomatoSelector .selector-item');
             let totalCount = 0;
@@ -3358,6 +3384,7 @@
                     ? selectedItemsList.join('\n') + `\nCelkový počet balíčkov: ${totalCount}` + (arePricesHidden() ? '' : `\nOrientačná hodnota výberu: ${totalPrice.toFixed(2)} €`)
                     : 'Bez výberu odrôd';
             }
+            syncSelectedVarietyCards();
         }
 
         function handleFormSubmit(event) {
