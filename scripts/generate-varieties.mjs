@@ -32,7 +32,7 @@ const profiles=publicProfiles(data);
 const logo=mainLogo(readFileSync('index.html','utf8'));
 const files=new Map([['odrody/index.html',renderArchive(profiles,logo)],
  ['odrody/manifest.json',JSON.stringify(profiles.map(p=>({name:p.name,slug:p.slug,section:p.section})),null,2)+'\n']]);
-for(const p of profiles)files.set('odrody/'+p.slug+'/index.html',renderProfile(p,logo));
+for(const p of profiles)files.set('odrody/'+p.slug+'/index.html',renderProfile(p,logo,profiles));
 for(const [path,content] of files){if(!path.startsWith('odrody/')||path.includes('..')||!content)throw Error('Neplatný verejný export.');}
 for(const [path,content] of files){
  if(existsSync(path)&&readFileSync(path,'utf8')===content)continue;
