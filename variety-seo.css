@@ -19,3 +19,16 @@
 .profile-card-content small{font-size:.72rem;color:#69806a}
 .profile-card-content strong{font-family:Georgia,serif;font-size:1.22rem}
 @media(max-width:600px){.profile-hero img{height:290px}.profile-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,165px),1fr))}.profile-card-link img,.profile-thumb-fallback{height:130px}}
+
+/* Prehľadné filtre verejného archívu odrôd */
+.profile-filters{display:flex;flex-wrap:wrap;align-items:end;gap:12px;padding:18px;margin:22px 0 12px;border:1px solid #dce7d8;border-radius:14px;background:#f5f8f2}
+.profile-filter-field{flex:1 1 200px;min-width:0;display:grid;gap:6px}
+.profile-filter-field label{font-size:.85rem;font-weight:650;color:#315b3b}
+.profile-filter-field input,.profile-filter-field select{width:100%;min-height:44px;padding:10px 12px;border:1px solid #b5c9b3;border-radius:9px;background:#fff;color:#243e2b;font:inherit}
+.profile-filter-field input:focus-visible,.profile-filter-field select:focus-visible,.profile-reset:focus-visible,.profile-card-link:focus-visible{outline:3px solid #7ba781;outline-offset:2px}
+.profile-reset{min-height:44px;padding:10px 14px;border:1px solid #9eba9a;border-radius:9px;background:#fff;color:#285139;font:inherit;font-weight:600;cursor:pointer}
+.profile-reset:hover{background:#e4eee0}
+.profile-result-count{margin:10px 0 18px;font-size:.9rem;font-weight:600;color:#41634a}
+.profile-empty{margin:18px 0 25px;padding:16px;border:1px dashed #c2d3bd;border-radius:10px;color:#41634a}
+.profile-card[hidden],.profile-empty[hidden]{display:none!important}
+@media(max-width:600px){.profile-filters{padding:14px}.profile-filter-field{flex-basis:100%}.profile-reset{width:100%}}
