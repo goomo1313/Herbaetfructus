@@ -111,7 +111,7 @@ export function renderArchive(profiles,logo){
  '<div class="profile-filter-field"><label for="profile-search">Vyhľadať odrodu</label><input type="search" id="profile-search" placeholder="Napr. Ildi alebo Tigerella" autocomplete="off"></div>'+
  '<div class="profile-filter-field"><label for="profile-section">Skupina rastlín</label><select id="profile-section"><option value="">Všetky skupiny</option>'+options+'</select></div>'+
  '<button class="profile-reset" type="button" id="profile-reset">Vymazať filtre</button></form>'+
- '<p class="profile-result-count" id="profile-count" aria-live="polite">'+profiles.length+' odrôd</p>'+
+ '<p class="profile-result-count" id="profile-count" aria-live="polite">'+(profiles.length===1?'1 odroda':profiles.length>=2&&profiles.length<=4?profiles.length+' odrody':profiles.length+' odrôd')+'</p>'+
  '<p class="profile-empty" id="profile-empty" hidden>Nenašli sa žiadne odrody. Skúste upraviť názov alebo vybrať inú skupinu.</p>'+
  '<ul class="profile-grid" id="profile-list">'+cards+'</ul>'+
  '<noscript><p>Vyhľadávanie vyžaduje JavaScript. Všetky profily odrôd sú uvedené vyššie.</p></noscript>'+
