@@ -54,14 +54,31 @@ const header=logo=>'<a class="skip-link" href="#obsah">Preskočiť na obsah</a><
 const footer='<footer class="page-footer">© Herba et Fructus · Rodinná semenná farma · <a href="/">Domov</a></footer>';
 const head=title=>'<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title>';
 const xmljson=v=>JSON.stringify(v).replace(/</g,'\\u003c');
-const describe=p=>{
- const desc=p.info.replace(/\s+/g,' ');
- const full=(desc?desc+(desc.endsWith('.')?'':'.')+' ':'')+'Fotografie a vlastnosti odrody '+p.name+' nájdete v zbierke Herba et Fructus.';
- return full.length>155?full.slice(0,155).replace(/\s+\S*$/,''):full;
+const varietyKind=p=>p.section==='paradajky'?'paradajka':p.section==='tekvice'?'tekvica':'odroda';
+// Meta popis skladáme iba z celých viet a verejných overiteľných údajov.
+// Skracovanie cez slice() môže zanechať na konci rozpracovanú vetu.
+export const describe=p=>{
+ const parts=[];
+ const add=value=>{
+  let sentence=String(value??'').trim();
+  if(!sentence)return false;
+  if(!/[.!?…]$/u.test(sentence))sentence+='.';
+  if([...parts,sentence].join(' ').length>155)return false;
+  parts.push(sentence);
+  return true;
+ };
+ if(!add(p.name+' – '+varietyKind(p)))add('Profil odrody Herba et Fructus');
+ const info=String(p.info??'').replace(/\s+/g,' ').trim();
+ for(const sentence of info.split(/(?<=[.!?])\s+(?=[\p{Lu}0-9])/u))add(sentence);
+ for(const [label,value] of [['Hmotnosť',p.weight],['Typ',p.type],['Farba',p.color]]){
+  if(value)add(label+': '+value);
+ }
+ if(parts.join(' ').length<75)add('Opis a fotografie v zbierke Herba et Fructus');
+ return parts.join(' ');
 };
 const seoTitle=p=>{
  const brand=' | Herba et Fructus';
- const long=p.name+(p.section==='paradajky'?' – paradajka':' – odroda')+brand;
+ const long=p.name+' – '+varietyKind(p)+brand;
  if(long.length<=60)return long;
  const shorter=p.name+brand;
  return shorter.length<=60?shorter:p.name.slice(0,60-brand.length-1).trimEnd()+'…'+brand;
