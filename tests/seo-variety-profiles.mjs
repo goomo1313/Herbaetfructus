@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
-import {publicProfiles,slugify,renderProfile,renderArchive,mainLogo} from '../scripts/variety-seo-lib.mjs';
+import {publicProfiles,slugify,renderProfile,renderArchive,mainLogo,describe,esc} from '../scripts/variety-seo-lib.mjs';
 
 const fixtures={
  sections:[{id:'paradajky',name:'Paradajky',hidden:false},{id:'tajne',name:'Súkromné',hidden:true}],
@@ -80,4 +80,30 @@ test('SEO titulky a meta popisy zostávajú stručné a výstižné',()=>{
    assert.match(html,/<title>[^<]+<\/title>/);
   }
  }
+});
+
+
+test('meta popisy verejných profilov sú úplné vety, bez náhodného useknutia',()=>{
+ const original=publicProfiles(fixtures)[0];
+ const profiles=[
+  original,
+  {...original,name:"Matt's Hornet",slug:"matt-s-hornet",info:'Drobné pretiahnuté červené plody so žltooranžovým pásikovaním a špicom. Zaujímavá odroda z línie Matt’s Folly, s bohatou rodivosťou.',weight:'13–19 g'},
+  {...original,name:'Pink Jumbo Banana',slug:'pink-jumbo-banana',section:'tekvice',sectionTitle:'Tekvice',
+   info:'Populárna, viac než sto rokov stará rodová odroda tekvice obrovskej (Cucurbita maxima), ktorá je známa svojím špecifickým podlhovastým tvarom pripomínajúcim obrovský banán a ružovo-lososovou šupkou. Má hustú, sladkú dužinu s vynikajúcou textúrou a skvele sa skladuje.',
+   weight:'5 – 20 kg',type:'Tekvica',color:'Ružová'},
+  {...original,name:'Podororo de saint jean de beauregard',slug:'podororo-de-saint-jean-de-beauregard',
+   info:'Unikátna historická odroda s výbornou arómou.',weight:'100–160 g'}
+ ];
+ for(const p of profiles){
+  const desc=describe(p);
+  assert.ok(desc.length>=75&&desc.length<=155,p.slug+': '+desc);
+  assert.match(desc,/[.!?…]$/,p.slug+': '+desc);
+  assert.doesNotMatch(desc,/Fotografie a$|nájdete v$|Hmotnosť:$|Farba:$/);
+  const html=renderProfile(p,mainLogo(readFileSync('index.html','utf8')));
+  assert.ok(html.includes('<meta name="description" content="'+esc(desc)+'">'),p.slug);
+  assert.ok(html.includes('<meta property="og:description" content="'+esc(desc)+'">'),p.slug);
+ }
+ assert.match(describe(profiles[2]),/tekvica/);
+ assert.match(describe(profiles[2]),/Má hustú, sladkú dužinu/);
+ assert.doesNotMatch(describe(profiles[2]),/Populárna, viac než sto rokov stará rodová odroda tekvice obrovskej/);
 });
