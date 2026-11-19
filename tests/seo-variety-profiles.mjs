@@ -107,3 +107,25 @@ test('meta popisy verejných profilov sú úplné vety, bez náhodného useknuti
  assert.match(describe(profiles[2]),/Má hustú, sladkú dužinu/);
  assert.doesNotMatch(describe(profiles[2]),/Populárna, viac než sto rokov stará rodová odroda tekvice obrovskej/);
 });
+
+
+test('každá publikovaná odroda má indexovateľnú samostatnú stránku a celý SEO popis',()=>{
+ if(!existsSync('odrody/manifest.json'))return;
+ const rows=JSON.parse(readFileSync('odrody/manifest.json','utf8'));
+ const sitemap=readFileSync('sitemap.xml','utf8');
+ const descriptions=new Set();
+ for(const row of rows){
+  const url='https://herbaetfructus.sk/odrody/'+row.slug+'/';
+  const html=readFileSync('odrody/'+row.slug+'/index.html','utf8');
+  const meta=html.match(/<meta name="description" content="([^"]+)"/)?.[1]||'';
+  assert.ok(meta.length>=40&&meta.length<=180,row.slug+': '+meta);
+  assert.match(meta,/[.!?…]$/,row.slug+': neúplný popis');
+  assert.ok(!descriptions.has(meta),row.slug+': duplicitný popis');
+  descriptions.add(meta);
+  assert.ok(html.includes('rel="canonical" href="'+url+'"'),row.slug);
+  assert.ok(sitemap.includes('<loc>'+url+'</loc>'),row.slug);
+  assert.match(html,/<h1>[^<]+<\/h1>/,row.slug);
+  assert.match(html,/<meta property="og:description" content="[^"]+"/,row.slug);
+  assert.doesNotMatch(html,/<meta[^>]*content="[^"]*noindex/ig,row.slug);
+ }
+});
