@@ -118,7 +118,7 @@
         actions.appendChild(dashAction('☁️ Overiť cloud',()=>downloadSiteCode()));
         actions.appendChild(dashAction('📂 Správa kariet',()=>go(openSectionTableModal)));
         actions.appendChild(dashAction('📝 Pridať článok',()=>go(openBlogModal)));
-        actions.appendChild(dashAction('⚙️ Ceny a formulár',()=>go(openVisibilitySettingsModal)));
+        actions.appendChild(dashAction('⚙️ Zobrazenie webu',()=>go(openVisibilitySettingsModal)));
         const hint = $('enhancedDashboardHint');
         if (hint) hint.textContent = 'Diagnostika aktuálne načítaného katalógu. Neúplné údaje sú len upozornenie a neprepisujú sa automaticky. Objednávky sa neevidujú v tejto databáze.';
         dashboardFilter();
