@@ -7,7 +7,7 @@ import {chromium} from 'playwright';
 
 const root=process.cwd();
 const mime={'.html':'text/html;charset=utf-8','.js':'text/javascript;charset=utf-8',
- '.css':'text/css;charset=utf-8','.scad':'text/plain;charset=utf-8',
+ '.css':'text/css;charset=utf-8','.mjs':'text/javascript;charset=utf-8','.scad':'text/plain;charset=utf-8',
  '.json':'application/json','.wasm':'application/wasm'};
 const server=createServer((request,response)=>{
  try{
@@ -38,7 +38,7 @@ try{
   body:JSON.stringify([{id:'settings',content:{generatorPaused:false}}])
  }));
  await page.goto('http://127.0.0.1:'+port+'/3d/',{waitUntil:'domcontentloaded'});
- await page.locator('#generatorApp').waitFor({state:'visible',timeout:35000});
+ await page.locator('#generatorApp').waitFor({state:'visible',timeout:35000}).catch(async e=>{throw Error('Generator UI not ready: '+await page.locator('#generatorGate').textContent()+'; '+JSON.stringify(errors.slice(-8))+'; '+e.message);});
  await page.locator('#names').fill('Ľalička');
  await page.locator('#generateBtn').click();
  try{
