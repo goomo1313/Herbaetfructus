@@ -2538,10 +2538,55 @@
             button.textContent = '🖨️ Vytvoriť 3D štítky k výberu (' + count + ' odrôd)';
         }
 
+        // Pri prechode do 3D dielne sa výber semien zachová počas aktuálnej relácie.
+        function rememberMarkerCart() {
+            try {
+                const items = [];
+                document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
+                    const cb = item.querySelector('input[type="checkbox"]');
+                    if (!cb?.checked) return;
+                    const qty = item.querySelector('.form-qty-input');
+                    items.push({name: cb.value, quantity: Math.max(1, parseInt(qty?.value, 10) || 1)});
+                });
+                if (items.length) sessionStorage.setItem('herba_cart_restore_v1', JSON.stringify(items));
+            } catch (_) {
+                // Súhlas s úložiskom nie je potrebný na otvorenie generátora.
+            }
+        }
+
+        function restoreMarkerCart() {
+            try {
+                const raw = sessionStorage.getItem('herba_cart_restore_v1');
+                if (!raw) return false;
+                sessionStorage.removeItem('herba_cart_restore_v1');
+                const saved = JSON.parse(raw);
+                if (!Array.isArray(saved)) return false;
+                const selected = new Map();
+                for (const row of saved) {
+                    if (!row || typeof row.name !== 'string') continue;
+                    const variety = varietyDatabase.find(v => v && v.name === row.name && !v.hidden);
+                    if (!variety || !(Number(variety.stock) > 0)) continue;
+                    selected.set(row.name, Math.min(Math.floor(Number(variety.stock)), Math.max(1, Math.floor(Number(row.quantity) || 1))));
+                }
+                document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
+                    const cb = item.querySelector('input[type="checkbox"]');
+                    if (!cb || cb.disabled || !selected.has(cb.value)) return;
+                    const qty = item.querySelector('.form-qty-input');
+                    cb.checked = true;
+                    if (qty) qty.value = String(selected.get(cb.value));
+                });
+                updateSelectionCounter();
+                return selected.size > 0;
+            } catch (_) {
+                return false;
+            }
+        }
+
         function openMarkerGeneratorForVariety(name) {
             if (isGeneratorPaused()) return false;
             const variety = varietyDatabase.find(v => v && v.name === name && !v.hidden);
             if (!variety) return false;
+            rememberMarkerCart();
             window.location.href = '/3d/?odroda=' + encodeURIComponent(variety.name);
             return true;
         }
@@ -2557,6 +2602,7 @@
                 showToast('Generátor prijíma najviac 60 názvov naraz. Zmenšite výber.');
                 return false;
             }
+            rememberMarkerCart();
             try {
                 sessionStorage.setItem('herba_3d_names_v1', JSON.stringify(names));
                 window.location.href = '/3d/?vyber=1';
@@ -4594,6 +4640,7 @@
             await loadCloudContent();
             renderAll();
             await restoreAdminSession();
+            restoreMarkerCart();
             syncAdminBarHeight();
             if (window.HERBA_CATALOGUE) window.HERBA_CATALOGUE.routeFromHash();
         });
