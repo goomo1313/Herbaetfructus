@@ -40,3 +40,9 @@
 .profile-explore ul{display:flex;flex-wrap:wrap;gap:9px;list-style:none;padding:0;margin:0}
 .profile-explore li a{display:inline-block;padding:9px 12px;border:1px solid #c4d7c0;border-radius:9px;background:white;color:#285139;text-decoration:none}
 .profile-explore li a:hover,.profile-explore li a:focus-visible{background:#eaf3e8;text-decoration:underline}
+
+.profile-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.profile-marker{display:inline-flex;align-items:center;padding:11px 16px;border-radius:9px;text-decoration:none;font-weight:700;border:1px solid #a2c69b;background:#f2f9f0;color:#285638}
+.profile-marker:hover{background:#e5f1e2;color:#20452d}
+.profile-marker:focus-visible{outline:3px solid #8ac48a;outline-offset:2px}
+.profile-marker[hidden]{display:none!important}
