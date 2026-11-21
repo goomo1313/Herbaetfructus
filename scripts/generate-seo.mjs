@@ -148,7 +148,7 @@ function renderSitemap(posts){
  const manifest=existsSync('odrody/manifest.json')?JSON.parse(readFileSync('odrody/manifest.json','utf8')):[];
  if(!Array.isArray(manifest)||manifest.some(row=>!row||!(/^[a-z0-9-]+$/).test(row.slug)))throw Error('Neplatný verejný manifest odrôd.');
  const varietyUrls=manifest.length?['https://herbaetfructus.sk/odrody/',...manifest.map(row=>'https://herbaetfructus.sk/odrody/'+row.slug+'/')]:[];
- const urls=["https://herbaetfructus.sk/","https://herbaetfructus.sk/clanky/",...posts.map(articleUrl),...varietyUrls];
+ const urls=["https://herbaetfructus.sk/","https://herbaetfructus.sk/3d/","https://herbaetfructus.sk/clanky/",...posts.map(articleUrl),...varietyUrls];
  return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+urls.map(u=>"  <url><loc>"+esc(u)+"</loc></url>").join("\n")+"\n</urlset>\n";
 }
 
@@ -181,4 +181,4 @@ for(const [path,content] of outputs){
 }
 for(const path of stale){differences++;if(mode==='write'){rmSync(dirname(path),{recursive:true,force:true});process.stdout.write('Odstránená stará SEO stránka: '+path+'\\n');}else process.stderr.write('Zastaralá stránka: '+path+'\\n');}
 if(mode==='check'&&differences)process.exitCode=1;
-else process.stdout.write('SEO: '+posts.length+' článkov, '+(posts.length+2)+' URL v sitemap. '+(differences?'Zmeny: '+differences:'Všetko aktuálne')+'\\n');
+else process.stdout.write('SEO: '+posts.length+' článkov, '+(outputs.get('sitemap.xml').match(/<loc>/g)||[]).length+' URL v sitemap. '+(differences?'Zmeny: '+differences:'Všetko aktuálne')+'\\n');
