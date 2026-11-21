@@ -91,7 +91,7 @@ function setBusy(busy){
  $('generateBtn').textContent=busy?'Generujem STL…':'Vytvoriť 3D náhľad';
 }
 function setDirty(){
- if(state.busy)return;
+ if(state.busy){stopWorker();setBusy(false);}
  state.last=null;
  $('downloadStl').disabled=true;
  status('Nastavenia sa zmenili. Vygenerujte nový model.');
