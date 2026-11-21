@@ -24,7 +24,7 @@ assert.match(input,/module plant_marker\(txt\)/);
 instance.FS.writeFile('/input.scad',input);
 const logs=[];
 const result=instance.callMain([
- '/input.scad','--enable=manifold','--export-format=binstl',
+ '/input.scad','--export-format=binstl',
  '-D','Name_1="Ľalička"',
  '-D','Name_2=""',
  '-D','stick_width=5',
