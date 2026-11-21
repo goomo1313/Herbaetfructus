@@ -1058,7 +1058,7 @@
             <button class="admin-btn" style="background: #375c78;" type="button" onclick="window.HERBA_BULK?.open()" title="Hromadné ceny, sklad, fotografie, vlastnosti a ďalšie údaje odrôd">🛠️ Hromadné operácie</button>
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openSectionTableModal()">📂 Správa kariet</button>
             <button class="admin-btn" style="background: #D97706;" onclick="openFormSettingsModal()">✉️ E-mail</button>
-            <button class="admin-btn" id="openVisibilitySettingsBtn" type="button" style="background: #375C50;" onclick="openVisibilitySettingsModal()">⚙️ Ceny a formulár</button>
+            <button class="admin-btn" id="openVisibilitySettingsBtn" type="button" style="background: #375C50;" onclick="openVisibilitySettingsModal()">⚙️ Zobrazenie webu</button>
             <button class="admin-btn" style="background: var(--primary-color);" onclick="openVarietyModal()">+ Odroda</button>
             <button class="admin-btn" style="background: #805AD5;" onclick="openBlogModal()">+ Blog</button>
             <button class="admin-btn" style="background: #3182CE;" onclick="exportJsonData()">📦 Zálohovať JSON</button>
@@ -1449,7 +1449,7 @@
     <!-- Spoločné nastavenia verejného zobrazenia. -->
     <div class="modal-overlay" id="visibilitySettingsModal" role="presentation" aria-hidden="true">
         <section class="modal-box visibility-settings-dialog" role="dialog" aria-modal="true" aria-labelledby="visibilitySettingsTitle">
-            <h3 id="visibilitySettingsTitle">⚙️ Ceny a formulár</h3>
+            <h3 id="visibilitySettingsTitle">⚙️ Zobrazenie webu</h3>
             <p class="visibility-settings-help">Tieto voľby menia len verejné zobrazenie. Ceny, sklad a fotografie zostávajú v databáze Supabase. Každá voľba sa ukladá samostatne.</p>
             <div class="visibility-setting-row">
                 <div><strong>Zobrazenie cien</strong><p>Skryje ceny v katalógu, detaile, porovnaní aj súhrne výberu.</p></div>
@@ -1458,6 +1458,10 @@
             <div class="visibility-setting-row">
                 <div><strong>Nezáväzný formulár</strong><p>Pozastaví verejný formulár a pridávanie odrôd do výberu.</p></div>
                 <button class="admin-btn" id="toggleOrderFormBtn" type="button" style="background: #9B2C2C;" aria-pressed="false" onclick="toggleOrderFormPaused()">⏸ Pozastaviť formulár</button>
+            </div>
+            <div class="visibility-setting-row">
+                <div><strong>3D generátor zápichovačov</strong><p>Skryje odkaz na generátor pred návštevníkmi a pozastaví generovanie aj pri otvorení priamej adresy. Existujúce STL a katalóg nemení.</p></div>
+                <button class="admin-btn" id="toggleGeneratorBtn" type="button" style="background: #9B2C2C;" aria-pressed="false" onclick="toggleGeneratorPaused()">⏸ Pozastaviť 3D generátor</button>
             </div>
             <p class="visibility-setting-status" id="visibilitySettingsStatus" role="status" aria-live="polite"></p>
             <div class="visibility-setting-footer"><button class="admin-btn" type="button" style="background:#4A5568;" onclick="closeVisibilitySettingsModal()">Zavrieť</button></div>
@@ -2351,6 +2355,7 @@
             updateFormAction();
             updateOrderFormVisibility();
             updatePriceVisibility();
+            updateGeneratorVisibility();
         }
 
         function isOrderFormPaused() {
@@ -2361,10 +2366,26 @@
             return farmSettings.pricesHidden === true;
         }
 
+        function isGeneratorPaused() {
+            return farmSettings.generatorPaused === true;
+        }
+
+        function updateGeneratorVisibility() {
+            const paused = isGeneratorPaused();
+            const button = document.getElementById('toggleGeneratorBtn');
+            if (button) {
+                button.textContent = paused ? '▶ Zobraziť 3D generátor' : '⏸ Pozastaviť 3D generátor';
+                button.style.background = paused ? '#276749' : '#9B2C2C';
+                button.setAttribute('aria-pressed', String(paused));
+                button.title = paused ? 'Sprístupniť generátor návštevníkom' : 'Skryť generátor a zastaviť verejné generovanie';
+            }
+        }
+
         function openVisibilitySettingsModal() {
             if (!requireAdmin()) return false;
             updateOrderFormVisibility();
             updatePriceVisibility();
+            updateGeneratorVisibility();
             const modal = document.getElementById('visibilitySettingsModal');
             if (!modal) return false;
             modal.classList.add('active');
@@ -2394,7 +2415,8 @@
             if (floatingTotal) floatingTotal.style.display = hidden ? 'none' : '';
             const status = document.getElementById('visibilitySettingsStatus');
             if (status) status.textContent = 'Ceny: ' + (hidden ? 'skryté' : 'zobrazené') +
-                ' · Formulár: ' + (isOrderFormPaused() ? 'pozastavený' : 'aktívny');
+                ' · Formulár: ' + (isOrderFormPaused() ? 'pozastavený' : 'aktívny') +
+                ' · 3D generátor: ' + (isGeneratorPaused() ? 'pozastavený' : 'aktívny');
         }
 
         // Zmeny oboch prepínačov sa serializujú, aby jeden nezrušil druhý.
@@ -2407,7 +2429,7 @@
             }
             if (visibilitySettingsSaving) return false;
             visibilitySettingsSaving = true;
-            const buttons = ['toggleOrderFormBtn', 'togglePricesBtn']
+            const buttons = ['toggleOrderFormBtn', 'togglePricesBtn', 'toggleGeneratorBtn']
                 .map(id => document.getElementById(id)).filter(Boolean);
             for (const button of buttons) button.disabled = true;
             try {
@@ -2422,6 +2444,10 @@
                 renderAll();
                 if (key === 'pricesHidden') {
                     showToast(nextValue ? '🙈 Ceny sú na webe skryté.' : '👁️ Ceny sa opäť zobrazujú.');
+                } else if (key === 'generatorPaused') {
+                    showToast(nextValue
+                        ? '⏸ 3D generátor je pozastavený a skrytý vo verejnej navigácii.'
+                        : '▶ 3D generátor je sprístupnený návštevníkom.');
                 } else {
                     showToast(nextValue
                         ? '⏸ Formulár je pozastavený a návštevníkom sa nezobrazuje.'
@@ -2439,6 +2465,10 @@
 
         async function togglePricesHidden() {
             return saveVisibilitySetting('pricesHidden', 'zobrazovania cien');
+        }
+
+        async function toggleGeneratorPaused() {
+            return saveVisibilitySetting('generatorPaused', '3D generátora');
         }
 
         // Stav formulára je súčasťou existujúceho záznamu settings v Supabase.
@@ -2502,6 +2532,17 @@
             calendarButton.onclick = () => switchSection('kalendar');
             calendarLi.appendChild(calendarButton);
             navUl.appendChild(calendarLi);
+
+            if (!isGeneratorPaused() || isAdmin) {
+                const generatorLi = document.createElement('li');
+                const generatorButton = document.createElement('button');
+                generatorButton.type = 'button';
+                generatorButton.textContent = '3D generátor' + (isGeneratorPaused() ? ' (Pozastavený)' : '');
+                generatorButton.setAttribute('aria-label', 'Otvoriť 3D generátor záhradných štítkov');
+                generatorButton.onclick = () => { window.location.href = '/3d/'; };
+                generatorLi.appendChild(generatorButton);
+                navUl.appendChild(generatorLi);
+            }
         }
 
         function openOrderForm() {
