@@ -52,7 +52,7 @@ self.onmessage=async event=>{
     });
     addFonts(app);
     app.FS.writeFile('/input.scad',input.source);
-    const args=['/input.scad','--enable=manifold','--export-format=binstl','-o','/markers.stl'];
+    const args=['/input.scad','--export-format=binstl','-o','/markers.stl'];
     input.names.forEach((name,index)=>args.push('-D','Name_'+(index+1)+'='+JSON.stringify(name)));
     for(let i=input.names.length;i<12;i++)args.push('-D','Name_'+(i+1)+'=""');
     for(const key of Object.keys(limits))args.push('-D',key+'='+v[key]);
