@@ -64,7 +64,7 @@ test('Indexable public guide includes genuine STL instructions outside gated int
  assert.match(generator.slice(guide),/PLA/);
  assert.match(generator.slice(guide),/href="\/odrody\/"/);
  assert.match(generator.slice(guide),/href="\/clanky\/"/);
- assert.equal((generator.match(/<summary>/g)||[]).length,5);
+ assert.equal((generator.slice(guide).match(/<summary>/g)||[]).length,5);
 });
 
 test('sitemap includes permanent unique generator URL and generator script preserves it',()=>{
