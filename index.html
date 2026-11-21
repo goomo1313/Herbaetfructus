@@ -204,6 +204,9 @@
         .hero-links button:nth-child(2) { color:#2c5530; background:white; }
         .hero-links button:nth-child(3) { color:#2c5530; background:#e8f1e5; }
         .hero-links button:hover, .hero-links button:focus-visible { box-shadow:0 0 0 3px rgba(52,106,63,.14); }
+        .hero-links .hero-generator-link { padding:12px 18px; border-radius:9px; border:1px solid #94b398; font:inherit; font-weight:700; text-decoration:none; background:#fff; color:#285638; }
+        .hero-links .hero-generator-link:hover, .hero-links .hero-generator-link:focus-visible { box-shadow:0 0 0 3px rgba(52,106,63,.14); background:#e8f1e5; }
+        .hero-links .hero-generator-link[hidden] { display:none!important; }
         .hero-advantages { margin:24px auto 0; display:flex; justify-content:center; gap:10px 24px; flex-wrap:wrap; font-size:.84rem; color:#49634e; }
         .hero-advantages span::before { content:'✓ '; color:#297442; font-weight:800; }
 
@@ -1095,6 +1098,7 @@
             <button type="button" onclick="switchSection('paradajky')">Prezrieť odrody paradajok</button>
             <button type="button" onclick="switchSection('blog')">Pestovateľské články</button>
             <button type="button" onclick="switchSection('kalendar')">Pestovateľský kalendár</button>
+            <a id="heroGeneratorLink" class="hero-generator-link" href="/3d/" hidden>🖨️ Bezplatný generátor 3D štítkov na rastliny</a>
         </div>
         <div class="hero-advantages" aria-label="O našom katalógu">
             <span>Zberateľské odrody a ich opisy</span>
@@ -2382,6 +2386,8 @@
                 button.setAttribute('aria-pressed', String(paused));
                 button.title = paused ? 'Sprístupniť generátor návštevníkom' : 'Skryť generátor a zastaviť verejné generovanie';
             }
+            const heroGeneratorLink = document.getElementById('heroGeneratorLink');
+            if (heroGeneratorLink) heroGeneratorLink.hidden = paused || !cloudContentLoaded;
             updateMarkerSelectionButton();
         }
 
@@ -2640,11 +2646,10 @@
 
             if (!isGeneratorPaused() || isAdmin) {
                 const generatorLi = document.createElement('li');
-                const generatorButton = document.createElement('button');
-                generatorButton.type = 'button';
+                const generatorButton = document.createElement('a');
+                generatorButton.href = '/3d/';
                 generatorButton.textContent = '3D generátor' + (isGeneratorPaused() ? ' (Pozastavený)' : '');
-                generatorButton.title = 'Otvoriť 3D generátor záhradných štítkov';
-                generatorButton.onclick = () => { window.location.href = '/3d/'; };
+                generatorButton.title = 'Otvoriť bezplatný 3D generátor záhradných štítkov a STL';
                 generatorLi.appendChild(generatorButton);
                 navUl.appendChild(generatorLi);
             }
