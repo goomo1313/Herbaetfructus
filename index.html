@@ -2538,7 +2538,7 @@
                 const generatorButton = document.createElement('button');
                 generatorButton.type = 'button';
                 generatorButton.textContent = '3D generátor' + (isGeneratorPaused() ? ' (Pozastavený)' : '');
-                generatorButton.setAttribute('aria-label', 'Otvoriť 3D generátor záhradných štítkov');
+                generatorButton.title = 'Otvoriť 3D generátor záhradných štítkov';
                 generatorButton.onclick = () => { window.location.href = '/3d/'; };
                 generatorLi.appendChild(generatorButton);
                 navUl.appendChild(generatorLi);
