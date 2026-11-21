@@ -3,9 +3,58 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>3D generátor záhradných štítkov | Herba et Fructus</title>
-  <meta name="description" content="Vytvorte si vlastné záhradné zápichovače s názvami rastlín. Nastavte rozmery, pozrite 3D náhľad a stiahnite STL na 3D tlač.">
+  <title>3D štítky na rastliny – STL generátor zdarma | Herba et Fructus</title>
+  <meta name="description" content="Bezplatný generátor 3D štítkov na rastliny: menovky pre paradajky, bylinky a záhony. Vytvorte 1–60 zápichov a stiahnite STL alebo ZIP na 3D tlač.">
   <link rel="canonical" href="https://herbaetfructus.sk/3d/">
+  <meta name="robots" content="index,follow">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="sk_SK">
+  <meta property="og:site_name" content="Herba et Fructus">
+  <meta property="og:title" content="3D štítky na rastliny – bezplatný STL generátor">
+  <meta property="og:description" content="Vytvorte vlastné menovky a záhradné zápichy na 3D tlač. Až 60 názvov naraz, 3D náhľad, STL a ZIP.">
+  <meta property="og:url" content="https://herbaetfructus.sk/3d/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="3D štítky na rastliny – STL generátor">
+  <meta name="twitter:description" content="Bezplatný online generátor menoviek na rastliny s STL exportom.">
+  <meta name="theme-color" content="#285638">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://herbaetfructus.sk/3d/#webpage",
+        "url": "https://herbaetfructus.sk/3d/",
+        "name": "3D štítky na rastliny – bezplatný STL generátor",
+        "description": "Online generátor záhradných menoviek s vlastným textom, 3D náhľadom a STL exportom.",
+        "inLanguage": "sk-SK",
+        "mainEntity": { "@id": "https://herbaetfructus.sk/3d/#app" },
+        "breadcrumb": { "@id": "https://herbaetfructus.sk/3d/#breadcrumb" }
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://herbaetfructus.sk/3d/#app",
+        "name": "Herba et Fructus – generátor 3D záhradných štítkov",
+        "url": "https://herbaetfructus.sk/3d/",
+        "description": "Bezplatná webová aplikácia na vytváranie vlastných 3D tlačiteľných štítkov a zápichov pre rastliny. Podporuje 1 až 60 názvov, úpravu rozmerov, 3D náhľad, STL a ZIP export.",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Web browser",
+        "inLanguage": "sk-SK",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+        "publisher": { "@type": "Organization", "name": "Herba et Fructus", "url": "https://herbaetfructus.sk/" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://herbaetfructus.sk/3d/#breadcrumb",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Domov", "item": "https://herbaetfructus.sk/" },
+          { "@type": "ListItem", "position": 2, "name": "3D generátor záhradných štítkov", "item": "https://herbaetfructus.sk/3d/" }
+        ]
+      }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -26,9 +75,12 @@
     </div>
   </header>
   <main id="obsah" class="generator-wrap">
+    <nav class="generator-breadcrumbs" aria-label="Omrvinková navigácia">
+      <a href="/">Domov</a><span aria-hidden="true">›</span><span aria-current="page">3D štítky na rastliny</span>
+    </nav>
     <div class="page-title">
       <p class="eyebrow">Záhradná dielňa · bezplatný nástroj</p>
-      <h1>Vlastné štítky pre vaše rastliny</h1>
+      <h1>Generátor 3D štítkov na rastliny – vlastné STL zadarmo</h1>
       <p>Zadajte až 60 názvov, upravte rozmery a stiahnite tlačiteľné STL. Pri väčšom výbere automaticky pripravíme ZIP s viacerými dávkami. Základom je náš parametrický OpenSCAD zápichovač s klinovou špičkou a vystúpeným písmom.</p>
     </div>
 
@@ -102,10 +154,59 @@ Golden Canary</textarea>
           <p id="renderStatus" class="render-status" role="status" aria-live="polite">Pripravené na generovanie.</p>
           <div class="download-row"><button id="downloadStl" class="primary" disabled>Stiahnuť STL model</button><span id="modelStats" class="muted"></span></div>
           <div class="print-note"><strong>Dvojfarebná tlač:</strong> STL obsahuje geometriu, nie farby. Pre výmenu filamentu nastavte v sliceri vrstvu vo výške základne (<span id="layerHeight">2,5</span> mm). Výška písma sa pridáva nad túto úroveň.</div>
-          <p class="muted small">Generovanie prebieha vo vašom prehliadači pomocou OpenSCAD WebAssembly. Pri prvom použití sa musí stiahnuť výpočtový modul; V jednej dávke sa vytvára najviac 12 štítkov. Pri 30 názvoch sa automaticky vygenerujú tri STL súbory v jednom ZIP; výpočet môže trvať dlhšie.</p>
+          <p class="muted small">Generovanie prebieha vo vašom prehliadači pomocou OpenSCAD WebAssembly. Pri prvom použití sa musí stiahnuť výpočtový modul. V jednej dávke sa vytvára najviac 12 štítkov. Pri 30 názvoch sa automaticky vygenerujú tri STL súbory v jednom ZIP; výpočet môže trvať dlhšie.</p>
         </section>
       </div>
     </div>
+    <section class="generator-guide" aria-labelledby="generatorGuideTitle">
+      <div class="guide-intro">
+        <p class="eyebrow">Ako používať generátor</p>
+        <h2 id="generatorGuideTitle">3D tlačené menovky a zápichy do záhrady</h2>
+        <p>Potrebujete prehľadné <strong>štítky pre paradajky, bylinky, sadenice či zeleninové záhony</strong>? V tomto bezplatnom nástroji si pripravíte vlastné názvy a rozmery, pozriete model v 3D a stiahnete súbor <strong>STL pre 3D tlačiareň</strong>. Nemusíte mať nainštalovaný OpenSCAD. Tlač si následne pripravíte vo svojom sliceri.</p>
+      </div>
+      <div class="guide-grid">
+        <article>
+          <h3>1. Napíšte názvy rastlín</h3>
+          <p>Každý názov vložte na samostatný riadok. Pri odrode <a href="/odrody/ildi/">Ildi</a> si napríklad môžete vytvoriť zápich s nápisom „Ildi“. Ak ste si v našom <a href="/odrody/">katalógu odrôd</a> vybrali viac rastlín, prenesiete ich názvy do generátora jedným tlačidlom.</p>
+        </article>
+        <article>
+          <h3>2. Prispôsobte rozmery a písmo</h3>
+          <p>Upravte dĺžku zápichu, šírku, tvar špičky a vystúpený text. Pôvodný parametrický model má úzky 5 mm zápich; širšia verzia umožňuje aj voliteľné výrezy a otvor. Názvy so slovenskou diakritikou sú podporované.</p>
+        </article>
+        <article>
+          <h3>3. Vytvorte a stiahnite STL</h3>
+          <p>Výpočet prebieha vo vašom prehliadači. Pri 1 až 12 názvoch získate jeden STL model. Pri 13 až 60 názvoch sa štítky automaticky rozdelia do dávok po najviac 12 kusoch a stiahnete ich spolu v jednom ZIP archíve.</p>
+        </article>
+        <article>
+          <h3>4. Pripravte 3D tlač</h3>
+          <p>STL otvorte v PrusaSliceri, OrcaSliceri alebo inom sliceri. Skontrolujte rozmer tlačovej podložky, umiestnenie modelu a náhľad vrstiev. Pri dvojfarebnom štítku nastavte výmenu filamentu vo výške základne; samotný STL súbor farby neuchováva.</p>
+        </article>
+      </div>
+      <section class="guide-faq" aria-labelledby="generatorFaqTitle">
+        <h2 id="generatorFaqTitle">Časté otázky o 3D tlači štítkov</h2>
+        <details>
+          <summary>Je generátor 3D štítkov zadarmo?</summary>
+          <p>Áno, vytvorenie a stiahnutie súboru STL alebo SCAD je bezplatné. Registrácia nie je potrebná. Na fyzickú výrobu potrebujete prístup k 3D tlačiarni a vlastný filament.</p>
+        </details>
+        <details>
+          <summary>Aký filament sa hodí na štítky do exteriéru?</summary>
+          <p>Na trvalejšie vonkajšie použitie býva vhodnejší PETG alebo materiál určený do exteriéru. PLA sa môže v horúčave deformovať a pri dlhodobom slnečnom zaťažení starnúť. Životnosť závisí od konkrétneho filamentu, počasia aj spôsobu tlače.</p>
+        </details>
+        <details>
+          <summary>Môžem vytvoriť 30 rôznych štítkov naraz?</summary>
+          <p>Áno. Zadajte 30 názvov alebo ich preneste z výberu odrôd na stránke. Generátor vytvorí tri STL súbory s 12, 12 a 6 štítkami, ktoré stiahnete v jednom ZIP.</p>
+        </details>
+        <details>
+          <summary>Ako vytlačím písmo inou farbou?</summary>
+          <p>Nastavte zmenu farby filamentu na výške základne modelu, predvolene 2,5 mm. Pri každom modeli si v sliceri skontrolujte výšku vrstiev. Farby zobrazené v online náhľade nie sú uložené priamo v STL.</p>
+        </details>
+        <details>
+          <summary>Potrebujem na vytvorenie STL program OpenSCAD?</summary>
+          <p>Nie. Geometriu počíta OpenSCAD WebAssembly v prehliadači. Ak chcete model ďalej upravovať mimo našej stránky, môžete si stiahnuť aj zdrojový SCAD súbor.</p>
+        </details>
+      </section>
+      <p class="guide-related">Súvisiace odkazy: <a href="/odrody/">Katalóg odrôd paradajok a zeleniny</a> · <a href="/clanky/">Pestovateľské články a rady</a> · <a href="/">Herba et Fructus</a></p>
+    </section>
     <footer>Model: Herba et Fructus · <a href="/">Domov</a> · <a href="/odrody/">Katalóg</a></footer>
   </main>
   <script src="../config.js"></script>
