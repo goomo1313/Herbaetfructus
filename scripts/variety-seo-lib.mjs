@@ -109,7 +109,7 @@ export function renderProfile(p,logo,all=[]){
  '<meta property="og:title" content="'+esc(p.name+' | Herba et Fructus')+'">'+
  '<meta property="og:description" content="'+esc(description)+'"><meta property="og:url" content="'+esc(canonical)+'">'+
  (p.photos[0]?'<meta property="og:image" content="'+esc(p.photos[0])+'">':'')+
- commonHead('../../')+'<script type="application/ld+json">'+xmljson(schema)+'</script></head><body>'+header(logo)+
+ commonHead('../../')+'<script src="../../config.js" defer></script><script src="../../variety-marker-link.js" defer></script><script type="application/ld+json">'+xmljson(schema)+'</script></head><body>'+header(logo)+
  '<main id="obsah" class="article-container"><nav class="breadcrumbs"><a href="/">Domov</a> › <a href="/odrody/">Odrody</a> › '+esc(p.name)+'</nav>'+
  '<article class="article-card variety-seo-profile"><p class="article-kicker">'+esc(p.sectionTitle)+'</p><h1>'+esc(p.name)+'</h1>'+
  (p.photos[0]?'<figure class="profile-hero"><img src="'+esc(p.photos[0])+'" alt="'+esc(p.name)+'" style="object-fit:'+p.imageFit+'" decoding="async"></figure>':
@@ -118,7 +118,8 @@ export function renderProfile(p,logo,all=[]){
  (facts.length?'<h2>Vlastnosti odrody</h2><dl class="profile-facts">'+facts.map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>').join('')+'</dl>':'')+
  (p.photos.length>1?'<h2>Fotogaléria</h2><div class="profile-gallery">'+p.photos.slice(1).map((src,i)=>
  '<a href="'+esc(src)+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(src)+'" alt="'+esc(p.name)+' – fotografia '+(i+2)+'" loading="lazy"></a>').join('')+'</div>':'')+
- '<p class="profile-actions"><a class="profile-primary" href="/#odroda='+encodeURIComponent(p.name)+'">Zobraziť v katalógu a poslať nezáväzný dopyt</a></p>'+
+ '<p class="profile-actions"><a class="profile-primary" href="/#odroda='+encodeURIComponent(p.name)+'">Zobraziť v katalógu a poslať nezáväzný dopyt</a> '+
+ '<a class="profile-marker" data-marker-link href="/3d/?odroda='+encodeURIComponent(p.name)+'" hidden>🖨️ Vytvoriť 3D štítok</a></p>'+
  extras+'</article><p class="back-to-blog"><a href="/odrody/">← Všetky odrody</a></p></main>'+footer+'</body></html>\n';
 }
 export function renderArchive(profiles,logo){
