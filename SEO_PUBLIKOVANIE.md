@@ -39,3 +39,41 @@ V profiloch sú iba vlastnosti, opis a fotografie; **neuvádzajú sa ceny, sklad
 - Po zmene viditeľnosti v administrácii sa statické HTML a manifest aktualizujú pri najbližšej úspešnej synchronizácii (plán každých 6 hodín).
 - Pri súčasných zmenách na GitHube sa publikovanie pokúsi bezpečne zlúčiť novšie commity. Nikdy nepoužíva násilný push.
 - Testy `tests/variety-archive.mjs`, `tests/variety-discovery.mjs` a `tests/seo-variety-profiles.mjs` kontrolujú navigáciu, ochranu skrytých údajov a generovanie profilov.
+
+## SEO generátora 3D záhradných štítkov
+
+Verejná stránka `https://herbaetfructus.sk/3d/` má samostatný popisný titulok,
+meta popis, kanonickú adresu, Open Graph a Twitter metadata, JSON-LD
+`WebApplication` (bez vymyslených hodnotení) a `BreadcrumbList`.
+Obsahuje indexovateľný vysvetľujúci HTML návod a FAQ: generovanie STL,
+štítky na paradajky/bylinky, 3D tlač, výmena farby, PETG a PLA.
+Používateľské nástroje zostávajú oddelené od indexovateľného textu.
+
+Kanonická URL `/3d/` je v `sitemap.xml` a v zdrojovom generátore
+`scripts/generate-seo.mjs`, aby ju ďalšia automatická synchronizácia
+neodstránila. `robots.txt` povoľuje jej prehľadávanie. Na hlavnej
+stránke je skutočný odkaz `href="/3d/"`, ktorý sa zobrazuje len po
+úspešnom načítaní verejných nastavení a len keď správca generátor
+nepozastavil. Navigácia používa odkaz namiesto JS tlačidla.
+Generátor má tiež odkazy na katalóg, články a príklady odrôd.
+
+**Pozastavenie generátora nie je to isté ako zakázanie indexácie.**
+Pri pozastavení sa vypnú ovládacie prvky a odkazy, ale verejný návod
+a stránka zostanú čitateľné; Google si môže ponechať už nájdenú adresu.
+To je zámer, aby krátkodobé pozastavenie nepoškodilo dlhodobé SEO.
+
+### Overenie v Google Search Console
+
+1. Otvor vlastníctvo `herbaetfructus.sk` v Google Search Console.
+2. V poli **Kontrola adresy URL** zadaj presne `https://herbaetfructus.sk/3d/`.
+3. Použi **Otestovať živú adresu URL** a pri úspešnom načítaní
+   **Požiadať o indexovanie**. Toto je požiadavka Googlu, nie záruka zaradenia.
+4. V sekcii **Súbory sitemap** skontroluj odoslanie
+   `https://herbaetfructus.sk/sitemap.xml` a stav spracovania.
+5. Výsledok je možné neskôr skontrolovať v prehľade indexácie stránok
+   a cez vyhľadávanie `site:herbaetfructus.sk/3d/`.
+
+Zmeny overujú `tests/generator-seo.mjs` a aktualizovaná kontrola sitemap
+v `tests/seo-static-pages.mjs` spolu s `node scripts/generate-seo.mjs --check`.
+Indexovanie do Googlu nemôže za web garantovať ani spustiť samotný kód.
+
