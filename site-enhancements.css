@@ -241,3 +241,197 @@
 }
 .product-detail-marker-link:hover{background:#e3f0df}
 .product-detail-marker-link[hidden]{display:none!important}
+
+/*
+ * Mobilný katalóg Herba et Fructus (2026-11):
+ * Na telefónoch dve zrozumiteľné karty na riadok. Celý opis a vlastnosti
+ * zostávajú v klikateľnom detaile odrody, nie v zmenšenej karte.
+ * CSS je zámerne na konci súboru kvôli starším pravidlám max-width:510px.
+ */
+@media (max-width: 640px) {
+  .variety-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+    align-items: stretch;
+  }
+  .variety-grid .variety-card {
+    min-width: 0;
+    border-radius: 12px;
+  }
+  .variety-grid .variety-card .card-img-placeholder {
+    height: clamp(128px, 38vw, 156px);
+  }
+  .variety-grid .variety-card .card-img-placeholder::before {
+    display: none;
+  }
+  .variety-grid .variety-card .card-img-placeholder:not(.has-photo)::after {
+    font-size: .73rem;
+    line-height: 1.35;
+    text-align: center;
+    padding: 8px;
+  }
+  .variety-grid .variety-card .card-content {
+    padding: 9px 9px 11px;
+    min-width: 0;
+  }
+  .variety-grid .variety-card .badges-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    min-width: 0;
+    margin: 0 0 6px;
+  }
+  .variety-grid .variety-card .badge {
+    padding: 2px 6px;
+    font-size: .64rem;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .variety-grid .variety-card .badge.type {
+    flex: 1 1 auto;
+  }
+  .variety-grid .variety-card .badge.price,
+  .variety-grid .variety-card .badge.hidden-badge {
+    flex: 0 0 auto;
+  }
+  .variety-grid .variety-card .badge.seeds-info,
+  .variety-grid .variety-card .badge.multiflora {
+    display: none;
+  }
+  .variety-grid .variety-card.flagship .card-img-placeholder {
+    border-bottom-color: #e9cf96;
+  }
+  .variety-grid .variety-card h3 {
+    font-size: .94rem;
+    line-height: 1.32;
+    margin: 0 0 5px;
+    min-height: 2.64em;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .variety-grid .variety-card .weight-info {
+    font-size: .72rem;
+    line-height: 1.35;
+    margin: 0 0 7px;
+  }
+  /* Obsah sa nestráca: karta je klikateľná a detail odrody obsahuje celý opis. */
+  .variety-grid .variety-card p.info,
+  .variety-grid .variety-card .variety-facts {
+    display: none;
+  }
+  .variety-grid .variety-card .card-actions-row {
+    margin-top: auto;
+    padding-top: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+  }
+  .variety-grid .variety-card .card-actions-row .quantity-selector {
+    width: 100%;
+    height: 40px;
+    justify-content: space-between;
+  }
+  .variety-grid .variety-card .card-actions-row .quantity-selector .qty-btn {
+    flex: 1 1 34px;
+    width: auto;
+    min-width: 34px;
+    min-height: 39px;
+    height: 39px;
+  }
+  .variety-grid .variety-card .card-actions-row .quantity-selector input[type="text"].qty-input {
+    flex: 0 0 34px;
+    min-width: 34px;
+    width: 34px;
+    height: 38px;
+    line-height: 38px;
+  }
+  .variety-grid .variety-card .card-actions-row .btn-select {
+    width: 100%;
+    min-height: 41px;
+    padding: 6px 5px;
+    font-size: .79rem;
+  }
+  .variety-grid .variety-card .enhanced-compare-btn {
+    top: 7px;
+    right: 7px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+  /* 3D štítok je stále viditeľný, ale nezaberá ďalší riadok pod opisom. */
+  .variety-grid .variety-card .marker-3d-card {
+    position: absolute;
+    top: calc(clamp(128px, 38vw, 156px) - 44px);
+    left: 7px;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    background: rgba(255,255,255,.97);
+    border-color: #a0c1a5;
+    box-shadow: 0 2px 7px rgba(18,52,28,.12);
+    font-size: 0;
+  }
+  .variety-grid .variety-card .marker-3d-card::before {
+    content: "🖨️";
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+  .variety-grid .variety-card .card-selection-indicator {
+    top: 7px;
+    left: 7px;
+    width: 33px;
+    height: 33px;
+    max-width: 33px;
+    padding: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    font-size: 0;
+  }
+  .variety-grid .variety-card.in-selection .card-selection-indicator {
+    display: inline-flex;
+  }
+  .variety-grid .variety-card.in-selection .card-selection-indicator::before {
+    content: "✓";
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .variety-grid .variety-card .form-pause-note {
+    font-size: .72rem;
+    line-height: 1.4;
+    padding: 8px;
+  }
+  .variety-grid .variety-card .card-admin-actions {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .variety-grid .variety-card .card-admin-actions button {
+    min-width: 34px;
+    min-height: 38px;
+  }
+  @supports (content-visibility:auto) {
+    .variety-grid .variety-card {
+      contain-intrinsic-size: auto 310px;
+    }
+  }
+}
+@media (max-width: 350px) {
+  .variety-grid { gap: 8px; }
+  .variety-grid .variety-card .card-content { padding: 8px 7px 10px; }
+  .variety-grid .variety-card h3 { font-size: .88rem; }
+  .variety-grid .variety-card .badge { font-size: .6rem; padding: 2px 4px; }
+  .variety-grid .variety-card .card-actions-row .btn-select { font-size: .75rem; }
+}
