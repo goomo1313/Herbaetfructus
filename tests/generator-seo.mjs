@@ -15,7 +15,7 @@ function meta(name, source=generator) {
 test('3D generator has unique, descriptive metadata and one canonical URL',()=>{
  const title = generator.match(/<title>([^<]+)<\/title>/)?.[1];
  assert.ok(title?.includes('3D štítky na rastliny') && title.includes('STL'));
- assert.ok(title.length <= 85);
+ assert.ok(title.length >= 40 && title.length <= 60);
  const description = meta('description');
  assert.match(description,/3D štítkov na rastliny/);
  assert.match(description,/STL/);
