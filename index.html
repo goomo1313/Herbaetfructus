@@ -1292,6 +1292,7 @@
                         <div class="cart-summary-box" id="cartSummaryBox">
                             <h3>🌱 Váš výber zberateľských odrôd</h3>
                             <div id="cartSummaryContent" aria-live="polite" style="color: var(--text-muted); font-size: 0.9rem;">Zatiaľ nemáte vybrané žiadne položky.</div>
+                            <button type="button" id="selectedMarkersButton" class="selected-markers-btn" onclick="openMarkerGeneratorForSelection()" hidden>🖨️ Vytvoriť 3D štítky k výberu</button>
                         </div>
                         <details class="form-accordion form-selection-edit" id="formSelectionEditor">
                             <summary>Chcem upraviť výber alebo pridať ďalšiu odrodu</summary>
@@ -1375,6 +1376,7 @@
                         <button id="detailOrder" type="button">Prejsť k dopytu</button>
                         <button id="detailShare" type="button">Zdieľať odrodu</button>
                         <a id="detailProfileLink" class="product-detail-profile-link" href="/odrody/" hidden>Samostatný profil odrody ↗</a>
+                        <a id="detailMarker3D" class="product-detail-marker-link" href="/3d/" hidden>🖨️ Vytvoriť 3D štítok</a>
                     </div>
                 </div>
             </div>
@@ -2356,6 +2358,7 @@
             updateOrderFormVisibility();
             updatePriceVisibility();
             updateGeneratorVisibility();
+            updateMarkerSelectionButton();
         }
 
         function isOrderFormPaused() {
@@ -2379,6 +2382,7 @@
                 button.setAttribute('aria-pressed', String(paused));
                 button.title = paused ? 'Sprístupniť generátor návštevníkom' : 'Skryť generátor a zastaviť verejné generovanie';
             }
+            updateMarkerSelectionButton();
         }
 
         function openVisibilitySettingsModal() {
@@ -2506,6 +2510,61 @@
             // Potvrdenie je samostatný lokálny súbor; nevznikne 404 ani pri GitHub Pages v podpriečinku.
             const returnUrl = document.getElementById('formReturnUrl');
             if (returnUrl) returnUrl.value = new URL('./dakujeme.html', window.location.href).href;
+        }
+
+        // Štítky sú nezávislé od počtu balení: jeden názov = jeden štítok.
+        // Pri prenose nikdy neodovzdávame ceny, osobné údaje ani sklad.
+        function selectedMarkerNames() {
+            const names = [];
+            const seen = new Set();
+            document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                const name = checkbox?.value;
+                if (!checkbox?.checked || !name || seen.has(name)) return;
+                const variety = varietyDatabase.find(v => v && v.name === name && !v.hidden);
+                if (!variety) return;
+                names.push(name);
+                seen.add(name);
+            });
+            return names;
+        }
+
+        function updateMarkerSelectionButton() {
+            const button = document.getElementById('selectedMarkersButton');
+            if (!button) return;
+            const count = selectedMarkerNames().length;
+            button.hidden = isGeneratorPaused() || count === 0;
+            button.disabled = isGeneratorPaused() || count === 0;
+            button.textContent = '🖨️ Vytvoriť 3D štítky k výberu (' + count + ' odrôd)';
+        }
+
+        function openMarkerGeneratorForVariety(name) {
+            if (isGeneratorPaused()) return false;
+            const variety = varietyDatabase.find(v => v && v.name === name && !v.hidden);
+            if (!variety) return false;
+            window.location.href = '/3d/?odroda=' + encodeURIComponent(variety.name);
+            return true;
+        }
+
+        function openMarkerGeneratorForSelection() {
+            if (isGeneratorPaused()) return false;
+            const names = selectedMarkerNames();
+            if (!names.length) {
+                showToast('Najprv vyberte odrody, pre ktoré chcete vytvoriť štítky.');
+                return false;
+            }
+            if (names.length > 60) {
+                showToast('Generátor prijíma najviac 60 názvov naraz. Zmenšite výber.');
+                return false;
+            }
+            try {
+                sessionStorage.setItem('herba_3d_names_v1', JSON.stringify(names));
+                window.location.href = '/3d/?vyber=1';
+            } catch (error) {
+                // Núdzový prenos bez úložiska pri zakázanom sessionStorage.
+                window.location.href = '/3d/?odrody=' + encodeURIComponent(names.join('\n'));
+            }
+            return true;
         }
 
         function renderNav() {
@@ -2972,6 +3031,7 @@
                             </div>
                         ` : '<div style="color: #E53E3E; font-weight: 600; font-size: 0.9rem; text-align: center; padding: 8px;">Vypredané</div>'}
                         
+                        ${!isGeneratorPaused() && !t.hidden ? `<button class="marker-3d-card" type="button" title="Vytvoriť štítok pre ${escapeHtml(t.name)}" aria-label="Vytvoriť 3D štítok pre odrodu ${escapeHtml(t.name)}">🖨️ 3D štítok</button>` : ''}
                         <button class="enhanced-compare-btn" type="button" data-name="${escapeHtml(t.name)}" aria-pressed="false" aria-label="Porovnať odrodu ${escapeHtml(t.name)}" title="Porovnať odrodu ${escapeHtml(t.name)}">⚖</button>
                         <div class="card-admin-actions">
                             <button class="btn-edit-card" onclick="editVariety(${realIndex})">✏️</button>
@@ -3001,6 +3061,11 @@
                 });
                 card.addEventListener('click', event => {
                     if (shouldOpenVarietyCardDetail(event)) showCardDetail();
+                });
+                const markerButton = card.querySelector('.marker-3d-card');
+                if (markerButton) markerButton.addEventListener('click', event => {
+                    event.stopPropagation();
+                    openMarkerGeneratorForVariety(t.name);
                 });
                 const selectButton = card.querySelector('.btn-select');
                 if (selectButton) {
@@ -3427,6 +3492,7 @@
                     : 'Bez výberu odrôd';
             }
             syncSelectedVarietyCards();
+            updateMarkerSelectionButton();
         }
 
         function handleFormSubmit(event) {
