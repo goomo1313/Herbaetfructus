@@ -70,10 +70,14 @@ test('zákazník prenesie naraz 30 odrôd z výberu bez cien a počtu balení',(
  assert.match(button.textContent,/30 odrôd/);
  assert.equal(runInContext('openMarkerGeneratorForSelection()',ctx),true);
  assert.equal(nav.href,'/3d/?vyber=1');
- assert.equal(record.length,1);
- assert.equal(record[0].key,'herba_3d_names_v1');
- assert.deepEqual(JSON.parse(record[0].value),Array.from(names));
- assert.doesNotMatch(record[0].value,/price|stock|balenia|email/);
+ assert.equal(record.length,2);
+ const sent=record.find(row=>row.key==='herba_3d_names_v1');
+ const cart=record.find(row=>row.key==='herba_cart_restore_v1');
+ assert.ok(sent&&cart);
+ assert.deepEqual(JSON.parse(sent.value),Array.from(names));
+ assert.equal(JSON.parse(cart.value).length,30);
+ assert.equal(JSON.parse(cart.value)[0].quantity,1);
+ assert.doesNotMatch(sent.value,/price|stock|balenia|email/);
  nav.href='';record.length=0;
  runInContext('farmSettings.generatorPaused=true;updateMarkerSelectionButton();',ctx);
  assert.equal(button.hidden,true);
