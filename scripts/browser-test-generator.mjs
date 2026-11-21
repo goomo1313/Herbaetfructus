@@ -51,7 +51,7 @@ try{
    ' Form: '+await page.locator('#formError').textContent()+
    ' Errors: '+JSON.stringify(errors.slice(-5)));
  }
- assert.match(await page.locator('#renderStatus').textContent(),/Model je pripravený/);
+ assert.match(await page.locator('#renderStatus').textContent(),/Hotovo:/);
  const promise=page.waitForEvent('download');
  await page.locator('#downloadStl').click();
  const artifact=await promise;
@@ -61,6 +61,39 @@ try{
  for await(const chunk of stream)bytes+=chunk.length;
  assert.ok(bytes>100,'Downloaded STL is empty');
  console.log('Browser: generated/downloaded',artifact.suggestedFilename(),bytes,'bytes');
+
+ // Jediný používateľský úkon pripraví 30 odrôd v troch 12/12/6 STL dávkach.
+ const selected=Array.from({length:30},(_,i)=>i===0?'Ildi':'Odroda '+String(i+1));
+ await page.evaluate(values=>sessionStorage.setItem('herba_3d_names_v1',JSON.stringify(values)),selected);
+ await page.goto('http://127.0.0.1:'+port+'/3d/?vyber=1',{waitUntil:'domcontentloaded'});
+ await page.locator('#generatorApp').waitFor({state:'visible',timeout:35000});
+ assert.equal((await page.locator('#names').inputValue()).split('\\n').length,30);
+ assert.match(await page.locator('#batchCount').textContent(),/3 tlačových dávok/);
+ await page.locator('#generateBtn').click();
+ try{
+  await page.waitForFunction(()=>{
+   const button=document.getElementById('downloadStl');
+   return button && !button.disabled && button.textContent.includes('ZIP');
+  },null,{timeout:300000});
+ }catch(e){
+  throw Error('Bulk 30-marker render not ready. Status: '+await page.locator('#renderStatus').textContent()+
+   ' Form: '+await page.locator('#formError').textContent()+' Errors: '+JSON.stringify(errors.slice(-6)));
+ }
+ assert.match(await page.locator('#modelStats').textContent(),/30 štítkov/);
+ const zipPromise=page.waitForEvent('download');
+ await page.locator('#downloadStl').click();
+ const zipDownload=await zipPromise;
+ assert.match(zipDownload.suggestedFilename(),/30-stitkov\\.zip$/);
+ const chunks=[];
+ for await (const part of await zipDownload.createReadStream())chunks.push(part);
+ const archive=Buffer.concat(chunks);
+ assert.equal(archive.readUInt32LE(0),0x04034b50);
+ assert.equal(archive.readUInt32LE(archive.length-22),0x06054b50);
+ assert.equal(archive.readUInt16LE(archive.length-22+10),4);
+ for(const name of ['Herba-stitky-01.stl','Herba-stitky-02.stl','Herba-stitky-03.stl','CITAJ-MA.txt'])
+  assert.ok(archive.includes(Buffer.from(name)),name);
+ console.log('Browser: 30 selected labels -> 3 printable STL batches in one ZIP:',archive.length,'bytes');
+
  // A paused state must hide the controls, not just the navigation.
  const paused=await browser.newPage();
  await paused.route('**/rest/v1/site_content**',route=>route.fulfill({
