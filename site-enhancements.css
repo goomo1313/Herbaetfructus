@@ -213,3 +213,31 @@
     }
     .variety-card .btn-select { font-size: .78rem; }
 }
+
+/* 3D štítky: nenápadná akcia na karte a výrazné dávkové generovanie výberu. */
+.marker-3d-card {
+  display:inline-flex;align-items:center;gap:5px;align-self:flex-start;
+  margin-top:8px;padding:7px 10px;border-radius:8px;
+  border:1px solid #bfd6bd;background:#f5faf3;color:#285638;
+  font:600 .78rem/1.3 "Poppins",sans-serif;cursor:pointer;
+  transition:background .15s ease,border-color .15s ease;
+}
+.marker-3d-card:hover{background:#e8f3e5;border-color:#87b589}
+.marker-3d-card:focus-visible,.selected-markers-btn:focus-visible,.product-detail-marker-link:focus-visible{
+  outline:3px solid #8ac48a;outline-offset:2px;
+}
+.selected-markers-btn{
+  display:inline-flex;align-items:center;justify-content:center;margin-top:15px;
+  padding:11px 16px;background:#285638;color:#fff;border:1px solid #285638;
+  border-radius:10px;font:600 .91rem "Poppins",sans-serif;cursor:pointer;
+  max-width:100%;
+}
+.selected-markers-btn:hover{background:#1d432c}
+.selected-markers-btn[hidden]{display:none!important}
+.product-detail-marker-link{
+  display:inline-flex;align-items:center;justify-content:center;text-decoration:none;
+  padding:10px 14px;border:1px solid #a3c59d;border-radius:9px;
+  background:#eff7eb;color:#285638;font-weight:700;
+}
+.product-detail-marker-link:hover{background:#e3f0df}
+.product-detail-marker-link[hidden]{display:none!important}
