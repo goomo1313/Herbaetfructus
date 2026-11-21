@@ -86,6 +86,37 @@ test('zákazník prenesie naraz 30 odrôd z výberu bez cien a počtu balení',(
  assert.equal(record.length,0);
 });
 
+test('návrat z 3D dielne obnoví výber semien bez prepísania skladu alebo cien',()=>{
+ const saved=new Map();
+ const cb={checked:false,disabled:false,value:'Ildi',dataset:{price:'1.50'}};
+ const qty={value:'1',dataset:{max:'2'}};
+ const row={querySelector(sel){return sel==='input[type="checkbox"]'?cb:sel==='.form-qty-input'?qty:null;}};
+ const doc={
+  addEventListener(){},
+  querySelectorAll(sel){return sel==='#formTomatoSelector .selector-item'?[row]:[];},
+  querySelector(){return null;},
+  getElementById(){return null;},
+  body:{classList:{contains(){return false;}}}
+ };
+ const store={
+  setItem(k,v){saved.set(k,v);},
+  getItem(k){return saved.get(k)||null;},
+  removeItem(k){saved.delete(k);}
+ };
+ const ctx=createContext({
+  window:{HERBA_CONFIG:{}},document:doc,sessionStorage:store,
+  console:{warn(){},error(){},info(){}},localStorage:{getItem(){return null}},
+  setTimeout(){},alert(){}
+ });
+ runInContext(script,ctx);
+ saved.set('herba_cart_restore_v1',JSON.stringify([{name:'Ildi',quantity:3},{name:'Skrytá',quantity:1}]));
+ assert.equal(runInContext('restoreMarkerCart()',ctx),true);
+ assert.equal(cb.checked,true);
+ assert.equal(qty.value,'2');
+ assert.equal(saved.has('herba_cart_restore_v1'),false);
+ assert.equal(runInContext('farmSettings.generatorPaused',ctx),undefined);
+});
+
 test('3D linky v profile sa zobrazia až po overení pozastavenia',()=>{
  const sample=publicProfiles({sections:[{id:'paradajky',name:'Paradajky',hidden:false}],varieties:[{name:'Ildi',section:'paradajky',hidden:false,info:'Žlté plody.'}]})[0];
  const page=renderProfile(sample,mainLogo(html),[sample]);
