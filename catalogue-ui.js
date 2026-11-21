@@ -100,6 +100,12 @@
         if (!activeName) previousFocus = document.activeElement;
         activeName = item.name;
         syncProfileLink();
+        const markerLink = byId('detailMarker3D');
+        if(markerLink){
+            const paused = typeof isGeneratorPaused === 'function' ? isGeneratorPaused() : true;
+            markerLink.hidden = paused || !!item.hidden;
+            if(!markerLink.hidden) markerLink.href = '/3d/?odroda=' + encodeURIComponent(item.name);
+        }
         const stock = Math.max(0, Math.floor(Number(item.stock) || 0));
         const soldOut = stock === 0 || !!item.hidden;
         const formPaused = typeof isOrderFormPaused === 'function' && isOrderFormPaused();
