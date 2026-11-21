@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>3D generátor záhradných štítkov | Herba et Fructus</title>
+  <meta name="description" content="Vytvorte si vlastné záhradné zápichovače s názvami rastlín. Nastavte rozmery, pozrite 3D náhľad a stiahnite STL na 3D tlač.">
+  <link rel="canonical" href="https://herbaetfructus.sk/3d/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../generator-3d.css">
+  <script type="importmap">
+    {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/"}}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#obsah">Preskočiť na obsah</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Herba et Fructus – úvod">
+        <span class="brand-symbol" aria-hidden="true">✿</span>
+        <span><strong>Herba et Fructus</strong><small>3D záhradné štítky</small></span>
+      </a>
+      <nav aria-label="Navigácia"><a href="/">Domov</a><a href="/odrody/">Odrody</a><a href="/clanky/">Články</a></nav>
+    </div>
+  </header>
+  <main id="obsah" class="generator-wrap">
+    <div class="page-title">
+      <p class="eyebrow">Záhradná dielňa · bezplatný nástroj</p>
+      <h1>Vlastné štítky pre vaše rastliny</h1>
+      <p>Zadajte názvy, upravte rozmery a stiahnite tlačiteľný model STL. Základom je náš parametrický OpenSCAD zápichovač s klinovou špičkou a vystúpeným písmom.</p>
+    </div>
+
+    <div id="generatorGate" class="status-gate" role="status" aria-live="polite">Overujeme dostupnosť generátora…</div>
+
+    <div id="generatorApp" hidden>
+      <div class="editor-layout">
+        <section class="editor-panel" aria-labelledby="controlsTitle">
+          <h2 id="controlsTitle">Nastavenia modelu</h2>
+          <form id="markerForm">
+            <div class="field">
+              <label for="names">Názvy rastlín <span class="muted">(1 až 12, každý na novom riadku)</span></label>
+              <textarea id="names" rows="4" maxlength="480" spellcheck="false">Ildi
+Golden Canary</textarea>
+              <p class="field-hint"><span id="nameCount">2</span>/12 štítkov · Slovenská diakritika je podporovaná.</p>
+            </div>
+            <div class="two-col">
+              <div class="field"><label for="stick_length">Dĺžka zápichu (mm)</label><input id="stick_length" type="number" min="50" max="300" step="1" value="160" required></div>
+              <div class="field"><label for="stick_width">Šírka zápichu (mm)</label><input id="stick_width" type="number" min="3" max="20" step="0.5" value="5" required></div>
+              <div class="field"><label for="tip_length">Dĺžka špičky (mm)</label><input id="tip_length" type="number" min="10" max="100" step="1" value="25" required></div>
+              <div class="field"><label for="base_height">Hrúbka základne (mm)</label><input id="base_height" type="number" min="1" max="10" step="0.1" value="2.5" required></div>
+              <div class="field"><label for="text_height">Výška textu (mm)</label><input id="text_height" type="number" min="1" max="6" step="0.1" value="1.4" required></div>
+              <div class="field"><label for="text_size">Veľkosť písma (mm)</label><input id="text_size" type="number" min="6" max="20" step="0.5" value="10" required></div>
+            </div>
+            <div class="field"><label for="font_choice">Písmo</label>
+              <select id="font_choice"><option value="Liberation Sans">Liberation Sans – moderné</option><option value="Liberation Serif">Liberation Serif – klasické</option></select>
+            </div>
+            <div class="two-col">
+              <div class="field"><label for="base_color">Farba základne (náhľad)</label>
+                <select id="base_color"><option value="#26372a">Tmavozelená</option><option value="#252525">Čierna</option><option value="#eeeeea">Biela</option><option value="#875e36">Hnedá</option><option value="#45669e">Modrá</option></select>
+              </div>
+              <div class="field"><label for="top_color">Farba písma (náhľad)</label>
+                <select id="top_color"><option value="#d8ed72">Svetlozelená</option><option value="#f1cf4b">Žltá</option><option value="#f7f5e7">Biela</option><option value="#272727">Čierna</option><option value="#e2a475">Oranžová</option></select>
+              </div>
+            </div>
+            <details class="advanced">
+              <summary>Pokročilé možnosti a výrezy</summary>
+              <div class="two-col">
+                <div class="field"><label for="max_text_length">Max. dĺžka textu (mm)</label><input id="max_text_length" type="number" min="30" max="150" step="1" value="80"></div>
+                <div class="field"><label for="border_radius">Lem okolo textu (mm)</label><input id="border_radius" type="number" min="0.5" max="5" step="0.1" value="1.5"></div>
+                <div class="field"><label for="stick_roundness">Zaoblenie (mm)</label><input id="stick_roundness" type="number" min="0" max="5" step="0.1" value="1"></div>
+                <div class="field"><label for="y_spacing">Rozstup štítkov (mm)</label><input id="y_spacing" type="number" min="10" max="50" step="1" value="18"></div>
+                <div class="field"><label for="text_right_margin">Odstup textu od konca (mm)</label><input id="text_right_margin" type="number" min="0" max="20" step="0.5" value="3"></div>
+                <div class="field"><label for="text_y_factor">Umiestnenie textu (0–1)</label><input id="text_y_factor" type="number" min="0" max="1" step="0.05" value="0.5"></div>
+              </div>
+              <p class="field-hint">Nasledujúce voľby sú funkčné len pri šírke zápichu aspoň 10 mm.</p>
+              <label class="check-field"><input type="checkbox" id="enable_cutouts"> Bočné výrezy</label>
+              <div class="two-col">
+                <div class="field"><label for="cutout_length">Dĺžka výrezu (mm)</label><input id="cutout_length" type="number" min="5" max="50" step="1" value="20"></div>
+                <div class="field"><label for="cutout_depth">Hĺbka výrezu (mm)</label><input id="cutout_depth" type="number" min="1" max="10" step="0.5" value="3"></div>
+                <div class="field"><label for="cutout_offset">Posun výrezov (mm)</label><input id="cutout_offset" type="number" min="-50" max="50" step="0.5" value="0"></div>
+              </div>
+              <label class="check-field"><input type="checkbox" id="enable_center_hole"> Stredová dierka</label>
+              <div class="two-col">
+                <div class="field"><label for="hole_length">Dĺžka dierky (mm)</label><input id="hole_length" type="number" min="5" max="50" step="1" value="20"></div>
+                <div class="field"><label for="hole_width">Šírka dierky (mm)</label><input id="hole_width" type="number" min="1" max="10" step="0.5" value="3"></div>
+                <div class="field"><label for="hole_offset">Posun dierky (mm)</label><input id="hole_offset" type="number" min="-50" max="50" step="0.5" value="0"></div>
+              </div>
+            </details>
+            <p id="formError" class="error-message" role="alert" hidden></p>
+            <div class="editor-buttons"><button id="generateBtn" type="submit" class="primary">Vytvoriť 3D náhľad</button><button id="downloadScad" type="button" class="secondary">Stiahnuť SCAD</button></div>
+          </form>
+        </section>
+
+        <section class="viewer-panel" aria-labelledby="previewTitle">
+          <div class="viewer-head"><h2 id="previewTitle">3D náhľad</h2><p>Myšou otočte model, kolieskom približujte.</p></div>
+          <div class="viewer-canvas">
+            <canvas id="markerCanvas" aria-label="Otáčateľný 3D náhľad modelu štítkov"></canvas>
+            <div class="viewer-placeholder" id="previewPlaceholder">Po kliknutí na „Vytvoriť 3D náhľad“ sa tu zobrazí hotový model.</div>
+          </div>
+          <p id="renderStatus" class="render-status" role="status" aria-live="polite">Pripravené na generovanie.</p>
+          <div class="download-row"><button id="downloadStl" class="primary" disabled>Stiahnuť STL model</button><span id="modelStats" class="muted"></span></div>
+          <div class="print-note"><strong>Dvojfarebná tlač:</strong> STL obsahuje geometriu, nie farby. Pre výmenu filamentu nastavte v sliceri vrstvu vo výške základne (<span id="layerHeight">2,5</span> mm). Výška písma sa pridáva nad túto úroveň.</div>
+          <p class="muted small">Generovanie prebieha vo vašom prehliadači pomocou OpenSCAD WebAssembly. Pri prvom použití sa musí stiahnuť výpočtový modul; 12 štítkov môže vyžadovať viac pamäte a času.</p>
+        </section>
+      </div>
+    </div>
+    <footer>Model: Herba et Fructus · <a href="/">Domov</a> · <a href="/odrody/">Katalóg</a></footer>
+  </main>
+  <script src="../config.js"></script>
+  <script type="module" src="../generator-3d.js"></script>
+</body>
+</html>
