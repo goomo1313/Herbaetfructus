@@ -315,11 +315,16 @@ function enableUI(){
  if(hint){
   const name=hint.replace(/[\r\n\0]/g,' ').trim().slice(0,40);
   if(name)$('names').value=name;
- } else if(params.get('vyber')==='1'){
+ } else if(params.has('odrody')||params.get('vyber')==='1'){
   try{
-   const raw=sessionStorage.getItem('herba_3d_names_v1');
-   sessionStorage.removeItem('herba_3d_names_v1');
-   const selected=JSON.parse(raw);
+   let selected;
+   if(params.has('odrody')){
+    selected=params.get('odrody').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+   }else{
+    const raw=sessionStorage.getItem('herba_3d_names_v1');
+    sessionStorage.removeItem('herba_3d_names_v1');
+    selected=JSON.parse(raw);
+   }
    splitMarkers(selected);
    $('names').value=selected.join('\n');
    status('Načítaných '+selected.length+' odrôd z vášho výberu. Vytvorte štítky jedným kliknutím.','ok');
