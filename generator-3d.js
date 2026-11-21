@@ -1,4 +1,5 @@
 /* Herba et Fructus: WebAssembly OpenSCAD -> skutočný STL, 3D náhľad cez three.js. */
+import {MAX_NAMES,BATCH_SIZE,splitMarkers,makeZip} from './marker-batches.mjs';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
@@ -12,7 +13,7 @@ const numeric={
  cutout_length:[5,50],cutout_depth:[1,10],cutout_offset:[-50,50],
  hole_length:[5,50],hole_width:[1,10],hole_offset:[-50,50]
 };
-const state={source:'',last:null,worker:null,timeout:null,renderer:null,model:null,controls:null,paused:false,busy:false};
+const state={source:'',last:null,worker:null,timeout:null,renderer:null,model:null,controls:null,paused:false,busy:false,cancelPending:null,runToken:0};
 const safeName=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-|-$/g,'').slice(0,42)||'stitky';
 
 function status(message,type=''){
@@ -27,12 +28,20 @@ function clearError(){const el=$('formError');el.hidden=true;el.textContent='';}
 function namesFromText(){
  return $('names').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
 }
-function updateCount(){ $('nameCount').textContent=namesFromText().length; }
+function updateCount(){
+ const count=namesFromText().length;
+ $('nameCount').textContent=String(count);
+ const batches=$('batchCount');
+ if(batches)batches.textContent=count?Math.ceil(count/BATCH_SIZE)+' tlačových '+(Math.ceil(count/BATCH_SIZE)===1?'dávka':'dávok'):'0 dávok';
+ const scad=$('downloadScad');
+ if(scad)scad.textContent=count>BATCH_SIZE?'Stiahnuť SCAD balík (ZIP)':'Stiahnuť SCAD';
+}
 function snapshot(){
  const names=namesFromText();
- if(!names.length||names.length>12)throw Error('Zadajte 1 až 12 názvov rastlín, každý na samostatnom riadku.');
+ if(!names.length||names.length>MAX_NAMES)throw Error('Zadajte 1 až '+MAX_NAMES+' názvov rastlín, každý na samostatnom riadku.');
  if(names.some(n=>Array.from(n).length>40))throw Error('Jeden názov môže obsahovať najviac 40 znakov.');
  if(names.some(n=>/[\x00-\x1f]/.test(n)))throw Error('Názvy nesmú obsahovať riadiace znaky.');
+ splitMarkers(names);
  const params={};
  for(const [key,[min,max]] of Object.entries(numeric)){
   const input=$(key),value=Number(input.value);
@@ -80,7 +89,17 @@ function downloadSource(){
   if(!state.source)throw Error('Zdrojový model sa ešte nenačítal.');
   const values=snapshot();
   clearError();
-  download(overrideScad(state.source,values),'Herba-'+safeName(values.names[0])+'.scad','text/plain;charset=utf-8');
+  if(values.names.length<=BATCH_SIZE){
+   download(overrideScad(state.source,values),'Herba-'+safeName(values.names[0])+'.scad','text/plain;charset=utf-8');
+  } else {
+   const groups=splitMarkers(values.names);
+   const files=groups.map((names,i)=>({
+    name:'Herba-stitky-'+String(i+1).padStart(2,'0')+'.scad',
+    text:overrideScad(state.source,{names,params:values.params})
+   }));
+   files.push({name:'CITAJ-MA.txt',text:'Každá dávka má najviac 12 štítkov. Spustite jednotlivé .scad súbory v OpenSCAD. Názvy a rozmery zostali zachované.\n'});
+   download(makeZip(files),'Herba-SCAD-'+values.names.length+'-stitkov.zip','application/zip');
+  }
  }catch(e){error(e.message);}
 }
 function setBusy(busy){
@@ -88,9 +107,10 @@ function setBusy(busy){
  $('generateBtn').disabled=busy;
  $('downloadScad').disabled=busy;
  $('downloadStl').disabled=busy||!state.last;
- $('generateBtn').textContent=busy?'Generujem STL…':'Vytvoriť 3D náhľad';
+ $('generateBtn').textContent=busy?'Generujem STL dávky…':'Vytvoriť 3D náhľad a súbory';
 }
 function setDirty(){
+ ++state.runToken;
  if(state.busy){stopWorker();setBusy(false);}
  state.last=null;
  $('downloadStl').disabled=true;
@@ -105,6 +125,8 @@ function stopWorker(){
  if(state.timeout)clearTimeout(state.timeout);
  state.timeout=null;
  if(state.worker){state.worker.terminate();state.worker=null;}
+ const cancel=state.cancelPending;state.cancelPending=null;
+ if(cancel)cancel(new Error('Generovanie bolo prerušené.'));
 }
 function splitByHeight(geometry,height){
  const pos=geometry.getAttribute('position');
@@ -186,69 +208,136 @@ function showMesh(arrayBuffer,values){
  $('previewPlaceholder').hidden=true;
  $('modelStats').textContent=values.names.length+' ks · '+(arrayBuffer.byteLength/1024).toFixed(0)+' kB';
 }
-function render(){
+function renderBatch(names,params,batchIndex,batchTotal){
+ return new Promise((resolve,reject)=>{
+  const worker=new Worker(new URL('./generator-3d-worker.js',import.meta.url),{type:'module'});
+  state.worker=worker;
+  let done=false;
+  const finish=(err,bytes)=>{
+   if(done)return;done=true;
+   clearTimeout(state.timeout);state.timeout=null;
+   worker.terminate();
+   if(state.worker===worker)state.worker=null;
+   state.cancelPending=null;
+   if(err)reject(err);else resolve(bytes);
+  };
+  state.cancelPending=error=>finish(error);
+  worker.onmessage=message=>{
+   const msg=message.data||{};
+   if(msg.type==='status'){
+    status('Dávka '+(batchIndex+1)+'/'+batchTotal+': '+msg.message,'busy');
+   }else if(msg.type==='error'){
+    finish(Error(msg.message||'Výpočet sa nepodaril.'));
+   }else if(msg.type==='result'){
+    if(!(msg.bytes instanceof ArrayBuffer)||msg.bytes.byteLength<84)
+     finish(Error('OpenSCAD nevytvoril platný STL súbor.'));
+    else finish(null,msg.bytes);
+   }
+  };
+  worker.onerror=event=>finish(Error(event.message||'Chyba vykonávania WebAssembly.'));
+  state.timeout=setTimeout(()=>finish(Error('Časový limit výpočtu dávky vypršal.')),180000);
+  worker.postMessage({source:state.source,names,params});
+ });
+}
+async function readGeneratorPaused(){
+ const conf=window.HERBA_CONFIG;
+ if(!conf?.supabaseUrl||!conf?.supabaseAnonKey)throw Error('Nie je nastavené overovanie generátora.');
+ const url=new URL('/rest/v1/site_content',conf.supabaseUrl);
+ url.searchParams.set('id','eq.settings');url.searchParams.set('select','content');
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),12000);
+ let response;
+ try{response=await fetch(url,{headers:{apikey:conf.supabaseAnonKey,Accept:'application/json'},signal:controller.signal,cache:'no-store'});}
+ finally{clearTimeout(timer);}
+ if(!response.ok)throw Error('Nastavenia nie sú dostupné ('+response.status+').');
+ const rows=await response.json();
+ if(!Array.isArray(rows)||rows.length!==1||!rows[0]?.content||typeof rows[0].content!=='object')
+  throw Error('V databáze chýba záznam nastavení.');
+ return rows[0].content.generatorPaused===true;
+}
+function blockPaused(){
+ state.paused=true;
+ ++state.runToken;
+ stopWorker();
+ state.last=null;
+ $('generatorGate').hidden=false;
+ $('generatorGate').textContent='⏸ 3D generátor je momentálne pozastavený. Ostatné časti webu zostávajú dostupné.';
+ $('generatorApp').hidden=true;
+}
+async function render(){
  if(state.busy)return;
  clearError();
  let values;
  try{values=snapshot();}catch(e){error(e.message);return;}
  if(!state.source){error('Zdroj OpenSCAD ešte nie je dostupný.');return;}
+ const token=++state.runToken;
  state.last=null;
  setBusy(true);
  $('layerHeight').textContent=String(values.params.base_height).replace('.',',');
- status('Pripravujem výpočet…','busy');
  try{
-  const worker=new Worker(new URL('./generator-3d-worker.js',import.meta.url),{type:'module'});
-  state.worker=worker;
-  let finished=false;
-  worker.onmessage=message=>{
-   if(finished)return;
-   const msg=message.data||{};
-   if(msg.type==='status'){status(msg.message,'busy');return;}
-   if(msg.type==='error'){
-    finished=true;stopWorker();setBusy(false);error('STL sa nepodarilo vygenerovať: '+msg.message);
-    status('Generovanie zlyhalo. Môžete stiahnuť SCAD a spracovať ho v OpenSCAD.','error');
-    return;
-   }
-   if(msg.type==='result'){
-    finished=true;stopWorker();
-    try{
-     if(!(msg.bytes instanceof ArrayBuffer)||msg.bytes.byteLength<84)throw Error('Neplatný STL súbor.');
-     const blob=msg.bytes.slice(0);
-     showMesh(blob,values);
-     state.last={data:blob,values};
-     status('Model je pripravený. STL môžete stiahnuť.','ok');
-    }catch(e){error(e.message);status('Náhľad sa nepodarilo zobraziť.','error');}
-    setBusy(false);
-   }
-  };
-  worker.onerror=event=>{
-   if(finished)return;finished=true;stopWorker();setBusy(false);
-   status('Nepodarilo sa spustiť 3D výpočtový modul. Skúste aktuálny prehliadač.','error');
-   error(event.message||'Chyba vykonávania WebAssembly.');
-  };
-  state.timeout=setTimeout(()=>{
-   if(finished)return;finished=true;stopWorker();setBusy(false);
-   status('Výpočet prekročil časový limit. Skúste menej štítkov alebo menší text.','error');
-  },180000);
-  worker.postMessage({source:state.source,names:values.names,params:values.params});
+  status('Overujem dostupnosť generátora…','busy');
+  if(await readGeneratorPaused()){blockPaused();return;}
+  if(token!==state.runToken)return;
+  const groups=splitMarkers(values.names);
+  const parts=[];
+  for(let i=0;i<groups.length;i++){
+   if(token!==state.runToken)return;
+   // Administrátor môže nástroj pozastaviť aj počas prípravy väčšieho balíka.
+   if(i>0&&await readGeneratorPaused()){blockPaused();return;}
+   const bytes=await renderBatch(groups[i],values.params,i,groups.length);
+   if(token!==state.runToken)return;
+   parts.push({name:'Herba-stitky-'+String(i+1).padStart(2,'0')+'.stl',bytes});
+   if(i===0)showMesh(bytes.slice(0),{...values,names:groups[i]});
+   status('Hotových '+parts.length+' z '+groups.length+' dávok.','busy');
+  }
+  const data=parts.length===1?parts[0].bytes:makeZip([
+   ...parts,
+   {name:'CITAJ-MA.txt',text:'Herba et Fructus – 3D záhradné štítky. Každý STL obsahuje do 12 štítkov. Všetky '+values.names.length+' názvy sú rozdelené podľa poradia zadania. V sliceri skontrolujte rozmery a prípadnú výmenu farby vo výške základne ('+values.params.base_height+' mm).\n'}
+  ]);
+  state.last={data,values,kind:parts.length>1?'zip':'stl'};
+  $('downloadStl').textContent=parts.length>1?'Stiahnuť '+parts.length+' STL súbory (ZIP)':'Stiahnuť STL model';
+  $('modelStats').textContent=values.names.length+' štítkov · '+parts.length+' '+(parts.length===1?'dávka':'dávky')+' · '+Math.round(data.byteLength/1024)+' kB';
+  status('Hotovo: '+values.names.length+' štítkov, '+parts.length+' '+(parts.length===1?'dávka':'dávky')+'. Náhľad ukazuje prvú dávku.','ok');
  }catch(e){
-  stopWorker();setBusy(false);status('Vytváranie modelu zlyhalo.','error');error(e.message);
+  if(token!==state.runToken)return;
+  state.last=null;
+  error('STL sa nepodarilo vygenerovať: '+e.message);
+  status('Generovanie sa nepodarilo dokončiť. SCAD môžete stiahnuť aj bez STL.','error');
+ }finally{
+  if(token===state.runToken)setBusy(false);
  }
 }
 function enableUI(){
  $('generatorGate').hidden=true;
  $('generatorApp').hidden=false;
- const hint=new URLSearchParams(location.search).get('odroda');
+ const params=new URLSearchParams(location.search);
+ const hint=params.get('odroda');
  if(hint){
   const name=hint.replace(/[\r\n\0]/g,' ').trim().slice(0,40);
   if(name)$('names').value=name;
+ } else if(params.get('vyber')==='1'){
+  try{
+   const raw=sessionStorage.getItem('herba_3d_names_v1');
+   sessionStorage.removeItem('herba_3d_names_v1');
+   const selected=JSON.parse(raw);
+   splitMarkers(selected);
+   $('names').value=selected.join('\n');
+   status('Načítaných '+selected.length+' odrôd z vášho výberu. Vytvorte štítky jedným kliknutím.','ok');
+  }catch(_){status('Výber odrôd nie je dostupný. Názvy môžete vložiť ručne.');}
  }
  $('markerForm').addEventListener('submit',e=>{e.preventDefault();render();});
  $('downloadScad').addEventListener('click',downloadSource);
- $('downloadStl').addEventListener('click',()=>{
-  if(!state.last || state.busy)return;
-  const {data,values}=state.last;
-  download(data,'Herba-'+safeName(values.names[0])+(values.names.length>1?'-'+values.names.length+'ks':'')+'.stl','model/stl');
+ $('downloadStl').addEventListener('click',async()=>{
+  if(!state.last||state.busy)return;
+  const entry=state.last;
+  $('downloadStl').disabled=true;
+  try{
+   if(await readGeneratorPaused()){blockPaused();return;}
+   if(state.last!==entry)return;
+   const {data,values,kind}=entry;
+   download(data,'Herba-'+safeName(values.names[0])+(kind==='zip'?'-'+values.names.length+'-stitkov.zip':'.stl'),kind==='zip'?'application/zip':'model/stl');
+  }catch(e){error('Dostupnosť generátora sa nedá overiť: '+e.message);}
+  finally{if(!state.paused)$('downloadStl').disabled=!state.last;}
  });
  $('markerForm').addEventListener('input',()=>{
   updateCount();applyWidth();setDirty();clearError();
@@ -260,21 +349,7 @@ function enableUI(){
 }
 async function init(){
  try{
-  const conf=window.HERBA_CONFIG;
-  if(!conf?.supabaseUrl||!conf?.supabaseAnonKey)throw Error('Nie je nastavené overovanie dostupnosti generátora.');
-  const url=new URL('/rest/v1/site_content',conf.supabaseUrl);
-  url.searchParams.set('id','eq.settings');url.searchParams.set('select','content');
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),12000);
-  let response;
-  try{response=await fetch(url,{headers:{apikey:conf.supabaseAnonKey,Accept:'application/json'},signal:controller.signal,cache:'no-store'});}
-  finally{clearTimeout(timer);}
-  if(!response.ok)throw Error('Nastavenia nie sú dostupné ('+response.status+').');
-  const rows=await response.json();
-  if(!Array.isArray(rows)||rows.length!==1||!rows[0]?.content||typeof rows[0].content!=='object')
-   throw Error('V databáze chýba záznam nastavení.');
-  if(rows[0].content.generatorPaused===true){
-   state.paused=true;
+  if(await readGeneratorPaused()){
    $('generatorGate').textContent='⏸ 3D generátor je momentálne pozastavený. Ostatné časti webu zostávajú dostupné.';
    return;
   }
