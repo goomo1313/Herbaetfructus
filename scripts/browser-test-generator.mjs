@@ -67,7 +67,7 @@ try{
  await page.evaluate(values=>sessionStorage.setItem('herba_3d_names_v1',JSON.stringify(values)),selected);
  await page.goto('http://127.0.0.1:'+port+'/3d/?vyber=1',{waitUntil:'domcontentloaded'});
  await page.locator('#generatorApp').waitFor({state:'visible',timeout:35000});
- assert.equal((await page.locator('#names').inputValue()).split('\\n').length,30);
+ assert.equal((await page.locator('#names').inputValue()).split('\n').length,30);
  assert.match(await page.locator('#batchCount').textContent(),/3 tlačových dávok/);
  await page.locator('#generateBtn').click();
  try{
@@ -83,7 +83,7 @@ try{
  const zipPromise=page.waitForEvent('download');
  await page.locator('#downloadStl').click();
  const zipDownload=await zipPromise;
- assert.match(zipDownload.suggestedFilename(),/30-stitkov\\.zip$/);
+ assert.match(zipDownload.suggestedFilename(),/30-stitkov\.zip$/);
  const chunks=[];
  for await (const part of await zipDownload.createReadStream())chunks.push(part);
  const archive=Buffer.concat(chunks);
