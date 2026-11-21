@@ -8,13 +8,14 @@ on:
       - 'generator-3d.js'
       - 'generator-3d-worker.js'
       - 'scripts/verify-generator-3d.mjs'
+      - 'scripts/browser-test-generator.mjs'
       - '.github/workflows/test-generator-3d.yml'
 permissions:
   contents: read
 jobs:
   openscad-wasm:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -23,6 +24,10 @@ jobs:
       - name: Overenie parametrov a používateľského rozhrania
         run: node --test tests/generator-3d.mjs
       - name: Nainštalovať pripnutý OpenSCAD WebAssembly modul
-        run: npm install --no-save --ignore-scripts --no-audit --no-fund @lofcz/openscad-wasm@0.0.2
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund @lofcz/openscad-wasm@0.0.2 playwright@1.58.2
       - name: Vytvoriť skutočné binárne STL s diakritikou
         run: node scripts/verify-generator-3d.mjs
+      - name: Pripraviť Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Preveriť používateľské generovanie STL v prehliadači
+        run: node scripts/browser-test-generator.mjs
