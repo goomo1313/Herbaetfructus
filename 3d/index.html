@@ -29,7 +29,7 @@
     <div class="page-title">
       <p class="eyebrow">Záhradná dielňa · bezplatný nástroj</p>
       <h1>Vlastné štítky pre vaše rastliny</h1>
-      <p>Zadajte názvy, upravte rozmery a stiahnite tlačiteľný model STL. Základom je náš parametrický OpenSCAD zápichovač s klinovou špičkou a vystúpeným písmom.</p>
+      <p>Zadajte až 60 názvov, upravte rozmery a stiahnite tlačiteľné STL. Pri väčšom výbere automaticky pripravíme ZIP s viacerými dávkami. Základom je náš parametrický OpenSCAD zápichovač s klinovou špičkou a vystúpeným písmom.</p>
     </div>
 
     <div id="generatorGate" class="status-gate" role="status" aria-live="polite">Overujeme dostupnosť generátora…</div>
@@ -40,10 +40,10 @@
           <h2 id="controlsTitle">Nastavenia modelu</h2>
           <form id="markerForm">
             <div class="field">
-              <label for="names">Názvy rastlín <span class="muted">(1 až 12, každý na novom riadku)</span></label>
-              <textarea id="names" rows="4" maxlength="480" spellcheck="false">Ildi
+              <label for="names">Názvy rastlín <span class="muted">(1 až 60, každý na novom riadku)</span></label>
+              <textarea id="names" rows="6" maxlength="3000" spellcheck="false">Ildi
 Golden Canary</textarea>
-              <p class="field-hint"><span id="nameCount">2</span>/12 štítkov · Slovenská diakritika je podporovaná.</p>
+              <p class="field-hint"><span id="nameCount">2</span>/60 štítkov · <span id="batchCount">1 tlačová dávka</span> · Slovenská diakritika je podporovaná.</p>
             </div>
             <div class="two-col">
               <div class="field"><label for="stick_length">Dĺžka zápichu (mm)</label><input id="stick_length" type="number" min="50" max="300" step="1" value="160" required></div>
@@ -89,7 +89,7 @@ Golden Canary</textarea>
               </div>
             </details>
             <p id="formError" class="error-message" role="alert" hidden></p>
-            <div class="editor-buttons"><button id="generateBtn" type="submit" class="primary">Vytvoriť 3D náhľad</button><button id="downloadScad" type="button" class="secondary">Stiahnuť SCAD</button></div>
+            <div class="editor-buttons"><button id="generateBtn" type="submit" class="primary">Vytvoriť 3D náhľad a súbory</button><button id="downloadScad" type="button" class="secondary">Stiahnuť SCAD</button></div>
           </form>
         </section>
 
@@ -97,12 +97,12 @@ Golden Canary</textarea>
           <div class="viewer-head"><h2 id="previewTitle">3D náhľad</h2><p>Myšou otočte model, kolieskom približujte.</p></div>
           <div class="viewer-canvas">
             <canvas id="markerCanvas" aria-label="Otáčateľný 3D náhľad modelu štítkov"></canvas>
-            <div class="viewer-placeholder" id="previewPlaceholder">Po kliknutí na „Vytvoriť 3D náhľad“ sa tu zobrazí hotový model.</div>
+            <div class="viewer-placeholder" id="previewPlaceholder">Po vygenerovaní sa tu zobrazí prvá dávka modelu. Ostatné STL súbory sa pri väčšom výbere zbalia do jedného ZIP.</div>
           </div>
           <p id="renderStatus" class="render-status" role="status" aria-live="polite">Pripravené na generovanie.</p>
           <div class="download-row"><button id="downloadStl" class="primary" disabled>Stiahnuť STL model</button><span id="modelStats" class="muted"></span></div>
           <div class="print-note"><strong>Dvojfarebná tlač:</strong> STL obsahuje geometriu, nie farby. Pre výmenu filamentu nastavte v sliceri vrstvu vo výške základne (<span id="layerHeight">2,5</span> mm). Výška písma sa pridáva nad túto úroveň.</div>
-          <p class="muted small">Generovanie prebieha vo vašom prehliadači pomocou OpenSCAD WebAssembly. Pri prvom použití sa musí stiahnuť výpočtový modul; 12 štítkov môže vyžadovať viac pamäte a času.</p>
+          <p class="muted small">Generovanie prebieha vo vašom prehliadači pomocou OpenSCAD WebAssembly. Pri prvom použití sa musí stiahnuť výpočtový modul; V jednej dávke sa vytvára najviac 12 štítkov. Pri 30 názvoch sa automaticky vygenerujú tri STL súbory v jednom ZIP; výpočet môže trvať dlhšie.</p>
         </section>
       </div>
     </div>
