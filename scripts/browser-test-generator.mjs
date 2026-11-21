@@ -34,7 +34,7 @@ try{
  page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text());});
  await page.route('**/rest/v1/site_content**',route=>route.fulfill({
   status:200,contentType:'application/json',
-  headers:{'access-control-allow-origin':'*'},
+  headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'apikey,accept,content-type'},
   body:JSON.stringify([{id:'settings',content:{generatorPaused:false}}])
  }));
  await page.goto('http://127.0.0.1:'+port+'/3d/',{waitUntil:'domcontentloaded'});
@@ -45,7 +45,7 @@ try{
   await page.waitForFunction(()=>{
    const button=document.getElementById('downloadStl');
    return button && !button.disabled;
-  },{timeout:160000});
+  },null,{timeout:160000});
  }catch(e){
   throw Error('Browser render not ready. Status: '+await page.locator('#renderStatus').textContent()+
    ' Form: '+await page.locator('#formError').textContent()+
@@ -65,7 +65,7 @@ try{
  const paused=await browser.newPage();
  await paused.route('**/rest/v1/site_content**',route=>route.fulfill({
   status:200,contentType:'application/json',
-  headers:{'access-control-allow-origin':'*'},
+  headers:{'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'apikey,accept,content-type'},
   body:JSON.stringify([{id:'settings',content:{generatorPaused:true}}])
  }));
  await paused.goto('http://127.0.0.1:'+port+'/3d/',{waitUntil:'domcontentloaded'});
