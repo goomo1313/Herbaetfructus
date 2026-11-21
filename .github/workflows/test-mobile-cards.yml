@@ -1,0 +1,30 @@
+name: Mobilný katalóg – kontrola v Chromiu
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'catalogue-ui.js'
+      - 'site-enhancements.css'
+      - 'site-polish.css'
+      - 'scripts/browser-test-mobile-cards.mjs'
+      - '.github/workflows/test-mobile-cards.yml'
+permissions:
+  contents: read
+jobs:
+  responsive-cards:
+    name: Telefón 320/390 px a desktop 1280 px
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Inštalácia Playwright
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
+      - name: Pripraviť Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Otestovať mobilné karty, tlačidlá, detail a desktop
+        run: node scripts/browser-test-mobile-cards.mjs
