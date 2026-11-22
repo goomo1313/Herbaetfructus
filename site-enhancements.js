@@ -12,6 +12,7 @@
     const previousGrid = new Map();
     const collator = new Intl.Collator('sk', { sensitivity:'base', numeric:true });
     let focusBeforeOverlay = null;
+    let dashboardLoadToken = 0;
 
     function number(value) {
         const n = Number.parseFloat(format(value).replace(',', '.').replace('€',''));
@@ -86,6 +87,10 @@
     }
     function dashboardOpen() {
         if (typeof requireAdmin !== 'function' || !requireAdmin()) return false;
+        const selector = $('enhancedDashboardScope');
+        if (selector) selector.value = 'published';
+        const status = $('enhancedDashboardStatus');
+        if (status) status.value = 'all';
         dashboardRender();
         return showModal('enhancedDashboardOverlay');
     }
@@ -103,40 +108,116 @@
     function dashAction(label, cb) {
         return makeButton(label, cb);
     }
+    // Pripravujeme je samostatná autentifikovaná tabuľka site_drafts.
+    // Prehľad môže zobrazovať jej záznamy, nikdy ich však nekopíruje do
+    // verejného varietyDatabase ani ich nepúšťa do hromadných úprav.
+    function dashboardScope() {
+        return $('enhancedDashboardScope')?.value || 'catalogue';
+    }
+    function dashboardRecords() {
+        const scope = dashboardScope();
+        if (scope === 'drafts') {
+            const entries = window.HERBA_DRAFTS?.entries?.() || [];
+            return entries.map(row => ({item:row.content, id:row.id, draft:true}));
+        }
+        return varietyDatabase.map((item,index) => ({item,index,draft:false}))
+            .filter(row => scope !== 'published' || !row.item.hidden);
+    }
+    async function dashboardScopeChange() {
+        if (typeof requireAdmin !== 'function' || !requireAdmin()) return false;
+        const token = ++dashboardLoadToken;
+        const scope = dashboardScope();
+        const status = $('enhancedDashboardStatus');
+        if (status) {
+            for (const option of Array.from(status.options || [])) {
+                const draftOnly = option.value === 'ready';
+                const catalogueOnly = ['out','hidden'].includes(option.value);
+                option.hidden = (draftOnly && scope !== 'drafts') ||
+                    (catalogueOnly && scope === 'drafts');
+                option.disabled = option.hidden;
+            }
+            if ((scope !== 'drafts' && status.value === 'ready') ||
+                (scope === 'drafts' && ['out','hidden'].includes(status.value))) {
+                status.value = 'all';
+            }
+        }
+        if (scope === 'drafts') {
+            const result = $('enhancedDashboardCount');
+            if (result) result.textContent = 'Načítavam súkromné koncepty zo Supabase…';
+            const draftsApi = window.HERBA_DRAFTS;
+            let ok = false;
+            try { ok = !!(await draftsApi?.load?.()); }
+            catch (error) { console.warn('Koncepty sa nepodarilo načítať:',error); }
+            if (token !== dashboardLoadToken || dashboardScope() !== 'drafts') return false;
+            if (!ok) {
+                dashboardRender();
+                if (result) result.textContent = 'Súkromné koncepty nie sú dostupné. Skontroluj prihlásenie a prístup do Supabase.';
+                return false;
+            }
+        }
+        if (token !== dashboardLoadToken) return false;
+        dashboardRender();
+        return true;
+    }
     function dashboardRender() {
         const stats = $('enhancedDashboardStats');
         const actions = $('enhancedDashboardActions');
         if (!stats || !actions) return;
-        const d = diagnostics(varietyDatabase);
+        const scope = dashboardScope();
+        const rows = dashboardRecords();
+        const d = diagnostics(rows.map(row => row.item));
         stats.replaceChildren();
-        [
-            ['Odrody spolu',d.total],['Zobrazené',d.visible],['Skryté',d.hidden],
-            ['Bez fotky',d.noPhoto],['Neúplné údaje',d.incomplete],
-            ['Krátky opis',d.shortDescription],['Vypredané',d.soldOut],['Balenia na sklade',d.stock]
-        ].forEach(([label,value]) => stats.appendChild(statBox(label,value)));
+        if (scope === 'drafts') {
+            const ready = rows.filter(row => (window.HERBA_DRAFTS?.readiness?.(row.item) || ['neúplné']).length === 0).length;
+            [
+                ['V Pripravujeme',rows.length],['Pripravené na zverejnenie',ready],
+                ['Treba dopracovať',rows.length-ready],['Bez fotky',d.noPhoto],
+                ['Neúplné údaje',d.incomplete],['Krátky opis',rows.filter(row => format(row.item.info).trim().length < 180).length]
+            ].forEach(([label,value]) => stats.appendChild(statBox(label,value)));
+        } else {
+            [
+                [scope === 'published'?'Zverejnené odrody':'Odrody spolu',d.total],
+                ['Zobrazené',d.visible],['Skryté',d.hidden],
+                ['Bez fotky',d.noPhoto],['Neúplné údaje',d.incomplete],
+                ['Krátky opis',d.shortDescription],['Vypredané',d.soldOut],
+                ['Balenia na sklade',d.stock]
+            ].forEach(([label,value]) => stats.appendChild(statBox(label,value)));
+        }
         actions.replaceChildren();
-        const go = (callback) => {
+        const go = callback => {
             dashboardClose();
-            callback();
+            return callback();
         };
-        actions.appendChild(dashAction('🛠️ Hromadné operácie',()=>go(()=>window.HERBA_BULK?.open())));
-        actions.appendChild(dashAction('📋 Správa skladu',()=>go(openTableManagerModal)));
-        actions.appendChild(dashAction('🌱 Pridať odrodu',()=>go(openVarietyModal)));
-        actions.appendChild(dashAction('📦 Zálohovať JSON',()=>exportJsonData()));
-        actions.appendChild(dashAction('☁️ Overiť cloud',()=>downloadSiteCode()));
-        actions.appendChild(dashAction('📂 Správa kariet',()=>go(openSectionTableModal)));
-        actions.appendChild(dashAction('📝 Pridať článok',()=>go(openBlogModal)));
-        actions.appendChild(dashAction('⚙️ Zobrazenie webu',()=>go(openVisibilitySettingsModal)));
+        if (scope === 'drafts') {
+            actions.appendChild(dashAction('📝 Otvoriť Pripravujeme',()=>go(()=>window.HERBA_DRAFTS?.open())));
+            actions.appendChild(dashAction('🌱 Nový koncept',()=>go(()=>window.HERBA_DRAFTS?.create())));
+        } else {
+            actions.appendChild(dashAction('🛠️ Hromadné operácie',()=>go(()=>window.HERBA_BULK?.open())));
+            actions.appendChild(dashAction('📋 Správa skladu',()=>go(openTableManagerModal)));
+            actions.appendChild(dashAction('🌱 Pridať odrodu',()=>go(openVarietyModal)));
+            actions.appendChild(dashAction('📦 Zálohovať JSON',()=>exportJsonData()));
+            actions.appendChild(dashAction('☁️ Overiť cloud',()=>downloadSiteCode()));
+            actions.appendChild(dashAction('📂 Správa kariet',()=>go(openSectionTableModal)));
+            actions.appendChild(dashAction('📝 Pridať článok',()=>go(openBlogModal)));
+            actions.appendChild(dashAction('⚙️ Zobrazenie webu',()=>go(openVisibilitySettingsModal)));
+        }
         const hint = $('enhancedDashboardHint');
-        if (hint) hint.textContent = 'Diagnostika aktuálne načítaného katalógu. Krátky opis znamená menej ako 180 znakov – ide o redakčné upozornenie, nie SEO penalizáciu. Údaje sa automaticky nedopĺňajú ani neprepisujú.';
+        if (hint) hint.textContent = scope === 'drafts'
+            ? 'Súkromné odrody zo Supabase site_drafts. Úprava a zverejnenie zostávajú pod kontrolou sekcie Pripravujeme. Prehľad údaje neprepisuje.'
+            : 'Prehľad odrôd v katalógu. Krátky opis znamená menej než 180 znakov – iba redakčné upozornenie, nie SEO penalizáciu. Údaje sa automaticky neprepisujú.';
         dashboardFilter();
     }
-    function statusMatches(item, status) {
+    function statusMatches(item, status, draft=false) {
         if (status === 'missing-photo') return !validPhoto(item);
         if (status === 'incomplete') return hasMissingFields(item);
-        if (status === 'short-description') return needsDescriptionReview(item);
-        if (status === 'out') return !item.hidden && !(Number(item.stock) > 0);
-        if (status === 'hidden') return !!item.hidden;
+        if (status === 'short-description') {
+            if (draft) return format(item.info).replace(/<[^>]*>/g,' ').trim().length < 180;
+            return needsDescriptionReview(item);
+        }
+        if (status === 'ready') return draft &&
+            (window.HERBA_DRAFTS?.readiness?.(item) || ['neúplné']).length === 0;
+        if (status === 'out') return !draft && !item.hidden && !(Number(item.stock) > 0);
+        if (status === 'hidden') return !draft && !!item.hidden;
         return true;
     }
     function dashboardFilter() {
@@ -145,35 +226,43 @@
         const status = $('enhancedDashboardStatus')?.value || 'all';
         if (!tbody) return;
         tbody.replaceChildren();
+        const records = dashboardRecords();
         let matches = 0;
-        varietyDatabase.forEach((item, index) => {
-            const combined = [item.name,item.type,item.section,item.color,item.weight,item.info]
+        records.forEach(row => {
+            const item = row.item;
+            const combined = [item.name,item.type,item.section,item.targetSection,item.color,item.weight,item.info]
                 .map(x => format(x).toLocaleLowerCase('sk')).join(' ');
-            if (!combined.includes(search) || !statusMatches(item,status)) return;
+            if (!combined.includes(search) || !statusMatches(item,status,row.draft)) return;
             matches++;
             const tr = document.createElement('tr');
             const add = value => {
-                const td=document.createElement('td');
-                td.textContent=format(value);
+                const td = document.createElement('td');
+                td.textContent = format(value);
                 tr.appendChild(td);
                 return td;
             };
             add(item.name);
-            add(item.section);
-            const photo=add(validPhoto(item) ? '✓ Áno' : '— Chýba');
-            if (!validPhoto(item)) photo.className='enhanced-alert-cell';
-            add(Number(item.stock) > 0 ? String(item.stock) + ' bal.' : 'Vypredané');
-            add(hasMissingFields(item) ? 'Doplniť údaje' : needsDescriptionReview(item) ? 'Krátky opis' : 'Úplné');
-            const action=document.createElement('td');
-            action.appendChild(makeButton('✏️ Upraviť',()=> {
+            add(row.draft ? '📝 Pripravujeme' + (item.targetSection ? ' → ' + item.targetSection : '') : item.section);
+            const photo = add(validPhoto(item) ? '✓ Áno' : '— Chýba');
+            if (!validPhoto(item)) photo.className = 'enhanced-alert-cell';
+            add(row.draft ? 'Nezverejnené' : Number(item.stock) > 0 ? String(item.stock) + ' bal.' : 'Vypredané');
+            if (row.draft) {
+                const issues = window.HERBA_DRAFTS?.readiness?.(item) || ['neúplné'];
+                add(issues.length ? 'Doplniť: ' + issues.join(', ') : 'Pripravená na kontrolu');
+            } else {
+                add(hasMissingFields(item) ? 'Doplniť údaje' : needsDescriptionReview(item) ? 'Krátky opis' : 'Úplné');
+            }
+            const action = document.createElement('td');
+            action.appendChild(makeButton('✏️ Upraviť',() => {
                 dashboardClose();
-                editVariety(index);
+                if (row.draft) window.HERBA_DRAFTS?.edit(row.id);
+                else editVariety(row.index);
             }));
             tr.appendChild(action);
             tbody.appendChild(tr);
         });
         const result = $('enhancedDashboardCount');
-        if (result) result.textContent = 'Zobrazených ' + matches + ' z ' + varietyDatabase.length + ' odrôd';
+        if (result) result.textContent = 'Zobrazených ' + matches + ' z ' + records.length + ' odrôd';
         const empty = $('enhancedDashboardEmpty');
         if (empty) empty.hidden = matches > 0;
     }
@@ -387,7 +476,7 @@
         });
     }
     window.HERBA_IMPROVEMENTS = {
-        dashboardOpen,dashboardClose,dashboardRender,dashboardFilter,diagnostics,
+        dashboardOpen,dashboardClose,dashboardRender,dashboardFilter,dashboardScopeChange,dashboardRecords,diagnostics,
         validPhoto,hasMissingFields,grams,weightMatches,colorMatches,applyFilters,
         bindCompareCard,toggleCompare,renderTray,compareOpen,compareClose,resetCompare,
         selected:()=>compareNames.slice()
