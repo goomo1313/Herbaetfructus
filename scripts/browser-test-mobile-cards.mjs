@@ -223,6 +223,57 @@ try{
  assert.ok(desktop[1].x>desktop[0].x && desktop[2].x>desktop[1].x,'Desktop grid layout broken: '+JSON.stringify(desktop));
  assert.ok(desktop[0].image>=185,'Desktop image changed unexpectedly.');
  console.log('Desktop: grid remains multi-column with '+desktop[0].image+'px photos.');
+
+ // Admin workflow v izolovanom prehliadači so simulovanými súkromnými konceptmi.
+ // Neodosielame žiadne autentifikačné požiadavky ani zmeny do Supabase.
+ await page.evaluate(()=>{
+   adminAuthenticated=true;
+   cloudDatabaseReady=true;
+   document.body.classList.add('admin-mode');
+   window.__draftEdits=[];
+   window.HERBA_DRAFTS={
+     async load(){return true;},
+     entries(){return [{id:'test-draft-001',content:{
+       name:'Rozpracovaná skúšobná odroda',section:'pripravujeme',hidden:true,
+       type:'Neurčené',color:'Neurčená',info:'Zatiaľ iba vlastný koncept',stock:0
+     }}]},
+     readiness(){return ['fotografia','opis'];},
+     edit(id){window.__draftEdits.push(id);return true;}
+   };
+ });
+ assert.equal(await page.evaluate(()=>window.HERBA_IMPROVEMENTS.dashboardOpen()),true);
+ assert.ok(await page.locator('#enhancedDashboardOverlay').isVisible());
+ await page.selectOption('#enhancedDashboardScope','drafts');
+ await page.waitForFunction(()=>document.querySelector('#enhancedDashboardCount')?.textContent==='Zobrazených 1 z 1 odrôd');
+ assert.ok(await page.locator('#enhancedDashboardRows').getByText('Rozpracovaná skúšobná odroda').isVisible());
+ assert.equal(await page.locator('#enhancedDashboardRows tr').count(),1);
+ await page.locator('#enhancedDashboardRows tr button').click();
+ assert.deepEqual(await page.evaluate(()=>window.__draftEdits),['test-draft-001']);
+ assert.equal(await page.locator('#enhancedDashboardOverlay').getAttribute('aria-hidden'),'true');
+ assert.equal(await page.evaluate(()=>window.HERBA_IMPROVEMENTS.dashboardOpen()),true);
+ await page.selectOption('#enhancedDashboardScope','published');
+ await page.waitForFunction(()=>document.querySelectorAll('#enhancedDashboardRows tr').length>20);
+ assert.ok(!(await page.locator('#enhancedDashboardRows').getByText('Rozpracovaná skúšobná odroda').count()));
+ await page.locator('#enhancedDashboardClose').click();
+ console.log('Admin overview: public / private drafts switch works without database writes.');
+
+ // 3D štítky sa spustia zo samostatného označenia v hromadných operáciách.
+ assert.equal(await page.evaluate(()=>window.HERBA_BULK.open()),true);
+ const checks=page.locator('#bulkVarietyList input[type="checkbox"]');
+ assert.ok(await checks.count()>=3);
+ for(let i=0;i<3;i++)await checks.nth(i).check();
+ const batchNames=await page.evaluate(()=>window.HERBA_BULK.selectedMarkerNames());
+ assert.equal(batchNames.length,3);
+ assert.equal(await page.locator('#bulkGenerateMarkers').isEnabled(),true);
+ await page.route('**/3d/?vyber=1',route=>route.fulfill({
+   status:200,contentType:'text/html;charset=utf-8',
+   body:'<!doctype html><html lang="sk"><body><pre id="receivedNames"></pre><script>document.querySelector("#receivedNames").textContent=sessionStorage.getItem("herba_3d_names_v1")||"";<\\/script></body></html>'
+ }));
+ await page.locator('#bulkGenerateMarkers').click();
+ await page.waitForURL(/\/3d\/\?vyber=1/);
+ assert.deepEqual(JSON.parse(await page.locator('#receivedNames').textContent()),batchNames);
+ console.log('Bulk 3D: selected names transferred to generator route without cloud writes.');
+
  if(errors.length)console.log('Noncritical page console errors:',errors.slice(0,4));
 }finally{
  await browser?.close();
