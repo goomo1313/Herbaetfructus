@@ -29,12 +29,16 @@ test('návštevníci majú sedem odpovedí na časté otázky',()=>{
     assert.match(html,/dopyt/);
 });
 
-test('navigácia kalendára a košíka má fungujúce obslužné funkcie',()=>{
+test('kalendár je rozbaľovacou súčasťou blogu a košík zostáva funkčný',()=>{
     assert.doesNotThrow(()=>new Script(inline));
     assert.match(html,/function openOrderForm\(\)/);
     assert.match(html,/onclick="openOrderForm\(\)"/);
-    assert.match(html,/calendarButton.onclick = \(\) => switchSection\('kalendar'\)/);
-    assert.match(html,/calendarSec\.style\.display = secId === 'kalendar'/);
+    assert.doesNotMatch(html,/calendarButton\.onclick = \(\) => switchSection\('kalendar'\)/);
+    assert.match(html,/id="blogCalendarDisclosure"/);
+    assert.match(html,/id="blogCalendarMount"/);
+    assert.match(html,/calendarMount\.appendChild\(calendar\)/);
+    assert.match(html,/panel\.open = true/);
+    assert.match(html,/secId === 'kalendar'/);
     assert.match(calendarCss,/\.garden-month-grid/);
 });
 
@@ -49,9 +53,18 @@ test('kalendár nenechá horný nadpis ani hlavnú navigáciu prilepené pri č�
     const polishCss = readFileSync('site-polish.css','utf8');
     assert.match(html,/body > header \{\s*background-color:/);
     assert.doesNotMatch(html,/\n\s*header \{\s*background-color: var\(--surface-color\)/);
-    assert.match(html,/classList\.toggle\?\.\('calendar-reading', secId === 'kalendar'\)/);
+    assert.ok(html.includes("secId === 'blog' && document.getElementById('blogCalendarDisclosure')?.open === true"));
     assert.match(calendarCss,/body\.calendar-reading > header[\s\S]*?position:\s*static/);
     assert.match(calendarCss,/\.garden-calendar > \.garden-calendar-header[\s\S]*?position:\s*static/);
     assert.doesNotMatch(polishCss,/body\.admin-mode header\s*\{/);
     assert.match(polishCss,/body\.admin-mode > header\s*\{/);
+});
+
+test('rozhodujúci obsah kalendára zostal jediný a pri obnovení blogu sa nestratí',()=>{
+    assert.equal((html.match(/id="gardenCalendarSection"/g)||[]).length,1);
+    assert.equal((html.match(/id="blogCalendarDisclosure"/g)||[]).length,1);
+    assert.match(html,/const calendarWasOpen = document\.getElementById\('blogCalendarDisclosure'\)\?\.open === true/);
+    assert.match(html,/document\.body\.insertBefore\(calendar, fallback\)/);
+    assert.match(html,/disclosure\.open = calendarWasOpen/);
+    assert.match(html,/disclosure\.addEventListener\('toggle'/);
 });
