@@ -4874,6 +4874,19 @@
             }
         }
 
+        // Odkazy zo samostatných článkov a 3D generátora vracajú návštevníka
+        // priamo na správnu kartu hlavného katalógu. Hash #odroda= zostáva nedotknutý.
+        function activateSharedSiteSection() {
+            const match = /^#sekcia=([a-z0-9-]{1,60})$/.exec(String(window.location?.hash || ''));
+            if (!match) return false;
+            const id = match[1];
+            const allowed = id === 'kalendar' || sectionsDatabase.some(sec =>
+                sec && sec.id === id && sec.hidden !== true);
+            if (!allowed) return false;
+            switchSection(id);
+            return true;
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             const adminBar = document.getElementById('adminBar');
             if (typeof ResizeObserver !== 'undefined' && adminBar) {
@@ -4887,6 +4900,8 @@
             }
             await loadCloudContent();
             renderAll();
+            activateSharedSiteSection();
+            if (window.addEventListener) window.addEventListener('hashchange', activateSharedSiteSection);
             await restoreAdminSession();
             restoreSavedSelection();
             restoreMarkerCart();
