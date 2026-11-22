@@ -6,7 +6,6 @@ export function sharedHeader(logo,active='') {
   ['tekvice','Tekvice a Cukety','/#sekcia=tekvice'],
   ['blog','Blog & Rady','/#sekcia=blog'],
   ['podmienky','Ako objednať','/#sekcia=podmienky'],
-  ['kalendar','Pestovateľský kalendár','/#sekcia=kalendar'],
   ['generator','3D generátor','/3d/']
  ];
  const nav=items.map(([id,label,url])=>
