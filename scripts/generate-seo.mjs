@@ -138,7 +138,7 @@ ${sharedHeader(mainSiteLogo(), "blog")}
 <aside class="archive-calendar-feature" aria-label="Pestovateľský kalendár">
   <span aria-hidden="true">📅</span>
   <div><strong>Pestovateľský kalendár</strong><p>Ročný plán od januára do decembra: výsev paradajok, výsadba, zber a uchovávanie semien.</p></div>
-  <a href="/#sekcia=kalendar">Otvoriť v Blog &amp; Rady</a>
+  <a href="/#sekcia=kalendar" aria-label="Otvoriť pestovateľský kalendár v sekcii Blog a rady">Otvoriť v Blog &amp; Rady</a>
 </aside>
 <ul class="archive-grid">${cards}</ul>
 </main>
