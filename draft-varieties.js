@@ -176,6 +176,7 @@
    if(liveSections().some(s=>s.id===item.targetSection))select.value=item.targetSection;
    controls.appendChild(select);
    controls.appendChild(makeButton('✏️ Upraviť',()=>edit(row.id)));
+   controls.appendChild(makeButton('🖨️ 3D štítok',()=>window.HERBA_DRAFT_BULK?.printOne(row.id)));
    controls.appendChild(makeButton('Uložiť cieľovú kategóriu',()=>move(row.id,select.value,false)));
    const pub=makeButton('✓ Zverejniť',()=>move(row.id,select.value,true));pub.classList.add('drafts-publish');
    pub.title=issues.length?'Chýba: '+issues.join(', '):'Zverejniť v katalógu';
