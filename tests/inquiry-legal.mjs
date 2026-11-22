@@ -106,13 +106,13 @@ test('visitor page omits the removed legal-status section while preserving basic
     assert.match(legalNotes, /zberateľské/);
 });
 
-test('family seed farm branding is consistent in title, hero and SEO', () => {
-    assert.match(html, /<title>Herba et Fructus \| Rodinná semenná farma<\/title>/);
-    assert.match(html, /RODINNÁ SEMENNÁ FARMA/);
-    assert.match(html, /id="heroDesc">Herba et Fructus je rodinná semenná farma/);
-    assert.match(html, /<meta name="description" content="Herba et Fructus je rodinná semenná farma/);
-    assert.match(html, /<meta property="og:description" content="Herba et Fructus je rodinná semenná farma/);
-    assert.doesNotMatch(html, /osobný projekt|osobný pestovateľský projekt/i);
+test('osobný pestovateľský projekt používa konzistentné pomenovanie a SEO', () => {
+    assert.match(html, /<title>[^<]*Herba et Fructus<\/title>/);
+    assert.match(html, /OSOBNÝ PROJEKT/);
+    assert.match(html, /id="heroDesc">Herba et Fructus je osobný projekt/);
+    assert.match(html, /<meta name="description" content="[^"]*semená paradajok/);
+    assert.match(html, /<meta property="og:description" content="[^"]*semená paradajok/);
+    assert.doesNotMatch(html, /RODINNÁ SEMENNÁ FARMA|rodinná semenná farma/i);
 });
 
 test('after submitting, FormSubmit redirects to a real non-binding confirmation page', () => {
