@@ -67,7 +67,7 @@
 <p>Hľadáte semená paradajok, ktorých plody sa líšia farbou, tvarom alebo chuťou? V našej zbierke nájdete profily tradičných aj menej obvyklých odrôd paradajok. Každý verejný profil ukazuje dostupné fotografie, opis a známe vlastnosti – bez toho, aby ste museli prechádzať desiatky nesúvisiacich výsledkov.</p>
 <p>Herba et Fructus je osobný pestovateľský projekt, v ktorom dokumentujeme odrody a delíme sa o skúsenosti. Aktuálnu možnosť získania zberateľského balenia overíte v katalógu; dopyt nie je záväzná objednávka.</p>
 <div class="seed-actions">
-<a class="seed-action" href="/#odroda=Ildi">Otvoriť katalóg semien</a>
+<a class="seed-action" href="/">Otvoriť katalóg semien</a>
 <a class="seed-action secondary" href="#odrody">Prezrieť všetky verejné odrody</a>
 </div>
 </section>
