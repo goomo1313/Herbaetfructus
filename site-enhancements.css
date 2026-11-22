@@ -487,3 +487,18 @@
  .drafts-action{flex:1 1 115px}
  .drafts-dialog{padding:15px}
 }
+
+/* Prehľad správcu: zdrojom je verejný katalóg alebo oddelené súkromné koncepty. */
+.enhanced-admin-scope{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 15px;margin-bottom:16px;background:#f4f8f2;border:1px solid #d8e5d6;border-radius:11px}
+.enhanced-admin-scope label{font-weight:700;color:#2d573b;font-size:.88rem}
+.enhanced-admin-scope select{min-height:44px;flex:1 1 245px;min-width:0;max-width:440px;padding:8px 12px;border:1px solid #9fbfa5;border-radius:8px;background:white;color:#1d432b;font:inherit;font-weight:600}
+.enhanced-admin-scope select:focus-visible{outline:3px solid #c8a25e;outline-offset:2px}
+.enhanced-admin-filters option[hidden]{display:none!important}
+.enhanced-data-table td:nth-child(5){max-width:330px;overflow-wrap:anywhere}
+.bulk-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bulk-actions .bulk-marker-button{background:#eaf3ed;color:#205233;border:1px solid #95bc9d;min-height:44px;padding:10px 15px;border-radius:9px;font-weight:700;cursor:pointer}
+.bulk-actions .bulk-marker-button:hover:not(:disabled){background:#dbece0}
+.bulk-actions .bulk-marker-button:disabled{opacity:.52;cursor:not-allowed}
+.bulk-actions .bulk-marker-button:focus-visible{outline:3px solid #b37a2c;outline-offset:2px}
+.bulk-marker-hint{font-size:.84rem;color:#536e5a;line-height:1.5;margin:9px 0 5px}
+@media(max-width:580px){.enhanced-admin-scope{align-items:stretch;flex-direction:column}.enhanced-admin-scope select{flex:1 1 auto;max-width:none;width:100%}.bulk-actions .bulk-marker-button{width:100%}}
