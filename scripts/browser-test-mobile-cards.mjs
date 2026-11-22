@@ -43,6 +43,30 @@ try{
  const grid=page.locator('[data-section-grid="paradajky"]');
  await grid.locator('.variety-card').first().waitFor({state:'visible',timeout:35000});
 
+ async function verifyNavAlignment(width) {
+  const measurements=await page.evaluate(()=>{
+    const elements=[...document.querySelectorAll('#mainNavLinks > li > button, #mainNavLinks > li > a')];
+    const generator=elements.find(el=>el.matches('a[href="/3d/"]'));
+    if(!generator)throw Error('3D generator navigation anchor missing.');
+    const gen=generator.getBoundingClientRect();
+    const others=elements.filter(el=>el!==generator).map(el=>{
+      const r=el.getBoundingClientRect();
+      return {label:el.textContent,top:r.top,height:r.height,center:r.top+r.height/2};
+    });
+    return {generator:{top:gen.top,height:gen.height,center:gen.top+gen.height/2},
+      others,display:getComputedStyle(generator).display};
+  });
+  assert.ok(measurements.others.length>=3,'Too few navigation items: '+JSON.stringify(measurements));
+  assert.equal(measurements.display,'inline-flex');
+  for(const item of measurements.others){
+    assert.ok(Math.abs(item.center-measurements.generator.center)<=1,
+       'At '+width+'px navigation 3D link not vertically aligned with '+item.label+': '+JSON.stringify(measurements));
+    assert.ok(Math.abs(item.height-measurements.generator.height)<=1,
+       'At '+width+'px navigation item height differs for '+item.label+': '+JSON.stringify(measurements));
+  }
+  console.log('Navigation '+width+'px: 3D anchor shares row and vertical center with '+measurements.others.length+' menu buttons.');
+ }
+ await verifyNavAlignment(390);
  async function measure(width){
   await page.setViewportSize({width,height:844});
   const result=await grid.evaluate(el=>{
@@ -81,6 +105,7 @@ try{
  }
  await measure(390);
  await measure(320);
+ await verifyNavAlignment(320);
  await page.setViewportSize({width:390,height:844});
  // Karta zostala funkčná: +/- a pridanie do výberu.
  const first=grid.locator('.variety-card').first();
@@ -176,6 +201,7 @@ try{
  await page.evaluate(()=>window.switchSection('paradajky'));
  await grid.locator('.variety-card').first().waitFor({state:'visible'});
  await page.setViewportSize({width:1280,height:900});
+ await verifyNavAlignment(1280);
  const desktop=await grid.evaluate(el=>{
   const cards=[...el.querySelectorAll('.variety-card')].slice(0,4);
   return cards.map(c=>({x:c.getBoundingClientRect().x,y:c.getBoundingClientRect().y,width:c.getBoundingClientRect().width,
