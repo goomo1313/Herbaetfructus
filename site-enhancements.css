@@ -507,3 +507,13 @@
 .growth-filter-row .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .growth-filter-row .chip:focus-visible { outline: 3px solid #b37a2c; outline-offset: 2px; }
 .badge.growth-habit { background: #eef4ef; color:#385742; border:1px solid #cedfce; font-size:.73rem; }
+
+/* Samostatné hromadné operácie: výhradne súkromná tabuľka site_drafts. */
+#draftBulkOverlay{z-index:31000}
+.draft-bulk-dialog{width:min(100%,980px);max-height:92vh;overflow-y:auto}
+.draft-bulk-dialog .bulk-variety-list{max-height:260px;overflow-y:auto}
+.draft-bulk-dialog .draft-bulk-example{font-size:.84rem;margin:4px 0;overflow-wrap:anywhere}
+#draftBulkStatus{margin-top:12px}
+#draftBulkApply:disabled{cursor:not-allowed;opacity:.55}
+#draftBulkClearWrap[hidden],#draftBulkChoice[hidden],#draftBulkValue[hidden],#draftBulkLong[hidden]{display:none!important}
+@media(max-width:550px){.draft-bulk-dialog{padding:15px}.draft-bulk-dialog .bulk-tools{gap:7px}}
