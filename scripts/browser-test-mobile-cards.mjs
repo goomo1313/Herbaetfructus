@@ -124,17 +124,14 @@ try{
  assert.ok((await page.locator('#detailDescription').textContent()).trim().length>0);
  await page.locator('#detailClose').click();
 
- // Over overené externé zdroje v dynamickom detaile Ildi bez zmeny katalógových údajov.
+ // Zákazník vidí len pôvodný opis zo Supabase, nie odstránené dlhé texty.
  await page.evaluate(()=>window.HERBA_CATALOGUE.open('Ildi'));
- await page.waitForFunction(()=>document.querySelector('#detailResearched')?.hidden===false,{timeout:15000});
- assert.ok(await page.locator('#detailResearchedParagraphs p').count()>=3,
-  'Missing independently researched expanded text for Ildi.');
- assert.ok(await page.locator('#detailResearchedSources a[href^="https://"]').count()>=2,
-  'Missing two cited HTTPS reference links for Ildi.');
  assert.ok((await page.locator('#detailDescription').textContent()).trim().length>0,
-  'Original Supabase variety description was lost.');
+  'Pôvodný opis Ildi sa nesmie stratiť.');
+ assert.equal(await page.locator('#detailResearched').count(),0,
+  'Zrušená sekcia s dlhými externými textami sa nesmie vrátiť.');
  await page.locator('#detailClose').click();
- console.log('Researched profile: original Ildi description and citations displayed without admin mode.');
+ console.log('Variety detail: original Ildi text retained, unwanted research block absent.');
 
  // Pripravujeme smie byť na verejnej stránke neaktívne.
  assert.equal(await page.locator('#draftsOverlay').getAttribute('aria-hidden'),'true');
