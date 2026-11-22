@@ -554,3 +554,18 @@ Prídavné viacodsekové externé texty už nepoužívame. Ak treba profil rozš
 urobí sa to neskôr priamo v administrácii podľa schválených údajov správcu.
 
 Postup krok za krokom: [PRIPRAVUJEME_NAVOD.md](PRIPRAVUJEME_NAVOD.md).
+
+
+## Prehľad správcu: zverejnené a rozpracované odrody
+
+V **📊 Prehľad správcu** pribudol prepínač **Zverejnené / Pripravujeme /
+Celý katalóg vrátane skrytých**. Sekcia Pripravujeme číta samostatnú
+privátnu tabuľku `site_drafts` a vyžaduje admin autentifikáciu; v
+prehľade môžeš vyhľadávať a priamo upravovať rozpracované položky.
+Nič sa nezverejní samotným prepnutím. Úprava a publikovanie prebieha
+výslovne cez súkromný pracovný postup.
+
+V **🛠️ Hromadné operácie** po označení 1–60 odrôd použi
+**🖨️ 3D štítky k označeným**. Otvorí 3D dielňu s predvyplnenými názvami
+bez zmeny cien, zásob a objednávkového formulára. Ak je 3D dielňa
+pozastavená, hromadné tlačidlo je nedostupné.
