@@ -8,7 +8,8 @@ on:
       - 'catalogue-ui.js'
       - 'catalogue-ui.css'
       - 'draft-varieties.js'
-      - 'variety-research.json'
+      - 'site-enhancements.js'
+      - 'variety-bulk.js'
       - 'site-enhancements.css'
       - 'site-polish.css'
       - 'scripts/browser-test-mobile-cards.mjs'
@@ -17,7 +18,7 @@ permissions:
   contents: read
 jobs:
   responsive-cards:
-    name: Telefón 320/390 px a desktop 1280 px
+    name: Mobil 320/390, desktop a správcovské funkcie
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -29,5 +30,5 @@ jobs:
         run: npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
       - name: Pripraviť Chromium
         run: npx playwright install --with-deps chromium
-      - name: Otestovať mobilné karty, tlačidlá, detail a desktop
+      - name: Otestovať mobilné karty, admin prepínač, 3D štítky a desktop
         run: node scripts/browser-test-mobile-cards.mjs
