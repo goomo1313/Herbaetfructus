@@ -46,13 +46,3 @@
 .profile-marker:hover{background:#e5f1e2;color:#20452d}
 .profile-marker:focus-visible{outline:3px solid #8ac48a;outline-offset:2px}
 .profile-marker[hidden]{display:none!important}
-
-/* Rozšírené odrodové texty majú explicitne uvedené zdroje. */
-.profile-researched{margin:24px 0;padding:19px;border:1px solid #dfe9d8;background:#f8fbf6;border-radius:12px}
-.profile-researched > h2{margin:0 0 14px;color:#2d5635}
-.profile-researched p{line-height:1.8;margin:0 0 14px}
-.profile-researched h3{font-size:1rem;margin:17px 0 8px}
-.profile-researched .research-caveat{font-size:.84rem;color:#604d2b;background:#fff6e5;padding:12px;border-radius:9px}
-.profile-researched .research-sources{padding-left:20px;margin:6px 0;line-height:1.7}
-.profile-researched .research-sources li{margin:3px 0}
-.profile-researched .research-sources a{color:#286044;text-decoration:underline}
