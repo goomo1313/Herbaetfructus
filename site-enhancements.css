@@ -457,3 +457,33 @@
     .saved-cart-controls > span { flex-basis:100%; }
     .saved-cart-controls button { width:100%; }
 }
+
+/* Pripravujeme: len pre správcu, verejný katalóg sa nemení. */
+#varietyModal{z-index:32000}
+.drafts-dialog{width:min(100%,1050px)}
+.drafts-dialog h2{color:#2d5134;margin:0 0 7px}
+.drafts-dialog p{line-height:1.6;color:#536657}
+.drafts-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin:18px 0}
+.drafts-list{display:grid;gap:12px;margin-bottom:13px}
+.drafts-item{display:grid;grid-template-columns:100px minmax(0,1fr);gap:15px;align-items:center;background:#f8fbf7;border:1px solid #dce7d8;border-radius:12px;padding:12px}
+.drafts-thumb{display:grid;place-items:center;overflow:hidden;width:100px;height:100px;background:#eaf1e6;border-radius:9px;font-size:2rem;color:#7d947e}
+.drafts-thumb img{width:100%;height:100%;object-fit:contain}
+.drafts-main{min-width:0}
+.drafts-main > strong{display:block;font-size:1.06rem;color:#274d32}
+.drafts-main > p{font-size:.84rem;margin:6px 0 12px}
+.drafts-item-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.drafts-destination{max-width:240px;min-width:140px;min-height:42px;padding:8px 12px;border:1px solid #abc3ae;border-radius:8px;background:#fff;font:inherit}
+.drafts-action{cursor:pointer;min-height:42px;padding:8px 12px;border:1px solid #9fbba3;background:#edf5eb;border-radius:8px;color:#2c5435;font:600 .84rem/1.35 'Poppins',sans-serif}
+.drafts-publish{background:#2d633c;border-color:#2d633c;color:white}
+.drafts-action:hover,.drafts-action:focus-visible{box-shadow:0 0 0 3px rgba(45,99,60,.13)}
+.drafts-feedback{min-height:1.2em;font-size:.86rem;font-weight:600}
+.drafts-empty{padding:28px;background:#f8fbf7;text-align:center;border:1px dashed #bad0bd;border-radius:9px}
+.variety-draft-hint{display:block;margin-top:8px;color:#71501c;line-height:1.6;background:#fff5df;padding:9px 12px;border-radius:7px}
+.variety-draft-hint[hidden]{display:none!important}
+@media(max-width:550px){
+ .drafts-item{grid-template-columns:64px minmax(0,1fr);gap:10px}
+ .drafts-thumb{width:64px;height:64px}
+ .drafts-destination{width:100%;max-width:none}
+ .drafts-action{flex:1 1 115px}
+ .drafts-dialog{padding:15px}
+}
