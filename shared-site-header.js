@@ -25,7 +25,6 @@
       seen.add(sec.id);
       fragment.appendChild(link(label,'/#sekcia='+encodeURIComponent(sec.id),sec.id));
     }
-    fragment.appendChild(link('Pestovateľský kalendár','/#sekcia=kalendar','kalendar'));
     if (paused !== true) fragment.appendChild(link('3D generátor','/3d/','generator'));
     nav.replaceChildren(fragment);
   }
