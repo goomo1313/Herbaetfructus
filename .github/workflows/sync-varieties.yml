@@ -8,8 +8,7 @@ on:
     paths:
       - 'scripts/generate-varieties.mjs'
       - 'scripts/variety-seo-lib.mjs'
-      - 'variety-research.json'
-      - 'tests/variety-research.mjs'
+      - 'tests/original-variety-descriptions.mjs'
       - '.github/workflows/sync-varieties.yml'
 permissions:
   contents: write
