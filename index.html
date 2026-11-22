@@ -1044,7 +1044,7 @@
         @media(max-width:600px) { .visibility-setting-row { align-items:stretch; flex-direction:column; } .visibility-setting-row .admin-btn { width:100%; } }
 </style>
     <link rel="stylesheet" href="./site-polish.css">
-    <link rel="stylesheet" href="./site-enhancements.css">
+    <link rel="stylesheet" href="./site-enhancements.css?v=20261122-draft3d2">
 </head>
 <body>
     <a href="#mainContainer" class="skip-to-content">Preskočiť na hlavný obsah</a>
@@ -1674,6 +1674,7 @@
             <div class="drafts-toolbar">
                 <button type="button" class="admin-btn" onclick="window.HERBA_DRAFTS?.create()">+ Pripraviť novú odrodu</button>
                 <button type="button" class="admin-btn" onclick="window.HERBA_DRAFT_BULK?.open()">🛠️ Hromadné operácie</button>
+                <button type="button" class="admin-btn drafts-marker-launch" onclick="window.HERBA_DRAFT_BULK?.open()" title="Vybrať súkromné odrody a preniesť ich názvy do 3D generátora">🖨️ 3D štítky z Pripravujeme</button>
                 <span id="draftsCount" role="status" aria-live="polite"></span>
             </div>
             <div id="draftsRows" class="drafts-list"></div>
@@ -4895,10 +4896,10 @@
     <script src="./variety-taxonomy.js?v=20261122-growthfix4"></script>
     <script src="./variety-properties.js"></script>
     <script src="./catalogue-ui.js"></script>
-    <script src="./site-enhancements.js?v=20261122-growthfix4"></script>
+    <script src="./site-enhancements.js?v=20261122-draft3d2"></script>
     <script src="./variety-bulk-fields.js"></script>
     <script src="./variety-bulk.js"></script>
-    <script src="./draft-varieties.js"></script>
-    <script src="./draft-bulk.js?v=20261122-1"></script>
+    <script src="./draft-varieties.js?v=20261122-draft3d2"></script>
+    <script src="./draft-bulk.js?v=20261122-draft3d2"></script>
 </body>
 </html>
