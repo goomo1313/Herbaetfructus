@@ -3759,6 +3759,8 @@
             syncAdminBarHeight();
             closeLoginModal();
             renderAll();
+            // Načítavaj súkromné koncepty až po overenom admin prihlásení.
+            window.HERBA_DRAFTS?.load();
             if (homeStoryMigrationPending && cloudDatabaseReady) {
                 homeStoryMigrationPending = false;
                 queueCloudSave('sections', sectionsDatabase).then(async saved => {
