@@ -1,18 +1,5 @@
-import { readFileSync } from 'node:fs';
-
 // Verejný export aktuálnych odrôd: nikdy nepublikovať cenu, zásoby ani skryté odrody.
 export const SITE='https://herbaetfructus.sk';
-// Verejná redakčná vrstva – nepíše do Supabase a neprepisuje pôvodné popisy.
-// Obsahuje iba záznamy s aspoň dvoma priamo uvedenými externými zdrojmi.
-const externalResearch=JSON.parse(readFileSync(new URL('../variety-research.json',import.meta.url),'utf8'));
-export function verifiedVarietyResearch(name){
- if(!Object.hasOwn(externalResearch,name))return null;
- const row=externalResearch[name];
- if(!row || !Array.isArray(row.paragraphs) || row.paragraphs.length<2 || !Array.isArray(row.sources) || row.sources.length<2)return null;
- if(!row.paragraphs.every(p=>typeof p==='string'&&p.trim().length>25))return null;
- if(!row.sources.every(s=>typeof s.title==='string'&&typeof s.url==='string'&&/^https:\/\//i.test(s.url)))return null;
- return row;
-}
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const txt=(v,n=4000)=>typeof v==='string'?v.trim().slice(0,n):'';
 export function slugify(name){
@@ -109,13 +96,6 @@ export function renderProfile(p,logo,all=[]){
   [['Výsev paradajok','/clanky/vysev-paradajok/'],['Ako odobrať a usušiť semená paradajok','/clanky/ako-odobrat-semena/']]:
   p.section==='tekvice'?
   [['Zber a skladovanie cukiet a tekvíc','/clanky/od-letnej-cukety-po-zimnu-tekvicu/'],['Kríženie cukiet a tekvíc','/clanky/tekvice-krizenie/']]:[];
- const verified=verifiedVarietyResearch(p.name);
- const researchMarkup=verified?
-  '<section class="profile-researched" aria-labelledby="research-heading"><h2 id="research-heading">Podrobnejší opis a overené zdroje</h2>'+
-  verified.paragraphs.map(paragraph=>'<p>'+esc(paragraph)+'</p>').join('')+
-  '<p class="research-caveat">Údaje pochádzajú z nezávislých externých opisov odrody. Konkrétna línia v našej zbierke sa môže líšiť; údaje o pôvode, výnose či odolnosti nie sú automaticky potvrdené naším pestovaním.</p>'+
-  '<h3>Zdroje na overenie</h3><ul class="research-sources">'+verified.sources.map(source=>
-  '<li><a href="'+esc(source.url)+'" target="_blank" rel="noopener noreferrer">'+esc(source.title)+'</a></li>').join('')+'</ul></section>':'';
  const extras=(related.length||tips.length)?
   '<aside class="profile-explore" aria-label="Ďalšie odrody a pestovateľské rady"><h2>Objavte viac</h2>'+
   (related.length?'<h3>Ďalšie odrody z tejto skupiny</h3><ul>'+related.map(item=>
@@ -135,7 +115,6 @@ export function renderProfile(p,logo,all=[]){
  (p.photos[0]?'<figure class="profile-hero"><img src="'+esc(p.photos[0])+'" alt="'+esc(p.name)+'" style="object-fit:'+p.imageFit+'" decoding="async"></figure>':
  '<div class="profile-hero profile-placeholder">Fotografiu odrody ešte pripravujeme.</div>')+
  '<h2>Charakteristika odrody</h2><p>'+esc(p.info||'Podrobnejší opis doplníme podľa vlastných pestovateľských skúseností.')+'</p>'+
- researchMarkup+
  (facts.length?'<h2>Vlastnosti odrody</h2><dl class="profile-facts">'+facts.map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>').join('')+'</dl>':'')+
  (p.photos.length>1?'<h2>Fotogaléria</h2><div class="profile-gallery">'+p.photos.slice(1).map((src,i)=>
  '<a href="'+esc(src)+'" target="_blank" rel="noopener noreferrer"><img src="'+esc(src)+'" alt="'+esc(p.name)+' – fotografia '+(i+2)+'" loading="lazy"></a>').join('')+'</div>':'')+
