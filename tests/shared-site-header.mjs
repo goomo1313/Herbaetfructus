@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,readdirSync,existsSync} from 'node:fs';
+import {dirname,join,resolve} from 'node:path';
 import {spawnSync} from 'node:child_process';
 import {createContext,runInContext} from 'node:vm';
 import {sharedHeader,sharedHeaderAssets} from '../scripts/shared-site-header.mjs';
@@ -97,4 +98,47 @@ test('spoločný skript a SEO generátory sú syntakticky platné',()=>{
   const result=spawnSync(process.execPath,['--check',file],{encoding:'utf8'});
   assert.equal(result.status,0,file+' '+result.stderr);
  }
+});
+
+
+test('všetky HTML podstránky používajú rovnakú hlavičku a funkčné relatívne súbory',()=>{
+ const pages=[];
+ function walk(dir){
+  for(const entry of readdirSync(dir,{withFileTypes:true})){
+   const path=join(dir,entry.name);
+   if(entry.isDirectory())walk(path);
+   else if(entry.isFile()&&entry.name.endsWith('.html'))pages.push(path);
+  }
+ }
+ for(const dir of ['3d','clanky','odrody'])walk(dir);
+ pages.push('dakujeme.html');
+ assert.ok(pages.length>=60,'Kontrola má pokrývať všetky články a profily odrôd');
+ const expectedLogo=logo();
+ for(const file of pages){
+  const page=readFileSync(file,'utf8');
+  assert.match(page,/<body class="hf-unified-page(?: [^"]+)?">/,file);
+  assert.match(page,/<header class="hf-site-header">/,file);
+  assert.match(page,/<nav class="hf-site-nav" aria-label="Hlavná navigácia">/,file);
+  assert.match(page,/<ul class="nav-links" data-hf-site-nav>/,file);
+  assert.ok(page.includes(expectedLogo),'Logo je iné ako na hlavnej stránke: '+file);
+  for(const text of ['Náš príbeh','Paradajky','Pestovateľský kalendár','3D generátor']){
+   assert.ok(page.includes(text),'Chýba položka navigácie '+text+': '+file);
+  }
+  assert.match(page,/href="\/#sekcia=paradajky"/,file);
+  assert.match(page,/href="\/#sekcia=blog"/,file);
+  assert.match(page,/href="\/3d\/"/,file);
+  const css=page.match(/href="([^"]*shared-site-header\.css(?:\?[^"]*)?)"/)?.[1];
+  const js=page.match(/src="([^"]*shared-site-header\.js(?:\?[^"]*)?)"/)?.[1];
+  assert.ok(css&&js,'Chýba zdieľaný štýl alebo navigácia: '+file);
+  for(const asset of [css,js]){
+   const localPath=resolve(dirname(file),asset.split('?')[0]);
+   assert.ok(existsSync(localPath),'Chýbajúci súbor '+asset+' na '+file);
+  }
+  assert.doesNotMatch(page,/<header class="page-header">|<header class="site-header">/,file);
+ }
+ const confirmation=readFileSync('dakujeme.html','utf8');
+ assert.match(confirmation,/<meta name="robots" content="noindex,follow">/);
+ assert.match(confirmation,/id="obsah" class="confirmation-card"/);
+ assert.match(confirmation,/herba_inquiry_pending_v1/);
+ assert.match(confirmation,/href="\.\/index\.html"/);
 });
