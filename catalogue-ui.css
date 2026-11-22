@@ -55,13 +55,3 @@
 .product-detail-profile-link{display:inline-flex;align-items:center;min-height:42px;border:1px solid #8aaa8c;border-radius:9px;padding:9px 13px;text-decoration:none;color:#245c35;background:#f1f7ee;font-weight:700}
 .product-detail-profile-link:hover{background:#dfefda}
 .product-detail-profile-link[hidden]{display:none!important}
-
-/* Citované rozšírené opisy odrôd: samostatné od pôvodných údajov v Supabase. */
-.product-detail-research{border:1px solid #dbe7d6;border-radius:12px;background:#f8fbf6;padding:15px;margin:19px 0}
-.product-detail-research[hidden]{display:none!important}
-.product-detail-research h3{font-size:1.06rem;color:#2c5934;margin:0 0 12px}
-.product-detail-research h4{font-size:.92rem;color:#2d5335;margin:18px 0 8px}
-.product-detail-research p{margin:0 0 12px;line-height:1.75;color:#405745;font-size:.91rem}
-.product-detail-research .research-caveat{font-size:.77rem;background:#fff5e6;padding:9px 10px;border-radius:7px;color:#66502c}
-.product-detail-research ul{list-style:disc;padding-left:20px;margin:0;font-size:.82rem;line-height:1.7}
-.product-detail-research a{color:#25613d;text-decoration:underline;text-underline-offset:2px}
