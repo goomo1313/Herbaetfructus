@@ -12,13 +12,15 @@ function buildPage() {
     const contact = {style: {display: ''}};
     const conditions = {style: {display: ''}};
     const calendar = {style: {display: ''}};
+    const disclosure = {open:false,scrollIntoView(){}};
     const nav = {innerHTML: '', children: [], appendChild(item) {this.children.push(item);}};
     const controls = {
         homeHero: hero,
         mainNavLinks: nav,
         kontaktSection: contact,
         podmienkySection: conditions,
-        gardenCalendarSection: calendar
+        gardenCalendarSection: calendar,
+        blogCalendarDisclosure: disclosure
     };
     const bodyClasses = new Set();
     const document = {
@@ -42,7 +44,7 @@ function buildPage() {
         setTimeout() {}
     });
     runInContext(inline, context);
-    return {context, hero, bodyClasses};
+    return {context, hero, bodyClasses, disclosure};
 }
 
 test('zelený úvod má vlastný identifikátor a pravidlo pre skrytie', () => {
@@ -79,11 +81,15 @@ test('zmeny príbehu neodstránili spoločné administračné nastavenie cien a 
     assert.match(html, /return farmSettings\.pricesHidden === true/);
 });
 
-test('prepínanie kalendára vypne prichytenú navigáciu a návrat ho obnoví', () => {
-    const {context, bodyClasses} = buildPage();
+test('otvorenie kalendára v blogu vypne prichytenú navigáciu a zatvorenie ju obnoví', () => {
+    const {context, bodyClasses, disclosure} = buildPage();
     assert.equal(bodyClasses.has('calendar-reading'), false);
     runInContext("switchSection('kalendar')",context);
+    assert.equal(disclosure.open,true);
     assert.equal(bodyClasses.has('calendar-reading'), true);
+    runInContext("switchSection('blog')",context);
+    assert.equal(bodyClasses.has('calendar-reading'), true);
+    disclosure.open=false;
     runInContext("switchSection('blog')",context);
     assert.equal(bodyClasses.has('calendar-reading'), false);
     runInContext("switchSection('kalendar'); switchSection('domov')",context);
