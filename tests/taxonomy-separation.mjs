@@ -37,7 +37,7 @@ test('katalóg a hromadné úpravy majú dva nezávislé ovládače',()=>{
  assert.doesNotMatch(html,/<select id="growthFilter_/);
  assert.match(html,/function filterByGrowth\(/);
  assert.match(html,/renderGrowthFilterChipsForSection\(secId\)/);
- assert.match(html,/currentGrowth\s*===\s*'all'/);
+ assert.match(html,/container\.dataset\.selectedGrowth\s*=\s*currentGrowth/);
  assert.match(filters,/typeof currentGrowth/);
  assert.match(html,/dataset\.growth/);
  assert.match(filters,/matchGrowth/);
