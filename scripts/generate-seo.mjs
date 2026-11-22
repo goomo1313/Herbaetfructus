@@ -105,7 +105,7 @@ ${next?`<a href="/clanky/${slug(next)}/"><span>Nasledujúci článok →</span><
 </nav>
 <p class="back-to-blog"><a href="/clanky/">← Všetky pestovateľské články</a></p>
 </main>
-<footer class="page-footer">© Herba et Fructus · Rodinná semenná farma · <a href="/">Späť na hlavnú stránku</a></footer>
+<footer class="page-footer">© Herba et Fructus · Osobný projekt · <a href="/">Späť na hlavnú stránku</a></footer>
 </body></html>
 `;
 }
@@ -119,7 +119,7 @@ function renderArchive(posts){
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pestovateľské články a rady zo záhrady | Herba et Fructus</title>
-<meta name="description" content="Praktické články o paradajkách, semenárstve, tekviciach, čučoriedkach a pestovaní. Skúsenosti a overené postupy z rodinnej semennej farmy Herba et Fructus.">
+<meta name="description" content="Praktické články o paradajkách, semenárstve, tekviciach, čučoriedkach a pestovaní. Skúsenosti a overené postupy z osobného pestovateľského projektu Herba et Fructus.">
 <link rel="canonical" href="https://herbaetfructus.sk/clanky/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Pestovateľské články | Herba et Fructus">
@@ -139,7 +139,7 @@ function renderArchive(posts){
 <section class="archive-heading"><div class="article-kicker">Rady zo záhrady</div><h1>Pestovateľské články</h1><p>Výber praktických návodov, skúseností a zaujímavostí o paradajkách, tekviciach, uchovávaní semien a starostlivosti o záhradu.</p></section>
 <ul class="archive-grid">${cards}</ul>
 </main>
-<footer class="page-footer">© Herba et Fructus · Rodinná semenná farma · <a href="/">Späť na hlavnú stránku</a></footer>
+<footer class="page-footer">© Herba et Fructus · Osobný projekt · <a href="/">Späť na hlavnú stránku</a></footer>
 </body></html>
 `;
 }
