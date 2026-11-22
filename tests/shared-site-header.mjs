@@ -43,7 +43,7 @@ test('3D a články zobrazia identické SVG logo, farby a navigačné karty hlav
 test('SEO generátory používajú spoločnú šablónu, aby budúca synchronizácia nevrátila starý dizajn',()=>{
  assert.match(seoSource,/sharedHeader\(mainSiteLogo\(\), "blog"\)/);
  assert.match(profileSource,/sharedHeader\(logo\)/);
- assert.match(seoSource,/sharedHeaderAssets\("\.\.\/\."\)/);
+ assert.match(seoSource,/sharedHeaderAssets\("\.\.\/\.\.\/"\)/);
  assert.match(profileSource,/sharedHeaderAssets\(path\)/);
  assert.match(root,/function activateSharedSiteSection\(\)/);
  assert.match(root,/activateSharedSiteSection\(\);/);
