@@ -35,7 +35,9 @@
    '<select id="draftBulkChoice" aria-label="Nová hodnota" hidden></select><textarea id="draftBulkLong" aria-label="Nová hodnota – opis alebo fotografie" rows="4" hidden></textarea>'+
    '<label id="draftBulkClearWrap" class="bulk-clear-value" hidden><input id="draftBulkErase" type="checkbox"> Vymazať hodnotu pri označených konceptoch</label></div></div>'+
    '<p id="draftBulkHelp" class="bulk-field-help"></p><div id="draftBulkPreview" class="bulk-preview" aria-live="polite"></div>'+
-   '<button id="draftBulkApply" type="button" class="admin-btn" disabled>Skontrolovať a uložiť súkromné zmeny</button>'+
+   '<div class="bulk-actions"><button id="draftBulkApply" type="button" class="admin-btn" disabled>Skontrolovať a uložiť súkromné zmeny</button>'+
+   '<button id="draftBulkGenerateMarkers" class="bulk-marker-button" type="button" disabled>🖨️ 3D štítky k označeným (0/60)</button></div>'+
+   '<p id="draftBulkMarkerHint" class="bulk-marker-hint" aria-live="polite">Vyber 1 až 60 konceptov. Prenesú sa len názvy, bez publikovania a bez zmeny databázy.</p>'+
    '<p id="draftBulkStatus" role="status" aria-live="polite" class="drafts-feedback"></p></section>';
   document.body.appendChild(modal);
   $('draftBulkClose').addEventListener('click',close);
@@ -47,6 +49,7 @@
   $('draftBulkChoice').addEventListener('change',preview);
   $('draftBulkErase').addEventListener('change',preview);
   $('draftBulkApply').addEventListener('click',save);
+  $('draftBulkGenerateMarkers').addEventListener('click',openMarkers);
   modal.addEventListener('click',event=>{if(event.target===modal&&!busy)close();});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&modal?.classList.contains('active')&&!busy)close();});
  }
@@ -70,6 +73,7 @@
   $('draftBulkCount').textContent='Označené: '+selected.size;
   $('draftBulkFiltered').textContent='Zobrazených '+filtered().length+' z '+records.length+' konceptov';
   preview();
+  updateMarkerAction();
  }
  function selectOptions(values){
   const select=$('draftBulkChoice');select.replaceChildren();
@@ -95,6 +99,60 @@
   const descriptions={targetSection:'Iba plánovaná kategória; koncept zostáva súkromný.',pricePercent:'Relatívna zmena ceny v percentách, napr. 10 alebo -10.',stockDelta:'Pripočíta alebo odpočíta počet balení od každého označeného konceptu.',galleryAdd:'HTTPS adresy fotografií, každá v novom riadku.'};
   $('draftBulkHelp').textContent=descriptions[f.key]||'Úprava zasiahne len vybrané súkromné koncepty, ostatné polia sa zachovajú.';
   preview();
+ }
+
+ // Tlač len súkromných názvov, bez kopírovania obsahov konceptov do verejnej databázy.
+ function selectedMarkerNames(){
+  return records.filter(row=>selected.has(row.id)).map(row=>row.content?.name);
+ }
+ function markerValidation(names=selectedMarkerNames()){
+  if(busy)return 'Prebieha hromadné ukladanie. Skús tlač po dokončení.';
+  if(!ready())return 'Na tlač konceptov sa musíš prihlásiť ako správca.';
+  if(!names.length)return 'Označ aspoň jeden koncept.';
+  if(names.length>60)return 'Najviac 60 štítkov na jednu tlačovú úlohu.';
+  if(names.some(n=>typeof n!=='string'||!n.trim()||
+   Array.from(n.trim()).length>40||/[\r\n\0-\x1f\x7f]/.test(n)))
+   return 'Názov konceptu nesmie byť prázdny, obsahovať riadiace znaky ani mať viac než 40 znakov.';
+  if(new Set(names.map(n=>n.trim().toLocaleLowerCase('sk'))).size!==names.length)
+   return 'Označené koncepty majú duplicitné názvy.';
+  if(typeof isGeneratorPaused==='function'&&isGeneratorPaused())
+   return '3D generátor je pozastavený v nastaveniach webu.';
+  return '';
+ }
+ function updateMarkerAction(){
+  const button=$('draftBulkGenerateMarkers'),hint=$('draftBulkMarkerHint');
+  if(!button)return;
+  const names=selectedMarkerNames(),problem=markerValidation(names);
+  button.disabled=!!problem;
+  button.textContent='🖨️ 3D štítky k označeným ('+names.length+'/60)';
+  if(hint)hint.textContent=problem||'Prenesie '+names.length+' názvov do 3D generátora. Súkromné koncepty, ceny ani sklad nezmení.';
+ }
+ function sendMarkers(names){
+  const problem=markerValidation(names);
+  if(problem){status('⚠️ '+problem,true);return false;}
+  // ŽIADNE URL parametre s názvami. Jednorazový sessionStorage sa v generátore zmaže.
+  try{
+   sessionStorage.setItem('herba_3d_names_v1',JSON.stringify(names.map(n=>n.trim())));
+   window.location.href='/3d/?vyber=1';
+   return true;
+  }catch(_){
+   try{sessionStorage.removeItem('herba_3d_names_v1');}catch(_){}
+   status('⚠️ Prehliadač blokuje bezpečný prenos do 3D generátora. Povoľ dočasné úložisko pre túto stránku alebo názvy zadaj ručne.',true);
+   return false;
+  }
+ }
+ function openMarkers(){
+  if(records.some(row=>selected.has(row.id)&&(row.content?.section!=='pripravujeme'||row.content?.hidden!==true))){
+   status('⚠️ Výber obsahuje záznam, ktorý nie je súkromný koncept.',true);
+   return false;
+  }
+  return sendMarkers(selectedMarkerNames());
+ }
+ function printOne(id){
+  if(!ready())return false;
+  const row=drafts().entries().find(entry=>entry.id===id);
+  if(!row||row.content?.section!=='pripravujeme'||row.content?.hidden!==true)return false;
+  return sendMarkers([row.content.name]);
  }
  function calculate(source=records){
   const ids=source.map((row,i)=>selected.has(row.id)?i:-1).filter(i=>i>=0);
@@ -143,6 +201,7 @@
    apply.disabled=false;
   }catch(e){host.textContent=e.message||'Vyplň hodnotu a označ koncepty.';}
   $('draftBulkCount').textContent='Označené: '+selected.size;
+  updateMarkerAction();
  }
  async function open(){
   if(!ready()){alert('Hromadné úpravy sú dostupné len prihlásenému správcovi so súkromnou databázou.');return false;}
@@ -193,7 +252,7 @@
    status('✅ Uložených '+changes.length+' súkromných konceptov. Verejný katalóg zostal nezmenený.');
    return true;
   }catch(e){status('⚠️ '+(e.message||'Ukladanie zlyhalo.'),true);return false;}
-  finally{busy=false;modal?.setAttribute('aria-busy','false');preview();}
+  finally{busy=false;modal?.setAttribute('aria-busy','false');preview();updateMarkerAction();}
  }
- window.HERBA_DRAFT_BULK={open,close};
+ window.HERBA_DRAFT_BULK={open,close,openMarkers,printOne,markerValidation,selectedMarkerNames};
 })();
