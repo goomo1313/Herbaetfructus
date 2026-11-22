@@ -47,12 +47,12 @@ test('sitemap obsahuje iba skutočné kanonické stránky',()=>{
  assert.ok(urls.includes('https://herbaetfructus.sk/clanky/'));
  assert.ok(!urls.some(url=>url.endsWith('/index.html')));
 });
-test('blog uchoval rozbaľovanie, nové statické odkazy a názov rodinnej farmy',()=>{
+test('blog uchoval rozbaľovanie, statické odkazy a osobný projekt',()=>{
  assert.match(html,/class="blog-details"/);
  assert.match(html,/blog-permalink/);
  assert.match(html,/href="\/clanky\/"/);
- assert.doesNotMatch(html,/osobný projekt|osobný pestovateľský projekt/i);
- assert.match(html,/Herba et Fructus je rodinná semenná farma/);
+ assert.match(html,/Herba et Fructus je osobný projekt/);
+ assert.doesNotMatch(html,/RODINNÁ SEMENNÁ FARMA|rodinná semenná farma/i);
 });
 
 
@@ -69,11 +69,11 @@ test('všetky články aj archív používajú rovnaké originálne SVG logo ako
 });
 
 
-test("rodinná semenná farma je vo všetkých verejných článkoch",()=>{
+test("osobný projekt je vo všetkých verejných článkoch",()=>{
  for(const path of ["clanky/index.html",...posts.map(p=>"clanky/"+p.id.slice(3)+"/index.html")]){
   const page=readFileSync(path,"utf8");
-  assert.match(page,/RODINNÁ SEMENNÁ FARMA/,path);
-  assert.match(page,/© Herba et Fructus · Rodinná semenná farma ·/,path);
-  assert.doesNotMatch(page,/osobný pestovateľský projekt/i,path);
+  assert.match(page,/OSOBNÝ PROJEKT/,path);
+  assert.match(page,/© Herba et Fructus · Osobný projekt ·/,path);
+  assert.doesNotMatch(page,/RODINNÁ SEMENNÁ FARMA|Rodinná semenná farma/i,path);
  }
 });
