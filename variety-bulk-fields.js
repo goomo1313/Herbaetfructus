@@ -36,7 +36,7 @@
     })));
     const field=key=>fields().find(f=>f.key===key)||null;
     const colors=['Červená','Žltá / Oranžová','Čierna / Tmavá','Pásikavá / Pestrá','Zelená / Iná'];
-    const types=['Neurčený','Multiflora','Cherry & Koktailová','Býčie srdce','Omáčková','Zberateľská špecialita','Tekvica','Cuketa','Patizón'];
+    const types=['Neurčený','Multiflora','Cherry & Koktailová','Býčie srdce','Veľkoplodá','Šalátová','Omáčková','Zberateľská špecialita','Tekvica','Cuketa','Patizón'];
     const growths=['Neurčený','Indeterminantná','Determinantná','Polodeterminantná'];
     const normalize=value=>String(value??'').trim();
     const safeUrl=value=>/^https:\/\/[a-z0-9][^\s<>"']*$/i.test(value) && !/[{}]/.test(value);

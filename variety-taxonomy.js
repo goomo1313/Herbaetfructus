@@ -3,7 +3,7 @@
  'use strict';
  const UNKNOWN='Neurčený';
  const growths=Object.freeze([UNKNOWN,'Indeterminantná','Determinantná','Polodeterminantná']);
- const types=Object.freeze([UNKNOWN,'Multiflora','Cherry & Koktailová','Býčie srdce','Omáčková','Zberateľská špecialita','Tekvica','Cuketa','Patizón']);
+ const types=Object.freeze([UNKNOWN,'Multiflora','Cherry & Koktailová','Býčie srdce','Veľkoplodá','Šalátová','Omáčková','Zberateľská špecialita','Tekvica','Cuketa','Patizón']);
  const aliases=Object.freeze({'Indeterminantná':'Indeterminantná','Determinantná':'Determinantná','Polodeterminantná':'Polodeterminantná','Semi-determinantná':'Polodeterminantná','Determinantná (Plazivá)':'Determinantná'});
  const txt=v=>typeof v==='string'?v.trim():'';
  function fruitType(item){if(!item)return UNKNOWN;const a=txt(item.fruitType);if(a)return a;const b=txt(item.type);return !b||aliases[b]||b==='Neurčené'?UNKNOWN:b;}
