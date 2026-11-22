@@ -90,7 +90,13 @@
         const selector = $('enhancedDashboardScope');
         if (selector) selector.value = 'published';
         const status = $('enhancedDashboardStatus');
-        if (status) status.value = 'all';
+        if (status) {
+            status.value = 'all';
+            for (const option of Array.from(status.options || [])) {
+                option.hidden = option.value === 'ready';
+                option.disabled = option.hidden;
+            }
+        }
         dashboardRender();
         return showModal('enhancedDashboardOverlay');
     }
