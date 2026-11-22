@@ -7,8 +7,10 @@ const code=readFileSync('draft-bulk.js','utf8');
 const fields=readFileSync('variety-bulk-fields.js','utf8');
 const html=readFileSync('index.html','utf8');
 const overview=readFileSync('site-enhancements.js','utf8');
+const draftsList=readFileSync('draft-varieties.js','utf8');
 function environment(){
- const nodes=new Map(),calls=[],events=[];
+ const nodes=new Map(),calls=[],events=[],store=new Map();
+ let paused=false,storageBlocked=false;
  function element(){
   const classes=new Set();
   return {
@@ -25,7 +27,7 @@ function environment(){
  const ids=['draftBulkClose','draftBulkSearch','draftBulkSelect','draftBulkClear','draftBulkCount',
   'draftBulkFiltered','draftBulkList','draftBulkField','draftBulkValue','draftBulkChoice',
   'draftBulkLong','draftBulkErase','draftBulkClearWrap','draftBulkHelp','draftBulkPreview',
-  'draftBulkApply','draftBulkStatus'];
+  'draftBulkApply','draftBulkStatus','draftBulkGenerateMarkers','draftBulkMarkerHint'];
  for(const id of ids)nodes.set(id,element());
  let rows=[
   {id:'draft-a',content:{name:'Prvá',section:'pripravujeme',hidden:true,stock:2,targetSection:'paradajky'}},
@@ -40,12 +42,14 @@ function environment(){
   }};
  }};
  const api={async load(){return true},entries(){return rows.map(x=>({id:x.id,content:{...x.content}}))}};
- const win={HERBA_DRAFTS:api,HERBA_VARIETY_PROPERTIES:{fields:[]}};
+ const win={HERBA_DRAFTS:api,HERBA_VARIETY_PROPERTIES:{fields:[]},location:{href:''}};
+ const storage={setItem(k,v){if(storageBlocked)throw Error('blocked');store.set(k,String(v));},getItem(k){return store.get(k)||null;},removeItem(k){store.delete(k)}};
  const ctx=createContext({window:win,document:doc,adminSupabase:client,cloudDatabaseReady:true,
-  requireAdmin:()=>true,sectionsDatabase:[{id:'paradajky',name:'Paradajky',hidden:false}],
+  requireAdmin:()=>true,isGeneratorPaused:()=>paused,sessionStorage:storage,
+  sectionsDatabase:[{id:'paradajky',name:'Paradajky',hidden:false}],
   confirm:()=>true,alert(){},console});
  runInContext(fields,ctx);runInContext(code,ctx);
- return {nodes,ctx,win,calls,rows:()=>rows,api};
+ return {nodes,ctx,win,calls,rows:()=>rows,api,store,setPaused(v){paused=v},setStorageBlocked(v){storageBlocked=v}};
 }
 test('Pripravujeme má vlastné hromadné operácie v prehľade i v sekcii',()=>{
  assert.doesNotThrow(()=>new Script(code));
@@ -97,4 +101,62 @@ test('pri konflikte so súbežnou zmenou sa hromadný zápis zablokuje',async()=
  await e.nodes.get('draftBulkApply').on_click();
  assert.equal(e.calls.length,0);
  assert.match(e.nodes.get('draftBulkStatus').textContent,/medzitým zmenil/);
+});
+test('3D tlač označených súkromných konceptov prenesie iba názvy bez zmeny databázy',async()=>{
+ const e=environment();
+ await e.win.HERBA_DRAFT_BULK.open();
+ e.nodes.get('draftBulkSelect').on_click();
+ const button=e.nodes.get('draftBulkGenerateMarkers');
+ assert.equal(button.disabled,false);
+ assert.match(button.textContent,/2\/60/);
+ assert.equal(button.on_click(),true);
+ assert.equal(e.win.location.href,'/3d/?vyber=1');
+ assert.deepEqual(JSON.parse(e.store.get('herba_3d_names_v1')),['Prvá','Druhá']);
+ assert.equal(e.calls.length,0);
+ assert.equal(e.rows()[0].content.hidden,true);
+ assert.equal(e.rows()[1].content.section,'pripravujeme');
+ assert.match(draftsList,/HERBA_DRAFT_BULK\?\.printOne\(row\.id\)/);
+});
+test('3D štítok sa dá vytvoriť aj z jedného konceptu',()=>{
+ const e=environment();
+ assert.equal(e.win.HERBA_DRAFT_BULK.printOne('draft-b'),true);
+ assert.equal(e.win.location.href,'/3d/?vyber=1');
+ assert.deepEqual(JSON.parse(e.store.get('herba_3d_names_v1')),['Druhá']);
+ assert.equal(e.calls.length,0);
+});
+test('pri zakázanom 3D generátore alebo príliš dlhých názvoch sa prenos neuskutoční',async()=>{
+ const e=environment();
+ await e.win.HERBA_DRAFT_BULK.open();
+ e.nodes.get('draftBulkSelect').on_click();
+ e.setPaused(true);
+ assert.match(e.win.HERBA_DRAFT_BULK.markerValidation(),/pozastavený/);
+ assert.equal(e.win.HERBA_DRAFT_BULK.openMarkers(),false);
+ assert.equal(e.win.location.href,'');
+ assert.equal(e.store.size,0);
+ e.setPaused(false);
+ e.rows()[0].content.name='Dlhý názov odrody prekračujúci štyridsať znakov ABCD';
+ e.win.HERBA_DRAFT_BULK.close();
+ await e.win.HERBA_DRAFT_BULK.open();
+ e.nodes.get('draftBulkSelect').on_click();
+ assert.match(e.win.HERBA_DRAFT_BULK.markerValidation(),/viac než 40/);
+ assert.equal(e.win.HERBA_DRAFT_BULK.openMarkers(),false);
+ assert.equal(e.store.size,0);
+});
+test('pri zablokovanom sessionStorage sa súkromné názvy nedostanú do URL',()=>{
+ const e=environment();
+ e.setStorageBlocked(true);
+ assert.equal(e.win.HERBA_DRAFT_BULK.printOne('draft-a'),false);
+ assert.equal(e.win.location.href,'');
+ assert.equal(e.store.size,0);
+ assert.match(e.nodes.get('draftBulkStatus').textContent,/úložisko/);
+});
+test('viac než 60 súkromných konceptov sa do generátora neodošle',async()=>{
+ const e=environment();
+ for(let i=2;i<61;i++)e.rows().push({id:'draft-'+i,content:{name:'Odroda '+i,section:'pripravujeme',hidden:true}});
+ await e.win.HERBA_DRAFT_BULK.open();
+ e.nodes.get('draftBulkSelect').on_click();
+ assert.equal(e.nodes.get('draftBulkGenerateMarkers').disabled,true);
+ assert.match(e.win.HERBA_DRAFT_BULK.markerValidation(),/Najviac 60/);
+ assert.equal(e.win.HERBA_DRAFT_BULK.openMarkers(),false);
+ assert.equal(e.store.size,0);
 });
