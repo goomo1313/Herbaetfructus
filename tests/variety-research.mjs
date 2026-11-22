@@ -6,9 +6,9 @@ import { verifiedVarietyResearch, publicProfiles, renderProfile, mainLogo } from
 const research=JSON.parse(readFileSync('variety-research.json','utf8'));
 const html=readFileSync('index.html','utf8');
 
-test('22 curated profiles have expanded text and two explicitly named HTTPS sources',()=>{
+test('27 curated profiles have expanded text and two explicitly named HTTPS sources',()=>{
  const entries=Object.entries(research);
- assert.equal(entries.length,22);
+ assert.equal(entries.length,27);
  const names=new Set();
  for(const [name,row] of entries){
   assert.ok(!names.has(name.toLocaleLowerCase('sk')),name+' duplicate');names.add(name.toLocaleLowerCase('sk'));
