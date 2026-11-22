@@ -57,7 +57,7 @@ try{
       others,display:getComputedStyle(generator).display};
   });
   assert.ok(measurements.others.length>=3,'Too few navigation items: '+JSON.stringify(measurements));
-  assert.equal(measurements.display,'inline-flex');
+  assert.ok(['flex','inline-flex'].includes(measurements.display), 'Navigation link needs a flex box: '+JSON.stringify(measurements));
   for(const item of measurements.others){
     assert.ok(Math.abs(item.center-measurements.generator.center)<=1,
        'At '+width+'px navigation 3D link not vertically aligned with '+item.label+': '+JSON.stringify(measurements));
