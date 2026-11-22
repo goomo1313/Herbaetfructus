@@ -116,7 +116,7 @@
     }
     // Pripravujeme je samostatná autentifikovaná tabuľka site_drafts.
     // Prehľad môže zobrazovať jej záznamy, nikdy ich však nekopíruje do
-    // verejného varietyDatabase ani ich nepúšťa do hromadných úprav.
+    // verejného varietyDatabase; koncepty majú vlastné bezpečné hromadné úpravy.
     function dashboardScope() {
         return $('enhancedDashboardScope')?.value || 'catalogue';
     }
@@ -197,6 +197,7 @@
         if (scope === 'drafts') {
             actions.appendChild(dashAction('📝 Otvoriť Pripravujeme',()=>go(()=>window.HERBA_DRAFTS?.open())));
             actions.appendChild(dashAction('🌱 Nový koncept',()=>go(()=>window.HERBA_DRAFTS?.create())));
+            actions.appendChild(dashAction('🛠️ Hromadné operácie',()=>go(()=>window.HERBA_DRAFT_BULK?.open())));
         } else {
             actions.appendChild(dashAction('🛠️ Hromadné operácie',()=>go(()=>window.HERBA_BULK?.open())));
             actions.appendChild(dashAction('📋 Správa skladu',()=>go(openTableManagerModal)));
