@@ -1401,7 +1401,15 @@
                 </div>
                 <button class="enhanced-close" id="enhancedDashboardClose" type="button" aria-label="Zatvoriť prehľad">×</button>
             </div>
-            <div class="enhanced-stats" id="enhancedDashboardStats" aria-label="Štatistiky katalógu"></div>
+            <div class="enhanced-admin-scope" role="group" aria-label="Vyber zdroj odrôd">
+                <label for="enhancedDashboardScope">Zobraziť odrody</label>
+                <select id="enhancedDashboardScope" aria-label="Prepnúť medzi zverejnenými odrodami a Pripravujeme">
+                    <option value="published">🌿 Zverejnené</option>
+                    <option value="drafts">📝 Pripravujeme (súkromné koncepty)</option>
+                    <option value="catalogue">📋 Celý katalóg vrátane skrytých</option>
+                </select>
+            </div>
+            <div class="enhanced-stats" id="enhancedDashboardStats" aria-label="Štatistiky odrôd vo vybranej skupine"></div>
             <div class="enhanced-admin-actions" id="enhancedDashboardActions" aria-label="Rýchle správcovské úkony"></div>
             <div class="enhanced-admin-filters">
                 <input type="search" id="enhancedDashboardSearch" aria-label="Hľadať v katalógu správcu" placeholder="Hľadať odrodu, farbu, typ alebo popis...">
@@ -1410,6 +1418,7 @@
                     <option value="missing-photo">Bez fotografie</option>
                     <option value="incomplete">Neúplné údaje</option>
                     <option value="short-description">Krátky opis (menej než 180 znakov)</option>
+                    <option value="ready">Pripravené na zverejnenie</option>
                     <option value="out">Vypredané</option>
                     <option value="hidden">Skryté</option>
                 </select>
@@ -1644,7 +1653,9 @@
             <div id="bulkPreview" class="bulk-preview" aria-live="polite">Zatiaľ nič nie je vybrané.</div>
             <div class="bulk-actions">
                 <button id="bulkApply" type="button" disabled>Skontrolovať a uložiť hromadnú zmenu</button>
+                <button id="bulkGenerateMarkers" class="bulk-marker-button" type="button" disabled title="Vytvorí 3D štítky zo zvolených odrôd bez zmeny databázy">🖨️ 3D štítky k označeným odrodám</button>
             </div>
+            <p class="bulk-marker-hint" id="bulkMarkerHint" aria-live="polite">Označ 1 až 60 odrôd. Tlač 3D štítkov nemení sklad, ceny ani objednávku.</p>
             <p id="bulkStatus" role="status" aria-live="polite"></p>
         </div>
     </div>
