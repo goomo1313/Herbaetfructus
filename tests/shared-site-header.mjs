@@ -86,7 +86,7 @@ test('navigácia prečíta len verejné sekcie, nikdy neukáže skrytý obsah an
  runInContext(sharedJs,ctx);
  await new Promise(resolve=>setImmediate(resolve));
  const links=nav.children[0].children.map(li=>li.children[0]);
- assert.deepEqual(links.map(link=>link.textContent),['Náš príbeh','Paradajky','Blog & Rady','Pestovateľský kalendár']);
+ assert.deepEqual(links.map(link=>link.textContent),['Náš príbeh','Paradajky','Blog & Rady']);
  assert.ok(!links.some(link=>link.textContent==='SÚKROMNÉ'||link.textContent==='3D generátor'));
  assert.equal(links.find(link=>link.textContent==='Blog & Rady').attributes['aria-current'],'page');
  assert.equal(links.find(link=>link.textContent==='Paradajky').href,'/#sekcia=paradajky');
@@ -121,11 +121,13 @@ test('všetky HTML podstránky používajú rovnakú hlavičku a funkčné relat
   assert.match(page,/<nav class="hf-site-nav" aria-label="Hlavná navigácia">/,file);
   assert.match(page,/<ul class="nav-links" data-hf-site-nav>/,file);
   assert.ok(page.includes(expectedLogo),'Logo je iné ako na hlavnej stránke: '+file);
-  for(const text of ['Náš príbeh','Paradajky','Pestovateľský kalendár','3D generátor']){
+  for(const text of ['Náš príbeh','Paradajky','Blog & Rady','3D generátor']){
    assert.ok(page.includes(text),'Chýba položka navigácie '+text+': '+file);
   }
   assert.match(page,/href="\/#sekcia=paradajky"/,file);
   assert.match(page,/href="\/#sekcia=blog"/,file);
+  const topMenu=page.match(/<ul class="nav-links" data-hf-site-nav>[\s\S]*?<\/ul>/)?.[0]||'';
+  assert.ok(!topMenu.includes('Pestovateľský kalendár'),'Kalendár má byť v blogu, nie v hlavnom menu: '+file);
   assert.match(page,/href="\/3d\/"/,file);
   const css=page.match(/href="([^"]*shared-site-header\.css(?:\?[^"]*)?)"/)?.[1];
   const js=page.match(/src="([^"]*shared-site-header\.js(?:\?[^"]*)?)"/)?.[1];
@@ -141,4 +143,20 @@ test('všetky HTML podstránky používajú rovnakú hlavičku a funkčné relat
  assert.match(confirmation,/id="obsah" class="confirmation-card"/);
  assert.match(confirmation,/herba_inquiry_pending_v1/);
  assert.match(confirmation,/href="\.\/index\.html"/);
+});
+
+test('podstránky odkazujú na kalendár len ako na súčasť Blog & Rady',()=>{
+ const html=readFileSync('index.html','utf8');
+ const archive=readFileSync('clanky/index.html','utf8');
+ const generateSeo=readFileSync('scripts/generate-seo.mjs','utf8');
+ assert.match(html,/id="blogCalendarDisclosure"/);
+ assert.match(generateSeo,/archive-calendar-feature/);
+ assert.match(generateSeo,/href="\/#sekcia=kalendar"/);
+ assert.match(archive,/archive-calendar-feature/);
+ assert.match(archive,/href="\/#sekcia=kalendar"/);
+ const staticMenu=sharedHeader(logo(),'blog');
+ assert.ok(!staticMenu.includes('Pestovateľský kalendár'));
+ assert.ok(!staticMenu.includes('/#sekcia=kalendar'));
+ const js=readFileSync('shared-site-header.js','utf8');
+ assert.doesNotMatch(js,/fragment\.appendChild\(link\('Pestovateľský kalendár'/);
 });
