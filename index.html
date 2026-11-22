@@ -2775,15 +2775,6 @@
                 li.appendChild(btn);
                 navUl.appendChild(li);
             });
-            const calendarLi = document.createElement('li');
-            const calendarButton = document.createElement('button');
-            calendarButton.type = 'button';
-            calendarButton.textContent = 'Pestovateľský kalendár';
-            if (currentActiveSection === 'kalendar') calendarButton.classList.add('active-tab');
-            calendarButton.onclick = () => switchSection('kalendar');
-            calendarLi.appendChild(calendarButton);
-            navUl.appendChild(calendarLi);
-
             if (!isGeneratorPaused() || isAdmin) {
                 const generatorLi = document.createElement('li');
                 const generatorButton = document.createElement('a');
@@ -2817,6 +2808,19 @@
         }
 
         function switchSection(secId) {
+            // Staré odkazy na kalendár zostávajú funkčné, no otvoria ho v Blogu & Rady.
+            if (secId === 'kalendar') {
+                const blog = sectionsDatabase.find(section => section.id === 'blog');
+                if (!blog || (blog.hidden && !document.body.classList.contains('admin-mode'))) return false;
+                switchSection('blog');
+                const panel = document.getElementById('blogCalendarDisclosure');
+                if (panel) {
+                    panel.open = true;
+                    document.body.classList.toggle?.('calendar-reading', true);
+                    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                return true;
+            }
             const sectionChanged = currentActiveSection !== secId;
             if (sectionChanged) {
                 // Pomology and color choices belong to the section being viewed.
@@ -2827,7 +2831,8 @@
             }
             currentActiveSection = secId;
             // Kalendár sa má čítať bez prichytenej hornej lišty.
-            document.body.classList.toggle?.('calendar-reading', secId === 'kalendar');
+            document.body.classList.toggle?.('calendar-reading',
+                secId === 'blog' && document.getElementById('blogCalendarDisclosure')?.open === true);
             updateHomeHeroVisibility();
             renderNav();
             
@@ -2854,10 +2859,9 @@
 
             const contactSec = document.getElementById('kontaktSection');
             const podmienkySec = document.getElementById('podmienkySection');
-            const calendarSec = document.getElementById('gardenCalendarSection');
-            if (calendarSec) calendarSec.style.display = secId === 'kalendar' ? 'block' : 'none';
+            // Kalendár je vnorený priamo do rozbaľovacej časti blogu.
 
-            if (secId === 'domov' || secId === 'kalendar') {
+            if (secId === 'domov') {
                 contactSec.style.display = 'none';
                 podmienkySec.style.display = 'none';
             } else if (secId === 'podmienky') {
@@ -2914,6 +2918,16 @@
         function renderMainContent() {
             const container = document.getElementById('mainContainer');
             if (!container) return;
+            // Obsah kalendára je jediný statický zdroj. Pred opätovným renderom blogu
+            // ho zachovaj mimo mazaného kontajnera; žiadne duplicitné mesiace ani FAQ.
+            const calendarWasOpen = document.getElementById('blogCalendarDisclosure')?.open === true;
+            const calendar = document.getElementById('gardenCalendarSection');
+            if (calendar && calendar.parentElement !== document.body) {
+                calendar.style.display = 'none';
+                const fallback = document.getElementById('podmienkySection');
+                if (fallback) document.body.insertBefore(calendar, fallback);
+                else document.body.appendChild(calendar);
+            }
             container.innerHTML = '';
             const isAdmin = document.body.classList.contains('admin-mode');
 
@@ -2993,6 +3007,17 @@
                             <h3>Praktický sprievodca záhradou a semenárstvom</h3>
                             <p>Od prvého výsevu až po vlastné osivo. Nájdete tu postupy na pestovanie paradajok, zber a uchovávanie semien, starostlivosť o ovocie i vysvetlenia častých problémov. Každý článok si môžete rozbaliť a prečítať celý.</p>
                         </div>
+                        <details class="blog-calendar-disclosure" id="blogCalendarDisclosure">
+                            <summary>
+                                <span class="blog-calendar-symbol" aria-hidden="true">📅</span>
+                                <span class="blog-calendar-summary-text">
+                                    <strong>Pestovateľský kalendár</strong>
+                                    <small>Čo robiť v záhrade od januára do decembra? Mesačný sprievodca výsevom, výsadbou, zberom a uchovávaním semien.</small>
+                                </span>
+                                <span class="blog-calendar-action">Zobraziť kalendár <span aria-hidden="true">⌄</span></span>
+                            </summary>
+                            <div id="blogCalendarMount" class="blog-calendar-mount"></div>
+                        </details>
                         <div class="blog-filters" role="search" aria-label="Vyhľadávanie článkov">
                             <label for="blogSearch">Hľadať článok</label>
                             <input type="search" id="blogSearch" placeholder="Napríklad semená, tekvice alebo pH..." oninput="filterBlogPosts()">
@@ -3072,6 +3097,19 @@
                     // The form still uses the full catalogue data and remains available.
                     if (sec.id === currentActiveSection) renderVarietyGridForSection(sec.id);
                 } else if (sec.id === 'blog') {
+                    const calendarMount = sectionDiv.querySelector('#blogCalendarMount');
+                    const disclosure = sectionDiv.querySelector('#blogCalendarDisclosure');
+                    if (calendarMount && calendar) {
+                        calendar.style.display = '';
+                        calendarMount.appendChild(calendar);
+                    }
+                    if (disclosure) {
+                        disclosure.open = calendarWasOpen;
+                        disclosure.addEventListener('toggle', () => {
+                            if (currentActiveSection === 'blog')
+                                document.body.classList.toggle?.('calendar-reading', disclosure.open);
+                        });
+                    }
                     renderBlogPosts();
                 }
             });
