@@ -2624,6 +2624,14 @@
         }
 
         function restoreSavedSelection() {
+            // História prehliadača môže obnoviť staré DOM po úspešnom odoslaní.
+            // Najprv zrušíme starý stav, až potom načítame aktuálny uložený výber.
+            document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
+                const cb = item.querySelector('input[type="checkbox"]');
+                const qty = item.querySelector('.form-qty-input');
+                if (cb) cb.checked = false;
+                if (qty) qty.value = '1';
+            });
             try {
                 const raw = localStorage.getItem(savedCartStorageKey);
                 if (raw && raw.length <= 24000) {
@@ -4729,7 +4737,12 @@
             if (typeof ResizeObserver !== 'undefined' && adminBar) {
                 new ResizeObserver(syncAdminBarHeight).observe(adminBar);
             }
-            if (window.addEventListener) window.addEventListener('resize', syncAdminBarHeight);
+            if (window.addEventListener) {
+                window.addEventListener('resize', syncAdminBarHeight);
+                window.addEventListener('pageshow', event => {
+                    if (event.persisted && cartReadyToPersist) restoreSavedSelection();
+                });
+            }
             await loadCloudContent();
             renderAll();
             await restoreAdminSession();
