@@ -4324,6 +4324,7 @@
 
         function openVarietyModal() {
             if (!requireAdmin()) return;
+            window.HERBA_DRAFTS?.resetEditor();
             document.getElementById('editIndex').value = -1;
             document.getElementById('varName').value = '';
             document.getElementById('varType').value = 'Indeterminantná';
@@ -4413,7 +4414,10 @@
             window.HERBA_DRAFTS?.syncEditor();
             document.getElementById('varietyModal').classList.add('active');
         }
-        function closeVarietyModal() { document.getElementById('varietyModal').classList.remove('active'); }
+        function closeVarietyModal() {
+            document.getElementById('varietyModal').classList.remove('active');
+            window.HERBA_DRAFTS?.resetEditor();
+        }
 
         // Prehľadné fotografie z telefónu: šetrné JPEG zmenšenie pred uploadom.
         async function prepareVarietyPhoto(file) {
@@ -4485,8 +4489,11 @@
 
             if (isDraft && !type) type = 'Neurčené';
             if (!name || !type || !section) { alert('Vyplň názov, typ a sekciu odrody.'); return; }
-            if (idx >= 0 && varietyDatabase[idx]?.section === 'pripravujeme' && !isDraft && !hidden) {
-                alert('Rozpracovanú odrodu najskôr ulož ako skrytú alebo ju publikuj cez kartu Pripravujeme.'); return;
+            if (isDraft && idx >= 0) {
+                alert('Existujúcu verejnú odrodu nepresúvaj do konceptov cez tento formulár. Nové koncepty ukladaj samostatne do Pripravujeme.'); return;
+            }
+            if (!isDraft && window.HERBA_DRAFTS?.inDraftEditor()) {
+                alert('Koncept možno zverejniť len cez kartu Pripravujeme po kontrole údajov.'); return;
             }
             if (varietyDatabase.some((v, i) => i !== idx && String(v.name || '').trim().toLocaleLowerCase('sk') === name.toLocaleLowerCase('sk'))) {
                 alert('Odroda s týmto názvom už existuje. Použi jedinečný názov.'); return;
@@ -4530,7 +4537,7 @@
                     else if (img !== data.publicUrl) galleryUrls.push(data.publicUrl);
                 }
 
-                const previousData = idx >= 0 && varietyDatabase[idx] ? varietyDatabase[idx] : {};
+                const previousData = idx >= 0 && varietyDatabase[idx] ? varietyDatabase[idx] : (isDraft ? window.HERBA_DRAFTS?.current() || {} : {});
                 const gallery = [...new Set(galleryUrls.filter(url => url !== img))];
                 const galleryImageFits = Object.fromEntries(gallery.map(url =>
                     [url, normalizedImageFit(varietyGalleryFitDraft[url])]
@@ -4542,6 +4549,17 @@
                     stock, weight, img, imageFit, gallery, galleryImageFits,
                     info, multiflora, hidden
                 }, propertyInputs);
+                if (isDraft) {
+                    // Dôverné rozpracované profily nikdy NEUKLADAŤ do verejného
+                    // site_content.varieties: túto tabuľku môžu čítať aj anonymní používatelia.
+                    const draftSaved = await window.HERBA_DRAFTS?.saveDraft(item);
+                    if (!draftSaved) throw new Error('Súkromné uloženie rozpracovanej odrody zlyhalo.');
+                    savedToCloud = true;
+                    closeVarietyModal();
+                    window.HERBA_DRAFTS?.render();
+                    showToast('📝 Koncept bol uložený v súkromnej tabuľke Pripravujeme.');
+                    return;
+                }
                 const originalDatabase = varietyDatabase;
                 varietyDatabase = idx === -1
                     ? [...varietyDatabase, item]
