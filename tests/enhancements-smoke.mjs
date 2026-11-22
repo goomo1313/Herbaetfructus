@@ -144,6 +144,32 @@ test('price, availability and alphabetical sorting change only presentation',()=
     assert.deepEqual(cards.map(c=>c.dataset.name),['Zulu','Ábel','Beta']);
 });
 
+test('rastové tlačidlá filtrujú presne bez miešania typov',()=>{
+ const {doc,nodes,window}=makeEnvironment();
+ const cards=['indeterminantná','determinantná','polodeterminantná'].map((growth,i)=>({
+  dataset:{name:String(i),growth,price:'1.5',weight:'50',weightText:'50 g',
+   stock:'2',originalOrder:String(i),hidden:'false',hasPhoto:'false',
+   search:String(i),type:'cherry',color:'červená'},style:{}
+ }));
+ const grid={querySelectorAll(){return cards.slice()},appendChild(){}};
+ nodes.set('growthChips_paradajky',{dataset:{selectedGrowth:'all'}});
+ nodes.set('filterAvailability_paradajky',{value:'all'});
+ nodes.set('filterWeight_paradajky',{value:'all'});
+ nodes.set('filterSort_paradajky',{value:'default'});
+ nodes.set('searchInput_paradajky',{value:''});
+ nodes.set('filterCount_paradajky',{textContent:''});
+ doc.querySelector=s=>s.includes('data-section-grid')?grid:null;
+ for(const type of ['indeterminantná','determinantná','polodeterminantná']){
+  nodes.get('growthChips_paradajky').dataset.selectedGrowth=type;
+  window.HERBA_IMPROVEMENTS.applyFilters('paradajky');
+  assert.deepEqual(cards.filter(c=>c.style.display!=='none').map(c=>c.dataset.growth),[type]);
+  assert.equal(nodes.get('filterCount_paradajky').textContent,'Zobrazených 1 z 3 odrôd');
+ }
+ nodes.get('growthChips_paradajky').dataset.selectedGrowth='all';
+ window.HERBA_IMPROVEMENTS.applyFilters('paradajky');
+ assert.equal(cards.filter(c=>c.style.display!=='none').length,3);
+});
+
 test('catalogue optimization renders only the active section initially',()=>{
     assert.doesNotThrow(()=>new Script(code));
     assert.match(html,/if \(sec\.id === currentActiveSection\) renderVarietyGridForSection\(sec\.id\)/);

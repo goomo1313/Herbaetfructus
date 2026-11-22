@@ -311,14 +311,17 @@
         const sort=$('filterSort_' + sectionId)?.value || 'default';
         const category=(typeof currentCategory==='string' ? currentCategory:'all');
         const color=(typeof currentColor==='string' ? currentColor:'all');
-        const growth=(typeof currentGrowth==='string' ? currentGrowth:'all');
+        // Read the activated button group rather than a stale, cross-script selection.
+        const growth=String($('growthChips_' + sectionId)?.dataset?.selectedGrowth
+            || (typeof currentGrowth==='string' ? currentGrowth : 'all'))
+            .trim().toLocaleLowerCase('sk');
         let shown=0;
         for(const card of cards) {
             const stock=Number(card.dataset.stock)||0;
             const matchText=format(card.dataset.search).includes(query);
             const matchType=category==='all' || card.dataset.type===category;
             const matchColor=colorMatches(card.dataset.color,color);
-            const matchGrowth=growth==='all'||card.dataset.growth===growth;
+            const matchGrowth=growth==='all'||String(card.dataset.growth||'').trim().toLocaleLowerCase('sk')===growth;
             const matchWeight=weightMatches(card.dataset.weightText,weight);
             const matchAvailability=availability==='all'
                 || (availability==='stock' && stock>0 && card.dataset.hidden!=='true')

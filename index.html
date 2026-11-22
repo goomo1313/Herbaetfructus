@@ -3120,13 +3120,15 @@
                 container.appendChild(button);
             };
             if (currentGrowth !== 'all' && !available.has(currentGrowth)) currentGrowth = 'all';
+            container.dataset.selectedGrowth = currentGrowth;
             addChip('all', 'Všetky');
             for (const [value, label] of choices) if (available.has(value)) addChip(value, label);
         }
 
         function filterByGrowth(value, secId, btnElement) {
-            currentGrowth = String(value).toLocaleLowerCase('sk');
+            currentGrowth = String(value).trim().toLocaleLowerCase('sk');
             const container = document.getElementById('growthChips_' + secId);
+            if (container) container.dataset.selectedGrowth = currentGrowth;
             if (container) container.querySelectorAll('button.chip').forEach(button => {
                 const selected = button === btnElement;
                 button.classList.toggle('active', selected);
@@ -3183,7 +3185,8 @@
                 const matchesText = card.dataset.search.includes(textQuery);
                 const matchesCategory = currentCategory === 'all' || card.dataset.type === currentCategory;
                 const matchesColor = currentColor === 'all' || card.dataset.color.includes(currentColor);
-                const matchesGrowth=currentGrowth==='all'||card.dataset.growth===currentGrowth;
+                const selectedGrowth=document.getElementById('growthChips_'+secId)?.dataset.selectedGrowth || currentGrowth;
+                const matchesGrowth=selectedGrowth==='all'||card.dataset.growth===selectedGrowth;
 
                 card.style.display = (matchesText && matchesCategory && matchesColor && matchesGrowth) ? 'flex' : 'none';
             });
@@ -4888,10 +4891,10 @@
             if (window.HERBA_CATALOGUE) window.HERBA_CATALOGUE.routeFromHash();
         });
     </script>
-    <script src="./variety-taxonomy.js"></script>
+    <script src="./variety-taxonomy.js?v=20261122-growthfix4"></script>
     <script src="./variety-properties.js"></script>
     <script src="./catalogue-ui.js"></script>
-    <script src="./site-enhancements.js"></script>
+    <script src="./site-enhancements.js?v=20261122-growthfix4"></script>
     <script src="./variety-bulk-fields.js"></script>
     <script src="./variety-bulk.js"></script>
     <script src="./draft-varieties.js"></script>

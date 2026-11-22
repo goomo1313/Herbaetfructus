@@ -224,6 +224,35 @@ try{
  assert.ok(desktop[0].image>=185,'Desktop image changed unexpectedly.');
  console.log('Desktop: grid remains multi-column with '+desktop[0].image+'px photos.');
 
+ // Interaktívny test v skutočnom Chromiu. Meníme len lokálne údaje mock katalógu.
+ const growthCases=await page.evaluate(()=>{
+  const items=varietyDatabase.filter(v=>v.section==='paradajky'&&!v.hidden).slice(0,3);
+  if(items.length!==3)throw Error('Chýbajú tri odrody na test rastu');
+  const habits=['Indeterminantná','Determinantná','Polodeterminantná'];
+  items.forEach((v,i)=>{v.growthHabit=habits[i]});
+  renderVarietyGridForSection('paradajky');
+  renderFilterChipsForSection('paradajky');
+  return items.map((v,i)=>({name:v.name,growth:habits[i]}));
+ });
+ const growthBar=page.locator('#growthChips_paradajky');
+ for(const row of growthCases){
+  await growthBar.getByRole('button',{name:row.growth,exact:true}).click();
+  const visible=await grid.locator('.variety-card').evaluateAll(cards=>
+   cards.filter(c=>getComputedStyle(c).display!=='none')
+    .map(c=>({name:c.dataset.name,growth:c.dataset.growth})));
+  const habit=row.growth.toLocaleLowerCase('sk');
+  assert.ok(visible.length,'Filter '+row.growth+' neukazuje žiadnu odrodu');
+  assert.ok(visible.every(c=>c.growth===habit),'Filter mieša typy '+row.growth+': '+JSON.stringify(visible));
+  assert.ok(visible.some(c=>c.name===row.name),'Zvolený rast nenašiel vzorovú odrodu');
+  for(const other of growthCases.filter(c=>c.name!==row.name))
+   assert.ok(!visible.some(c=>c.name===other.name),'Cudzí rast zostal viditeľný');
+  assert.equal(await growthBar.locator('button[aria-pressed="true"]').count(),1);
+ }
+ await growthBar.getByRole('button',{name:'Všetky',exact:true}).click();
+ assert.ok(await grid.locator('.variety-card:visible').count()>=3,'Všetky neobnovili odrody');
+ console.log('Growth filter in Chromium: only matching habit visible for each chip.');
+
+
  // Admin workflow v izolovanom prehliadači so simulovanými súkromnými konceptmi.
  // Neodosielame žiadne autentifikačné požiadavky ani zmeny do Supabase.
  await page.evaluate(()=>{
