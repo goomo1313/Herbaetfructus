@@ -59,27 +59,28 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../generator-3d.css">
+  <link rel="stylesheet" href="../shared-site-header.css?v=20261122-1">
   <script type="importmap">
     {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/"}}
   </script>
 </head>
-<body>
+<body class="hf-unified-page">
   <a class="skip" href="#obsah">Preskočiť na obsah</a>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="/" aria-label="Herba et Fructus – úvod">
-        <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="50" cy="55" r="32" fill="#C05621"/>
-          <path d="M50 23C50 15 57 6 66 3C66 3 63 14 54 19Z" fill="#2C5530"/>
-          <path d="M47 23C39 16 31 18 28 18C32 25 40 26 47 23Z" fill="#2C5530"/>
-          <path d="M53 23C61 16 69 18 72 18C68 25 60 26 53 23Z" fill="#2C5530"/>
-          <circle cx="50" cy="55" r="11" fill="#D97706" opacity="0.95"/>
-        </svg>
-        <span><strong>Herba et Fructus</strong><small>3D záhradné štítky</small></span>
-      </a>
-      <nav aria-label="Navigácia"><a href="/">Domov</a><a href="/">Katalóg</a><a href="/odrody/">Profily odrôd</a><a href="/clanky/">Články</a></nav>
-    </div>
-  </header>
+  <header class="hf-site-header"><nav class="hf-site-nav" aria-label="Hlavná navigácia">
+<a class="logo" href="/" aria-label="Herba et Fructus – úvodná stránka">
+                <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="55" r="32" fill="#C05621"/>
+                    <path d="M50 23C50 15 57 6 66 3C66 3 63 14 54 19Z" fill="#2C5530"/>
+                    <path d="M47 23C39 16 31 18 28 18C32 25 40 26 47 23Z" fill="#2C5530"/>
+                    <path d="M53 23C61 16 69 18 72 18C68 25 60 26 53 23Z" fill="#2C5530"/>
+                    <circle cx="50" cy="55" r="11" fill="#D97706" opacity="0.95"/>
+                </svg>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; color: var(--primary-color); line-height: 1.1;">Herba et Fructus</span>
+                    <span style="font-family: 'Poppins', sans-serif; font-size: 0.65rem; font-weight: 600; letter-spacing: 1.5px; color: var(--accent-color); margin-top: 2px;">OSOBNÝ PROJEKT</span>
+                </div>
+            </a>
+<ul class="nav-links" data-hf-site-nav><li><a href="/#sekcia=domov">Náš príbeh</a></li><li><a href="/#sekcia=paradajky">Paradajky</a></li><li><a href="/#sekcia=tekvice">Tekvice a Cukety</a></li><li><a href="/#sekcia=blog">Blog & Rady</a></li><li><a href="/#sekcia=podmienky">Ako objednať</a></li><li><a href="/#sekcia=kalendar">Pestovateľský kalendár</a></li><li><a href="/3d/" class="active-tab" aria-current="page">3D generátor</a></li></ul></nav></header>
   <main id="obsah" class="generator-wrap">
     <nav class="generator-breadcrumbs" aria-label="Omrvinková navigácia">
       <a href="/">Domov</a><span aria-hidden="true">›</span><span aria-current="page">3D štítky na rastliny</span>
@@ -216,6 +217,7 @@ Golden Canary</textarea>
     <footer>Model: Herba et Fructus · <a href="/">Domov</a> · <a href="/odrody/">Katalóg</a></footer>
   </main>
   <script src="../config.js"></script>
+  <script src="../shared-site-header.js?v=20261122-1"></script>
   <script type="module" src="../generator-3d.js"></script>
 </body>
 </html>
