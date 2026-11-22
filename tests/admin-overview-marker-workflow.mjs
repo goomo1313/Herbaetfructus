@@ -66,13 +66,13 @@ test('správca prepne medzi zverejnenými, súkromnými a skrytými bez miešani
  };
  const api=e.win.HERBA_IMPROVEMENTS;
  api.dashboardRender();
- assert.deepEqual(api.dashboardRecords().map(r=>r.item.name),['Ildi','Perun']);
+ assert.deepEqual(Array.from(api.dashboardRecords(),r=>r.item.name),['Ildi','Perun']);
  assert.equal(tbody.children.length,2);
  assert.equal(count.textContent,'Zobrazených 2 z 2 odrôd');
  scope.value='drafts';
  assert.equal(await api.dashboardScopeChange(),true);
  assert.equal(loads,1);
- assert.deepEqual(api.dashboardRecords().map(r=>r.item.name),privateRows.map(r=>r.content.name));
+ assert.deepEqual(Array.from(api.dashboardRecords(),r=>r.item.name),privateRows.map(r=>r.content.name));
  assert.equal(tbody.children.length,2);
  assert.equal(count.textContent,'Zobrazených 2 z 2 odrôd');
  assert.equal(status.options.find(o=>o.value==='hidden').disabled,true);
@@ -118,7 +118,7 @@ test('3D štítky používajú iba zvolených 1–60 názvov, bez Supabase zápi
  const original=runInContext('JSON.stringify(varietyDatabase)',e.ctx);
  assert.equal(api.openMarkers(),true);
  assert.equal(e.win.location.href,'/3d/?vyber=1');
- assert.deepEqual(JSON.parse(e.written.get('herba_3d_names_v1')),names);
+ assert.deepEqual(JSON.parse(e.written.get('herba_3d_names_v1')),Array.from(names));
  assert.equal(runInContext('JSON.stringify(varietyDatabase)',e.ctx),original);
  assert.equal(e.written.has('herba_cart_restore_v1'),false);
 });
