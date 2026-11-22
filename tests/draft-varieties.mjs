@@ -89,7 +89,7 @@ test('cieľová kategória sa uchováva súkromne bez zverejnenia',async()=>{
 test('hotový koncept sa publikuje až po zápise do cloudu; ostatné dáta ostanú',async()=>{
  const {api,ctx,publicWrites,privateRows}=environment();
  await api.load();
- assert.equal(await api.saveDraft(finished),true);
+ assert.equal(await api.saveDraft(finished,'draft-example-1'),true);
  assert.equal(api.readiness(finished).length,0);
  assert.equal(await api.move('draft-example-1','paradajky',true),true);
  assert.equal(publicWrites.length,1);
@@ -105,7 +105,7 @@ test('hotový koncept sa publikuje až po zápise do cloudu; ostatné dáta osta
 test('neúspešné verejné uloženie nesmie zmeniť ani zmazať súkromný koncept',async()=>{
  const {api,privateRows,publicWrites}=environment({publicFails:true});
  await api.load();
- await api.saveDraft(finished);
+ await api.saveDraft(finished,'draft-example-1');
  assert.equal(await api.move('draft-example-1','paradajky',true),false);
  assert.equal(publicWrites.length,1);
  assert.equal(api.drafts()[0].hidden,true);
@@ -113,7 +113,7 @@ test('neúspešné verejné uloženie nesmie zmeniť ani zmazať súkromný konc
 });
 test('súkromný koncept sa nedá presunúť do neplatnej alebo skrytej kategórie',async()=>{
  const {api,publicWrites}=environment();
- await api.load();await api.saveDraft(finished);
+ await api.load();await api.saveDraft(finished,'draft-example-1');
  assert.equal(await api.move('draft-example-1','hidden',true),false);
  assert.equal(await api.move('draft-example-1','neexistuje',true),false);
  assert.equal(publicWrites.length,0);
