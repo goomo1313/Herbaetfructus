@@ -139,6 +139,7 @@ try{
    'Priame otvorenie ďakovnej stránky zmazalo rozpracovaný výber.');
  await page.goto(origin+'/',{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>document.querySelector('#clearSavedCartButton')?.hidden===false);
+ await page.evaluate(()=>switchSection('paradajky'));
  await page.locator('#clearSavedCartButton').click();
  assert.equal(await page.evaluate(()=>localStorage.getItem('herba_cart_v1')),null,
    'Tlačidlo Vymazať celý výber musí odstrániť lokálne uložené balenia.');
