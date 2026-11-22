@@ -163,6 +163,12 @@ try{
    'Po simulovanom úspešnom návrate z formulára sa má vyčistiť anonymný výber.');
  assert.equal(await page.evaluate(()=>sessionStorage.getItem('herba_inquiry_pending_v1')),null);
  console.log('Form flow: validation and thank-you cleanup verified without contacting FormSubmit.');
+ // Návrat tlačidlom Späť nesmie znova oživiť vymazaný výber z bfcache.
+ await page.goBack({waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>document.querySelector('#formTomatoSelector input[type="checkbox"]'));
+ assert.equal(await page.locator('#formTomatoSelector input[type="checkbox"]:checked').count(),0,
+   'Back/forward cache obnovila výber aj po návrate z úspešného dopytu.');
+ console.log('History back: no stale selection after thank-you page.');
 
  // Desktop sa nemení na dve úzke karty.
  await page.goto(origin+'/',{waitUntil:'domcontentloaded'});
