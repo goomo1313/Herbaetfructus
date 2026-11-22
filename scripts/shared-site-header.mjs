@@ -16,5 +16,5 @@ export function sharedHeader(logo,active='') {
 export function sharedHeaderAssets(prefix){
  return '<link rel="stylesheet" href="'+prefix+'shared-site-header.css?v=20261122-1">'+
   '<script src="'+prefix+'config.js" defer></script>'+
-  '<script src="'+prefix+'shared-site-header.js?v=20261122-1" defer></script>';
+  '<script src="'+prefix+'shared-site-header.js?v=20261122-blog2" defer></script>';
 }
