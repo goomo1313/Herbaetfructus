@@ -549,8 +549,8 @@ Cez tlačidlo **Uložiť cieľovú kategóriu** sa zapamätá len plánovaný ci
 sa po kontrole povinných údajov, potvrdení a úspešnom zápise do Supabase
 vytvorí verejný záznam. Automatický export SEO potom pripraví verejnú URL.
 
-Aktuálne je **27 verejných odrôd** doplnených samostatnými odbornými
-odsekmi a explicitnými zdrojmi v `variety-research.json`. Ostatné odrody
-zatiaľ zostávajú pri pôvodných používateľských opisoch bez vymyslených údajov.
+Verejné profily zobrazujú iba vlastné opisy a vlastnosti z databázy Supabase.
+Prídavné viacodsekové externé texty už nepoužívame. Ak treba profil rozšíriť,
+urobí sa to neskôr priamo v administrácii podľa schválených údajov správcu.
 
 Postup krok za krokom: [PRIPRAVUJEME_NAVOD.md](PRIPRAVUJEME_NAVOD.md).
