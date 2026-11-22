@@ -435,3 +435,25 @@
   .variety-grid .variety-card .badge { font-size: .6rem; padding: 2px 4px; }
   .variety-grid .variety-card .card-actions-row .btn-select { font-size: .75rem; }
 }
+
+/* Uložený výber – nenápadné ovládanie bez skrytých nákladov a osobných údajov. */
+.saved-cart-controls {
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+    gap:9px 14px; padding-top:12px; margin-top:11px;
+    border-top:1px solid #dae7d7; font-size:.78rem; line-height:1.55;
+    color:#55705a;
+}
+.saved-cart-controls > span { flex:1 1 210px; }
+.saved-cart-controls button {
+    flex:0 0 auto; background:transparent; border:1px solid #b7cbb6;
+    border-radius:7px; color:#285638; font:600 .78rem/1.4 "Poppins",sans-serif;
+    padding:9px 11px; min-height:40px; cursor:pointer;
+}
+.saved-cart-controls button:hover { background:#f0f6ed; }
+.saved-cart-controls button:focus-visible { outline:3px solid #ac762a; outline-offset:2px; }
+.saved-cart-controls button[hidden] { display:none!important; }
+@media(max-width:420px) {
+    .saved-cart-controls { align-items:stretch; }
+    .saved-cart-controls > span { flex-basis:100%; }
+    .saved-cart-controls button { width:100%; }
+}
