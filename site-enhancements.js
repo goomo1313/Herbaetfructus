@@ -465,6 +465,8 @@
         if(dashboardSearch)dashboardSearch.addEventListener('input',dashboardFilter);
         const dashboardStatus=$('enhancedDashboardStatus');
         if(dashboardStatus)dashboardStatus.addEventListener('change',dashboardFilter);
+        const dashboardScopeSelect=$('enhancedDashboardScope');
+        if(dashboardScopeSelect)dashboardScopeSelect.addEventListener('change',dashboardScopeChange);
         const compareOpenButton=$('enhancedCompareOpen');
         if(compareOpenButton)compareOpenButton.addEventListener('click',compareOpen);
         const clearButton=$('enhancedCompareReset');
