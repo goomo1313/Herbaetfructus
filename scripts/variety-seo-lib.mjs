@@ -1,4 +1,5 @@
 // Verejný export aktuálnych odrôd: nikdy nepublikovať cenu, zásoby ani skryté odrody.
+// Všetky verejné profily používajú iba opis zo Supabase; nepridávame externé dlhé texty.
 export const SITE='https://herbaetfructus.sk';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const txt=(v,n=4000)=>typeof v==='string'?v.trim().slice(0,n):'';
