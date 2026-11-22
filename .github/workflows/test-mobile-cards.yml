@@ -6,6 +6,9 @@ on:
     paths:
       - 'index.html'
       - 'catalogue-ui.js'
+      - 'catalogue-ui.css'
+      - 'draft-varieties.js'
+      - 'variety-research.json'
       - 'site-enhancements.css'
       - 'site-polish.css'
       - 'scripts/browser-test-mobile-cards.mjs'
