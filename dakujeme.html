@@ -29,5 +29,20 @@
       <a href="./index.html">Späť na Herba et Fructus</a>
       <small>Ak e-mail neprišiel alebo potrebujete dopyt zmeniť, môžete poslať nový dopyt prostredníctvom stránky.</small>
     </main>
+    <script>
+      // Zmaž anonymný lokálny výber iba po návrate z platného odoslania FormSubmit.
+      // Samotné otvorenie ďakovnej stránky nesmie vymazať rozpracovaný dopyt.
+      try {
+        const submitted = Number(sessionStorage.getItem('herba_inquiry_pending_v1'));
+        const elapsed = Date.now() - submitted;
+        if (submitted > 0 && elapsed >= 0 && elapsed < 30 * 60 * 1000) {
+          localStorage.removeItem('herba_cart_v1');
+          sessionStorage.removeItem('herba_cart_restore_v1');
+          sessionStorage.removeItem('herba_inquiry_pending_v1');
+        }
+      } catch (_) {
+        // Nefunkčné úložisko nesmie ovplyvniť zobrazenie potvrdenia.
+      }
+    </script>
 </body>
 </html>
