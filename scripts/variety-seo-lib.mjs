@@ -1,5 +1,6 @@
 // Verejný export aktuálnych odrôd: nikdy nepublikovať cenu, zásoby ani skryté odrody.
 // Všetky verejné profily používajú iba opis zo Supabase; nepridávame externé dlhé texty.
+import { sharedHeader, sharedHeaderAssets } from './shared-site-header.mjs';
 export const SITE='https://herbaetfructus.sk';
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const txt=(v,n=4000)=>typeof v==='string'?v.trim().slice(0,n):'';
@@ -49,9 +50,8 @@ export function mainLogo(index){
 const commonHead=(path)=>'<link rel="preconnect" href="https://fonts.googleapis.com">'+
  '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'+
  '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">'+
- '<link rel="stylesheet" href="'+path+'article-pages.css"><link rel="stylesheet" href="'+path+'variety-seo.css">';
-const header=logo=>'<a class="skip-link" href="#obsah">Preskočiť na obsah</a><header class="page-header"><div class="header-inner">'+logo+
- '<nav aria-label="Hlavná navigácia"><a href="/">Domov</a><a href="/">Katalóg</a><a href="/odrody/">Profily odrôd</a><a href="/clanky/">Články</a></nav></div></header>';
+ '<link rel="stylesheet" href="'+path+'article-pages.css"><link rel="stylesheet" href="'+path+'variety-seo.css">'+sharedHeaderAssets(path);
+const header=logo=>'<a class="skip-link" href="#obsah">Preskočiť na obsah</a>'+sharedHeader(logo);
 const footer='<footer class="page-footer">© Herba et Fructus · Osobný projekt · <a href="/">Domov</a></footer>';
 const head=title=>'<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title>';
 const xmljson=v=>JSON.stringify(v).replace(/</g,'\\u003c');
@@ -110,7 +110,7 @@ export function renderProfile(p,logo,all=[]){
  '<meta property="og:title" content="'+esc(p.name+' | Herba et Fructus')+'">'+
  '<meta property="og:description" content="'+esc(description)+'"><meta property="og:url" content="'+esc(canonical)+'">'+
  (p.photos[0]?'<meta property="og:image" content="'+esc(p.photos[0])+'">':'')+
- commonHead('../../')+'<script src="../../config.js" defer></script><script src="../../variety-marker-link.js" defer></script><script type="application/ld+json">'+xmljson(schema)+'</script></head><body>'+header(logo)+
+ commonHead('../../')+'<script src="../../variety-marker-link.js" defer></script><script type="application/ld+json">'+xmljson(schema)+'</script></head><body class="hf-unified-page">'+header(logo)+
  '<main id="obsah" class="article-container"><nav class="breadcrumbs"><a href="/">Domov</a> › <a href="/odrody/">Odrody</a> › '+esc(p.name)+'</nav>'+
  '<article class="article-card variety-seo-profile"><p class="article-kicker">'+esc(p.sectionTitle)+'</p><h1>'+esc(p.name)+'</h1>'+
  (p.photos[0]?'<figure class="profile-hero"><img src="'+esc(p.photos[0])+'" alt="'+esc(p.name)+'" style="object-fit:'+p.imageFit+'" decoding="async"></figure>':
@@ -138,7 +138,7 @@ export function renderArchive(profiles,logo){
  '<meta name="description" content="'+esc(desc)+'"><link rel="canonical" href="'+SITE+'/odrody/">'+commonHead('../')+
  '<script type="application/ld+json">'+xmljson(schema)+'</script>'+
  '<script src="../variety-archive.js" defer></script>'+
- '</head><body>'+header(logo)+'<main id="obsah" class="article-container"><nav class="breadcrumbs"><a href="/">Domov</a> › Odrody</nav>'+
+ '</head><body class="hf-unified-page">'+header(logo)+'<main id="obsah" class="article-container"><nav class="breadcrumbs"><a href="/">Domov</a> › Odrody</nav>'+
  '<div class="archive-heading"><p class="article-kicker">Osobný projekt</p><h1>Profily odrôd</h1>'+
  '<p>Vlastnosti a fotografie aktuálne verejných odrôd. Dostupnosť overíte v <a href="/">katalógu</a>.</p></div>'+
  '<form class="profile-filters" id="profile-filters" role="search">'+
