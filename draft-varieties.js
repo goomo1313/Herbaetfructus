@@ -7,7 +7,9 @@
  let rows=[], loaded=false, loading=null, busy=false, editorId=null, editorMode=false;
  const adminReady=()=>typeof adminAuthenticated!=='undefined' && adminAuthenticated && cloudDatabaseReady && !!adminSupabase;
  const isDraft=v=>v && v.section===DRAFT_SECTION;
- const drafts=()=>rows.map(x=>x.content).filter(isDraft);
+ const drafts=()=>adminReady()&&loaded?rows.map(x=>x.content).filter(isDraft):[];
+ // Len po autentifikovanom načítaní; ID konceptu sa používa na jeho úpravu.
+ const entries=()=>adminReady()&&loaded?rows.filter(x=>isDraft(x.content)).map(x=>({id:x.id,content:x.content})):[];
  const current=()=>rows.find(x=>x.id===editorId)?.content||null;
  const resetEditor=()=>{editorId=null;editorMode=false;};
  const inDraftEditor=()=>editorMode;
@@ -39,6 +41,7 @@
     loaded=true;render();return true;
    }catch(e){
     loaded=false;
+    rows=[]; // Po zlyhaní autentifikácie nepoužívame starý obsah zo súkromnej relácie.
     feedback('Súkromná tabuľka Pripravujeme nie je dostupná: '+(e.message||'skontroluj RLS'),true);
     return false;
    }finally{loading=null;}
@@ -219,5 +222,5 @@
  document.addEventListener('keydown',event=>{
   if(event.key==='Escape' && overlay?.classList.contains('active') && !$('varietyModal')?.classList.contains('active'))close();
  });
- window.HERBA_DRAFTS={load,open,close,create,edit,saveDraft,move,render,drafts,current,resetEditor,inDraftEditor,syncEditor,readiness};
+ window.HERBA_DRAFTS={load,open,close,create,edit,saveDraft,move,render,drafts,entries,current,resetEditor,inDraftEditor,syncEditor,readiness};
 })();
