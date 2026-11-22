@@ -34,11 +34,11 @@ Pozor: Súčasné štítky „zberateľské semená“ samy osebe neriešia zák
 
 ## 4. Rozšírené profily s viacerými zdrojmi
 
-V súbore [variety-research.json](variety-research.json) sú momentálne samostatné dopĺňajúce texty pre **22 odrôd**. Každý záznam obsahuje aspoň dve explicitné externé referencie a viac odsekov. Tieto texty sa zobrazujú pod pôvodným opisom v katalógovom detaile a v statickom SEO profile.
+V súbore [variety-research.json](variety-research.json) sú momentálne samostatné dopĺňajúce texty pre **27 odrôd**. Každý záznam obsahuje aspoň dve explicitné externé referencie a viac odsekov. Tieto texty sa zobrazujú pod pôvodným opisom v katalógovom detaile a v statickom SEO profile.
 
 **Úmyselne nesplývajú** s vlastnými pestovateľskými údajmi v Supabase. Neoverené údaje o výnose, odolnosti, pôvode konkrétneho osiva ani farebnej identite odrody sa nesmú vydávať za výsledky pestovania na našej farme. Napríklad „Red Pear“ môže označovať rozdielne línie a „Hokkaido“ je širšie typové označenie. Najlepšie je doplniť vlastné fotografie a pestovateľské merania priamo do administrácie, keď sú overené.
 
-Zvyšných **29 verejných profilov** zatiaľ používa pôvodný opis a vlastnosti správcu bez automaticky vymyslených informácií.
+Zvyšných **24 verejných profilov** zatiaľ používa pôvodný opis a vlastnosti správcu bez automaticky vymyslených informácií.
 
 ## 5. Automatické testy a obmedzenia
 
