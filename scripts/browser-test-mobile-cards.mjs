@@ -267,7 +267,7 @@ try{
  assert.equal(await page.locator('#bulkGenerateMarkers').isEnabled(),true);
  await page.route('**/3d/?vyber=1',route=>route.fulfill({
    status:200,contentType:'text/html;charset=utf-8',
-   body:'<!doctype html><html lang="sk"><body><pre id="receivedNames"></pre><script>document.querySelector("#receivedNames").textContent=sessionStorage.getItem("herba_3d_names_v1")||"";<\\/script></body></html>'
+   body:'<!doctype html><html lang="sk"><body><pre id="receivedNames"></pre><script>document.querySelector("#receivedNames").textContent=sessionStorage.getItem("herba_3d_names_v1")||"";</script></body></html>'
  }));
  await page.locator('#bulkGenerateMarkers').click();
  await page.waitForURL(/\/3d\/\?vyber=1/);
