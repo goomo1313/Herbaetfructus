@@ -60,6 +60,56 @@
             'Zobrazených '+shown.length+' z '+varietyDatabase.length;
         preview();
     }
+    // Samostatná 3D akcia: iba názvy označených katalógových odrôd, bez
+    // úpravy Supabase, bez zmeny počtu semien či zákazníckeho výberu.
+    function selectedMarkerNames() {
+        return [...selected].sort((a,b)=>a-b)
+            .map(index=>varietyDatabase[index]?.name);
+    }
+    function markerValidation() {
+        const names=selectedMarkerNames();
+        if(!names.length)return 'Označ aspoň jednu odrodu.';
+        if(names.length>60)return 'Generátor zvládne najviac 60 odrôd naraz.';
+        if(names.some(name=>typeof name!=='string' || !name.trim() ||
+            Array.from(name).length>40 || /[\r\n\0]/.test(name)))
+            return 'Niektorý názov je prázdny, má viac než 40 znakov alebo obsahuje nepovolené znaky.';
+        if(new Set(names).size!==names.length)return 'Vybrané odrody majú duplicitný názov.';
+        if(typeof isGeneratorPaused==='function'&&isGeneratorPaused())
+            return '3D generátor je momentálne pozastavený.';
+        if(openedSignature!==signature(varietyDatabase))
+            return 'Údaje katalógu sa zmenili. Zatvor hromadné operácie a otvor ich znova.';
+        if(busy)return 'Momentálne prebieha iná hromadná operácia.';
+        return '';
+    }
+    function updateMarkerAction() {
+        const button=$('bulkGenerateMarkers'),hint=$('bulkMarkerHint');
+        const names=selectedMarkerNames();
+        const error=markerValidation();
+        if(button) {
+            button.disabled=!!error;
+            button.textContent='🖨️ 3D štítky k označeným ('+names.length+'/60)';
+        }
+        if(hint)hint.textContent=error || 'Vytvorí 3D štítky z '+countLabel(names.length)+'. Nezmení sklad, ceny ani nákupný výber.';
+    }
+    function openMarkers() {
+        if(!requireAdmin()||!cloudDatabaseReady||!adminSupabase)return false;
+        const error=markerValidation();
+        if(error) {
+            if($('bulkStatus'))$('bulkStatus').textContent='⚠️ '+error;
+            updateMarkerAction();
+            return false;
+        }
+        const names=selectedMarkerNames();
+        try {
+            sessionStorage.setItem('herba_3d_names_v1',JSON.stringify(names));
+            window.location.href='/3d/?vyber=1';
+        }catch(_) {
+            // Núdzový prenos iba názvov, ak prehliadač blokuje sessionStorage.
+            window.location.href='/3d/?odrody='+encodeURIComponent(names.join('\n'));
+        }
+        return true;
+    }
+
     function readInput() {
         const def=defs()?.field($('bulkField')?.value||'');
         if(!def)return {def:null,value:'',options:{}};
@@ -141,6 +191,7 @@
     function preview() {
         const count=$('bulkSelectedCount'),result=$('bulkPreview'),submit=$('bulkApply');
         if(count)count.textContent='Vybrané: '+countLabel(selected.size);
+        updateMarkerAction();
         if(!result)return;
         result.textContent='';
         const {def,value,options}=readInput();
@@ -241,7 +292,7 @@
     function setBusy(value) {
         busy=value;
         ['bulkClose','bulkField','bulkValue','bulkLongValue','bulkChoice','bulkClearValue',
-        'bulkPhotoFiles','bulkSearch','bulkSelectVisible','bulkClear','bulkApply'].forEach(id=>{
+        'bulkPhotoFiles','bulkSearch','bulkSelectVisible','bulkClear','bulkApply','bulkGenerateMarkers'].forEach(id=>{
             const el=$(id);if(el)el.disabled=value;
         });
         $('bulkVarietyList')?.querySelectorAll('input[type="checkbox"]').forEach(cb=>{cb.disabled=value;});
@@ -393,6 +444,7 @@
         $('bulkSelectVisible').addEventListener('click',selectVisible);
         $('bulkClear').addEventListener('click',clear);
         $('bulkApply').addEventListener('click',apply);
+        $('bulkGenerateMarkers')?.addEventListener('click',openMarkers);
         $('bulkClose').addEventListener('click',close);
         document.addEventListener('keydown',event=>{
             if(event.key==='Escape'&&overlay.classList.contains('active'))close();
@@ -400,7 +452,7 @@
         changeField();
     }
     window.HERBA_BULK=Object.freeze({
-        open,close,apply,candidateFor,selectVisible,clear,selected:()=>[...selected]
+        open,close,apply,candidateFor,selectVisible,clear,openMarkers,selectedMarkerNames,markerValidation,selected:()=>[...selected]
     });
     setup();
 })();
