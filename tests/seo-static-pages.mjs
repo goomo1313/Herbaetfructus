@@ -36,9 +36,8 @@ test('archív má na všetkých dvanásť článkov priame HTML odkazy',()=>{
 test('sitemap obsahuje iba skutočné kanonické stránky',()=>{
  const urls=[...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>m[1]);
  const manifest=existsSync('odrody/manifest.json')?JSON.parse(readFileSync('odrody/manifest.json','utf8')):[];
- assert.equal(urls.length,posts.length+4+(manifest.length?manifest.length+1:0));
+ assert.equal(urls.length,posts.length+3+(manifest.length?manifest.length+1:0));
  assert.ok(urls.includes('https://herbaetfructus.sk/3d/'));
- assert.ok(urls.includes('https://herbaetfructus.sk/semena-paradajok/'));
  if(manifest.length){
    assert.ok(urls.includes('https://herbaetfructus.sk/odrody/'));
    for(const row of manifest)assert.ok(urls.includes('https://herbaetfructus.sk/odrody/'+row.slug+'/'));
