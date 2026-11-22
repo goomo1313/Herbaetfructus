@@ -68,3 +68,19 @@ test('rozhodujúci obsah kalendára zostal jediný a pri obnovení blogu sa nest
     assert.match(html,/disclosure\.open = calendarWasOpen/);
     assert.match(html,/disclosure\.addEventListener\('toggle'/);
 });
+
+test('kalendár je skutočne v blogu a všetky vygenerované menu ho majú len ako obsah, nie kartu',()=>{
+    const archive=readFileSync('clanky/index.html','utf8');
+    const generator=readFileSync('3d/index.html','utf8');
+    const navCode=html.slice(html.indexOf('function renderNav()'),html.indexOf('function openOrderForm()'));
+    assert.doesNotMatch(navCode,/calendarButton|Pestovateľský kalendár/);
+    assert.match(html,/id="blogCalendarDisclosure"/);
+    assert.match(html,/id="blogCalendarMount"/);
+    for(const page of [archive,generator]){
+        const menu=page.match(/<ul class="nav-links" data-hf-site-nav>([\s\S]*?)<\/ul>/)?.[1]||'';
+        assert.ok(menu,'Verejné podstránky musia mať navigáciu');
+        assert.ok(!menu.includes('Pestovateľský kalendár'),'Kalendár nemá mať vlastnú navigačnú kartu');
+    }
+    assert.match(archive,/class="archive-calendar-feature"/);
+    assert.match(archive,/href="\/#sekcia=kalendar"/);
+});
