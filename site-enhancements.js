@@ -37,6 +37,13 @@
             || !format(item.seedsPerPack).trim()
             || !(number(item.price) > 0);
     }
+    // Redakčné upozornenie: veľmi krátky verejný opis (nie SEO penalizácia).
+    // Nepoužíva automaticky generované tvrdenia o odrodách.
+    function needsDescriptionReview(item) {
+        if (!item || item.hidden) return false;
+        const plain = format(item.info).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+        return plain.length < 180;
+    }
     function diagnostics(items) {
         const list = Array.isArray(items) ? items : [];
         return {
@@ -45,6 +52,7 @@
             hidden:list.filter(x => !!x.hidden).length,
             noPhoto:list.filter(x => !validPhoto(x)).length,
             incomplete:list.filter(hasMissingFields).length,
+            shortDescription:list.filter(needsDescriptionReview).length,
             soldOut:list.filter(x => !x.hidden && !(Number(x.stock) > 0)).length,
             stock:list.reduce((sum,x) => sum + Math.max(0, Number(x.stock) || 0),0)
         };
@@ -104,7 +112,7 @@
         [
             ['Odrody spolu',d.total],['Zobrazené',d.visible],['Skryté',d.hidden],
             ['Bez fotky',d.noPhoto],['Neúplné údaje',d.incomplete],
-            ['Vypredané',d.soldOut],['Balenia na sklade',d.stock]
+            ['Krátky opis',d.shortDescription],['Vypredané',d.soldOut],['Balenia na sklade',d.stock]
         ].forEach(([label,value]) => stats.appendChild(statBox(label,value)));
         actions.replaceChildren();
         const go = (callback) => {
@@ -120,12 +128,13 @@
         actions.appendChild(dashAction('📝 Pridať článok',()=>go(openBlogModal)));
         actions.appendChild(dashAction('⚙️ Zobrazenie webu',()=>go(openVisibilitySettingsModal)));
         const hint = $('enhancedDashboardHint');
-        if (hint) hint.textContent = 'Diagnostika aktuálne načítaného katalógu. Neúplné údaje sú len upozornenie a neprepisujú sa automaticky. Objednávky sa neevidujú v tejto databáze.';
+        if (hint) hint.textContent = 'Diagnostika aktuálne načítaného katalógu. Krátky opis znamená menej ako 180 znakov – ide o redakčné upozornenie, nie SEO penalizáciu. Údaje sa automaticky nedopĺňajú ani neprepisujú.';
         dashboardFilter();
     }
     function statusMatches(item, status) {
         if (status === 'missing-photo') return !validPhoto(item);
         if (status === 'incomplete') return hasMissingFields(item);
+        if (status === 'short-description') return needsDescriptionReview(item);
         if (status === 'out') return !item.hidden && !(Number(item.stock) > 0);
         if (status === 'hidden') return !!item.hidden;
         return true;
@@ -154,7 +163,7 @@
             const photo=add(validPhoto(item) ? '✓ Áno' : '— Chýba');
             if (!validPhoto(item)) photo.className='enhanced-alert-cell';
             add(Number(item.stock) > 0 ? String(item.stock) + ' bal.' : 'Vypredané');
-            add(hasMissingFields(item) ? 'Doplniť údaje' : 'Úplné');
+            add(hasMissingFields(item) ? 'Doplniť údaje' : needsDescriptionReview(item) ? 'Krátky opis' : 'Úplné');
             const action=document.createElement('td');
             action.appendChild(makeButton('✏️ Upraviť',()=> {
                 dashboardClose();
