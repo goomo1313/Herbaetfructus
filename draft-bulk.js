@@ -16,7 +16,8 @@
  const ready=()=>typeof requireAdmin==='function' && requireAdmin() && !!adminSupabase && cloudDatabaseReady && !!drafts()?.entries && !!defs()?.candidateFor;
  const json=v=>JSON.stringify(v);
  const status=(message,error=false)=>{
-  const el=$('draftBulkStatus');if(el){el.textContent=message;el.style.color=error?'#9e2525':'#2d633c';}
+  const el=(modal?.classList.contains('active')?$('draftBulkStatus'):$('draftsFeedback'))||$('draftBulkStatus');
+  if(el){el.textContent=message;el.style.color=error?'#9e2525':'#2d633c';}
  };
  function makeModal(){
   if(modal)return;
