@@ -12,7 +12,7 @@ function image(v){
  try{const u=new URL(v.trim());return u.protocol==='https:'&&!u.username&&!u.password&&!u.search&&!u.hash?u.href:'';}catch{return '';}
 }
 function hash(s){let h=2166136261;for(const c of s)h=Math.imul(h^c.codePointAt(0),16777619)>>>0;return h.toString(36);}
-const fields=[['growth','Rastový typ'],['ripening','Skorosť / dozrievanie'],['flavor','Chuť'],['usage','Využitie plodov'],['growing','Pestovanie / stanovište'],['origin','Pôvod / zdroj osiva']];
+const fields=[['growth','Poznámka k vzrastu'],['ripening','Skorosť / dozrievanie'],['flavor','Chuť'],['usage','Využitie plodov'],['growing','Pestovanie / stanovište'],['origin','Pôvod / zdroj osiva']];
 export function publicProfiles(records){
  if(!records||!Array.isArray(records.sections)||!Array.isArray(records.varieties))
   throw Error('Chýbajú aktuálne záznamy sections/varieties z cloudu.');
@@ -32,7 +32,7 @@ export function publicProfiles(records){
   if(slugs.has(slug))throw Error('Kolízia URL odrody.');
   slugs.add(slug);
   const properties=v.properties&&!Array.isArray(v.properties)&&typeof v.properties==='object'?v.properties:{};
-  return {name,slug,section:v.section,sectionTitle:sections.get(v.section),type:txt(v.type,120),
+  return {name,slug,section:v.section,sectionTitle:sections.get(v.section),type:txt(v.fruitType||v.type,120),growthHabit:txt(v.growthHabit,100),
    color:txt(v.color,100),weight:txt(v.weight,100),info:txt(v.info),
    photos:[...new Set([v.img,...(Array.isArray(v.gallery)?v.gallery:[])].map(image).filter(Boolean))].slice(0,8),
    imageFit:v.imageFit==='cover'?'cover':'contain',
@@ -71,7 +71,7 @@ export const describe=p=>{
  if(!add(p.name+' – '+varietyKind(p)))add('Profil odrody Herba et Fructus');
  const info=String(p.info??'').replace(/\s+/g,' ').trim();
  for(const sentence of info.split(/(?<=[.!?])\s+(?=[\p{Lu}0-9])/u))add(sentence);
- for(const [label,value] of [['Hmotnosť',p.weight],['Typ',p.type],['Farba',p.color]]){
+ for(const [label,value] of [['Hmotnosť',p.weight],['Typ plodu',p.type],['Spôsob rastu',p.growthHabit==='Neurčený'?'':p.growthHabit],['Farba',p.color]]){
   if(value)add(label+': '+value);
  }
  if(parts.join(' ').length<75)add('Opis a fotografie v zbierke Herba et Fructus');
@@ -87,7 +87,7 @@ const seoTitle=p=>{
 const startTag='<!-- AUTO-GENERATED: scripts/generate-varieties.mjs; do not edit. -->\n';
 export function renderProfile(p,logo,all=[]){
  const canonical=SITE+'/odrody/'+p.slug+'/',description=describe(p);
- const facts=[['Typ / pomológia',p.type],['Farba plodu',p.color],['Hmotnosť plodu',p.weight],...p.facts.map(x=>[x.label,x.value])].filter(x=>x[1]);
+ const facts=[['Typ plodu / využitie',p.type],['Spôsob rastu',p.growthHabit||'Neurčený'],['Farba plodu',p.color],['Hmotnosť plodu',p.weight],...p.facts.map(x=>[x.label,x.value])].filter(x=>x[1]);
  const schema={'@context':'https://schema.org','@type':'WebPage',url:canonical,name:p.name+' – profil odrody',description,inLanguage:'sk-SK'};
  if(p.photos[0])schema.primaryImageOfPage=p.photos[0];
  const group=all.filter(item=>item.section===p.section);
