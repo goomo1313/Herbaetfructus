@@ -517,3 +517,10 @@
 #draftBulkApply:disabled{cursor:not-allowed;opacity:.55}
 #draftBulkClearWrap[hidden],#draftBulkChoice[hidden],#draftBulkValue[hidden],#draftBulkLong[hidden]{display:none!important}
 @media(max-width:550px){.draft-bulk-dialog{padding:15px}.draft-bulk-dialog .bulk-tools{gap:7px}}
+
+/* Zreteľné vstupy do 3D tlače aj priamo v správe súkromných konceptov. */
+.drafts-toolbar .drafts-marker-launch{background:#285a3b;color:#fff;border-color:#285a3b;font-weight:700}
+.drafts-toolbar .drafts-marker-launch:hover{background:#1d4730}
+.enhanced-data-table .enhanced-draft-print{margin-left:6px;background:#e9f3e9;color:#205b38;white-space:nowrap;border:1px solid #a4c3a9}
+.enhanced-data-table .enhanced-draft-print:focus-visible,.drafts-marker-launch:focus-visible{outline:3px solid #b47d24;outline-offset:2px}
+@media(max-width:650px){.drafts-toolbar .drafts-marker-launch{width:100%}.enhanced-data-table .enhanced-draft-print{margin:6px 0 0}}
