@@ -51,5 +51,5 @@ Súkromná tabuľka je chránená RLS. Bez nej sa staging nezapne.
 Priamo prístupné URL fotografie z verejného bucketu `site-images` sú však stále
 prístupné tomu, kto príslušnú URL pozná; obrázky nie sú v súkromnom Storage buckete.
 
-Pre **22 odrôd** pribudli dôslednejšie redakčné profily a minimálne dve uvedené
+Pre **27 odrôd** pribudli dôslednejšie redakčné profily a minimálne dve uvedené
 referencie na odrodu v `variety-research.json`. Pôvodné opisy v Supabase sa nemenia.
