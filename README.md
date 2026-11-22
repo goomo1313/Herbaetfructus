@@ -34,8 +34,22 @@ iba pri explicitne verejnej odrode a sekcii.
 
 **Dokumentácia:** [Návod na správu](README_SK.md) ·
 [Stav a ďalší postup](STAV_WEBU_A_DALSIE_KROKY.md) ·
+[Pripravujeme – neverejné nové odrody](PRIPRAVUJEME_NAVOD.md) ·
 [SEO publikovanie](SEO_PUBLIKOVANIE.md) ·
 [Bezpečnosť](SECURITY.md) ·
 [Právne otázky pred poskytovaním osiva](PRAVNE_OVERENIE_PRE_SPRAVCU.md)
 
 Tento repozitár nepredstavuje potvrdenie zákonnej možnosti uvádzať osivo na trh.
+
+## Pripravujeme – vyžaduje jednorazové nastavenie
+
+Nové nepublikované odrody sa pripravujú v samostatnej súkromnej tabuľke
+`public.site_drafts`, **nie v anonymne čitateľnej tabuľke katalógu**.
+Správca pred prvým použitím spustí
+[`SUPABASE_PRIPRAVUJEME.sql`](SUPABASE_PRIPRAVUJEME.sql) v Supabase SQL Editore.
+Súkromná tabuľka je chránená RLS. Bez nej sa staging nezapne.
+Priamo prístupné URL fotografie z verejného bucketu `site-images` sú však stále
+prístupné tomu, kto príslušnú URL pozná; obrázky nie sú v súkromnom Storage buckete.
+
+Pre **22 odrôd** pribudli dôslednejšie redakčné profily a minimálne dve uvedené
+referencie na odrodu v `variety-research.json`. Pôvodné opisy v Supabase sa nemenia.
