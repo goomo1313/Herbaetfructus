@@ -25,6 +25,46 @@
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[char]));
 
+    // Doplňujúce redakčné podklady odlíšené od osobných pestovateľských záznamov.
+    const researched = new Map();
+    function showResearched(name) {
+        const section=byId('detailResearched');
+        if(!section)return;
+        const data=researched.get(name);
+        section.hidden=!data;
+        if(!data)return;
+        const paragraphs=byId('detailResearchedParagraphs');
+        const sources=byId('detailResearchedSources');
+        if(!paragraphs||!sources)return;
+        paragraphs.replaceChildren();
+        sources.replaceChildren();
+        for(const paragraph of data.paragraphs){
+            const node=document.createElement('p');node.textContent=paragraph;paragraphs.appendChild(node);
+        }
+        for(const source of data.sources){
+            const li=document.createElement('li');
+            const link=document.createElement('a');
+            link.textContent=source.title;
+            link.href=source.url;
+            link.target='_blank';
+            link.rel='noopener noreferrer';
+            li.appendChild(link);sources.appendChild(li);
+        }
+    }
+    if(typeof fetch==='function')fetch('/variety-research.json',{cache:'force-cache'})
+        .then(response=>response.ok?response.json():{})
+        .then(data=>{
+            if(!data || typeof data!=='object' || Array.isArray(data))return;
+            for(const [name,item] of Object.entries(data)){
+                if(!item || !Array.isArray(item.paragraphs)||item.paragraphs.length<2
+                 || !item.paragraphs.every(p=>typeof p==='string' && p.length>25)
+                 || !Array.isArray(item.sources)||item.sources.length<2
+                 || !item.sources.every(x=>typeof x.title==='string' && typeof x.url==='string' && /^https:\/\//.test(x.url)))continue;
+                researched.set(name,item);
+            }
+            if(activeName)showResearched(activeName);
+        }).catch(()=>{});
+
     function currentVariety(name) {
         return varietyDatabase.find(item => item && item.name === name);
     }
@@ -112,6 +152,7 @@
         byId('detailTitle').textContent = item.name;
         byId('detailCategory').textContent = item.section === 'tekvice' ? 'Tekvice a cukety' : 'Zberateľské odrody paradajok';
         byId('detailDescription').textContent = item.info || 'Podrobnejší opis odrody doplníme podľa dostupných podkladov.';
+        showResearched(item.name);
         const props = [
             ['Typ / pomológia', item.type],
             ['Farba plodu', item.color],
