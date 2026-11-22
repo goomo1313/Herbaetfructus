@@ -124,6 +124,22 @@ try{
  assert.ok((await page.locator('#detailDescription').textContent()).trim().length>0);
  await page.locator('#detailClose').click();
 
+ // Over overené externé zdroje v dynamickom detaile Ildi bez zmeny katalógových údajov.
+ await page.evaluate(()=>window.HERBA_CATALOGUE.open('Ildi'));
+ await page.waitForFunction(()=>document.querySelector('#detailResearched')?.hidden===false,{timeout:15000});
+ assert.ok(await page.locator('#detailResearchedParagraphs p').count()>=3,
+  'Missing independently researched expanded text for Ildi.');
+ assert.ok(await page.locator('#detailResearchedSources a[href^="https://"]').count()>=2,
+  'Missing two cited HTTPS reference links for Ildi.');
+ assert.ok((await page.locator('#detailDescription').textContent()).trim().length>0,
+  'Original Supabase variety description was lost.');
+ await page.locator('#detailClose').click();
+ console.log('Researched profile: original Ildi description and citations displayed without admin mode.');
+
+ // Pripravujeme smie byť na verejnej stránke neaktívne.
+ assert.equal(await page.locator('#draftsOverlay').getAttribute('aria-hidden'),'true');
+ assert.equal(await page.locator('#openDraftsButton').isVisible(),false);
+
  // Reálny scenár: zákazník vyberie 30 odrôd, obnoví stránku a nič nestratí.
  const cartNames=await page.evaluate(()=>
    varietyDatabase.filter(item=>!item.hidden && Number(item.stock)>0).slice(0,30).map(item=>item.name));
