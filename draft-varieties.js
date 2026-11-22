@@ -117,12 +117,13 @@
   if(typeof updateImageFitPreview==='function')updateImageFitPreview('varImg','varPhotoFiles','varImageFit','varMainPhotoPreview');
   return true;
  }
- async function saveDraft(item){
+ async function saveDraft(item, existingId=null){
   if(!adminReady()||!loaded||!isDraft(item)||!item.hidden)return false;
-  const duplicate=rows.some(x=>x.id!==editorId && x.content?.name?.toLocaleLowerCase('sk')===item.name.toLocaleLowerCase('sk'))
+  const selectedId=existingId&&rows.some(x=>x.id===existingId)?existingId:editorId;
+  const duplicate=rows.some(x=>x.id!==selectedId && x.content?.name?.toLocaleLowerCase('sk')===item.name.toLocaleLowerCase('sk'))
     || varietyDatabase.some(v=>v&&v.name?.toLocaleLowerCase('sk')===item.name.toLocaleLowerCase('sk'));
   if(duplicate){feedback('Tento názov už existuje v katalógu alebo medzi konceptmi.',true);return false;}
-  const id=editorId||'draft-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
+  const id=selectedId||'draft-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
   const content={...item,section:DRAFT_SECTION,hidden:true};
   const old=rows.find(x=>x.id===id);
   if(old?.content?.targetSection)content.targetSection=old.content.targetSection;
