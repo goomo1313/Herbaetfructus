@@ -98,7 +98,76 @@ try{
  assert.equal(await page.locator('#productDetailOverlay').getAttribute('aria-hidden'),'false');
  assert.ok((await page.locator('#detailDescription').textContent()).trim().length>0);
  await page.locator('#detailClose').click();
+
+ // Reálny scenár: zákazník vyberie 30 odrôd, obnoví stránku a nič nestratí.
+ const cartNames=await page.evaluate(()=>
+   varietyDatabase.filter(item=>!item.hidden && Number(item.stock)>0).slice(0,30).map(item=>item.name));
+ assert.equal(cartNames.length,30,'Testovací katalóg neobsahuje 30 dostupných odrôd.');
+ await page.evaluate(names=>{
+   for(const name of names) addVarietyQuantityToForm(name,1);
+ },cartNames);
+ let cart=await page.evaluate(()=>JSON.parse(localStorage.getItem('herba_cart_v1')||'[]'));
+ assert.equal(cart.length,30,'30 odrôd sa neuložilo do lokálneho výberu.');
+ assert.ok(cart.every(item=>Object.keys(item).sort().join(',')==='name,quantity'),
+   'Lokálne úložisko nesmie obsahovať ceny, sklad ani osobné údaje.');
+ await page.reload({waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>document.querySelector('#clearSavedCartButton')?.hidden===false);
+ cart=await page.evaluate(()=>JSON.parse(localStorage.getItem('herba_cart_v1')||'[]'));
+ assert.equal(cart.length,30,'Po obnovení sa výber 30 odrôd stratil.');
+ const checked=await page.locator('#formTomatoSelector input[type="checkbox"]:checked').count();
+ assert.equal(checked,30,'Po obnovení chýbajú označené odrody.');
+ console.log('Saved cart: 30 distinct varieties survive page reload.');
+
+ // Zákazník nemôže obnoviť skrytú/vypredanú/neexistujúcu odrodu ani nadlimitný počet.
+ const stock=await page.evaluate(name=>Number(varietyDatabase.find(item=>item.name===name).stock),cartNames[0]);
+ await page.evaluate(name=>{
+   localStorage.setItem('herba_cart_v1',JSON.stringify([
+      {name,quantity:9999},{name:'Neexistujúca súkromná odroda',quantity:5}
+   ]));
+ },cartNames[0]);
+ await page.reload({waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>document.querySelector('#clearSavedCartButton')?.hidden===false);
+ cart=await page.evaluate(()=>JSON.parse(localStorage.getItem('herba_cart_v1')||'[]'));
+ assert.deepEqual(cart,[{name:cartNames[0],quantity:Math.floor(stock)}],
+   'Obnova musí zohľadniť súčasný sklad a odstrániť neprístupné odrody.');
+ console.log('Saved cart: stock cap and invisible-item filtering verified.');
+
+ // Samotné otvorenie ďakovnej stránky nesmie zmazať nedokončený dopyt.
+ const origin='http://127.0.0.1:'+server.address().port;
+ await page.goto(origin+'/dakujeme.html',{waitUntil:'domcontentloaded'});
+ assert.ok(await page.evaluate(()=>localStorage.getItem('herba_cart_v1')),
+   'Priame otvorenie ďakovnej stránky zmazalo rozpracovaný výber.');
+ await page.goto(origin+'/',{waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>document.querySelector('#clearSavedCartButton')?.hidden===false);
+ await page.locator('#clearSavedCartButton').click();
+ assert.equal(await page.evaluate(()=>localStorage.getItem('herba_cart_v1')),null,
+   'Tlačidlo Vymazať celý výber musí odstrániť lokálne uložené balenia.');
+ assert.equal(await page.locator('#formTomatoSelector input[type="checkbox"]:checked').count(),0);
+ console.log('Saved cart: manual clear and direct thank-you visit verified.');
+
+ // Bez poslania e-mailu tretej strane otestuj prechod platného dopytu
+ // cez overenie formulára a lokálnu ďakovnú stránku.
+ const submitted=await page.evaluate(name=>{
+   addVarietyQuantityToForm(name,1);
+   farmSettings.email='test@example.com';
+   let prevented=false;
+   const accepted=handleFormSubmit({preventDefault(){prevented=true;}});
+   return {accepted,prevented,pending:sessionStorage.getItem('herba_inquiry_pending_v1')};
+ },cartNames[0]);
+ assert.equal(submitted.accepted,true);
+ assert.equal(submitted.prevented,false);
+ assert.ok(Number(submitted.pending)>0);
+ await page.goto(origin+'/dakujeme.html',{waitUntil:'domcontentloaded'});
+ assert.equal(await page.evaluate(()=>localStorage.getItem('herba_cart_v1')),null,
+   'Po simulovanom úspešnom návrate z formulára sa má vyčistiť anonymný výber.');
+ assert.equal(await page.evaluate(()=>sessionStorage.getItem('herba_inquiry_pending_v1')),null);
+ console.log('Form flow: validation and thank-you cleanup verified without contacting FormSubmit.');
+
  // Desktop sa nemení na dve úzke karty.
+ await page.goto(origin+'/',{waitUntil:'domcontentloaded'});
+ await page.waitForFunction(()=>typeof window.switchSection==='function');
+ await page.evaluate(()=>window.switchSection('paradajky'));
+ await grid.locator('.variety-card').first().waitFor({state:'visible'});
  await page.setViewportSize({width:1280,height:900});
  const desktop=await grid.evaluate(el=>{
   const cards=[...el.querySelectorAll('.variety-card')].slice(0,4);
