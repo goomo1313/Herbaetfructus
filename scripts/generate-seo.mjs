@@ -4,6 +4,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, rmSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { runInNewContext } from 'node:vm';
+import { sharedHeader, sharedHeaderAssets } from './shared-site-header.mjs';
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
@@ -79,16 +80,12 @@ ${image?`<meta property="og:image" content="${esc(image)}">`:""}
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../article-pages.css">
+${sharedHeaderAssets("../../")}
 <script type="application/ld+json">${structuredData(schema)}</script>
 </head>
-<body>
+<body class="hf-unified-page">
 <a class="skip-link" href="#obsah">Preskočiť na článok</a>
-<header class="page-header">
-  <div class="header-inner">
-    ${mainSiteLogo()}
-    <nav aria-label="Hlavná navigácia"><a href="/clanky/">Články</a><a href="/">Katalóg a náš príbeh</a></nav>
-  </div>
-</header>
+${sharedHeader(mainSiteLogo(), "blog")}
 <main id="obsah" class="article-container">
 <nav class="breadcrumbs" aria-label="Omrvinková navigácia"><a href="/">Domov</a> <span aria-hidden="true">›</span> <a href="/clanky/">Články</a> <span aria-hidden="true">›</span> ${title}</nav>
 <article class="article-card">
@@ -130,10 +127,11 @@ function renderArchive(posts){
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../article-pages.css">
+${sharedHeaderAssets("../")}
 </head>
-<body>
+<body class="hf-unified-page">
 <a class="skip-link" href="#obsah">Preskočiť na články</a>
-<header class="page-header"><div class="header-inner">${mainSiteLogo()}<nav aria-label="Hlavná navigácia"><a href="/">Domov a katalóg</a></nav></div></header>
+${sharedHeader(mainSiteLogo(), "blog")}
 <main id="obsah" class="article-container">
 <nav class="breadcrumbs" aria-label="Omrvinková navigácia"><a href="/">Domov</a> <span aria-hidden="true">›</span> Články</nav>
 <section class="archive-heading"><div class="article-kicker">Rady zo záhrady</div><h1>Pestovateľské články</h1><p>Výber praktických návodov, skúseností a zaujímavostí o paradajkách, tekviciach, uchovávaní semien a starostlivosti o záhradu.</p></section>
