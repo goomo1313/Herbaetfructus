@@ -502,3 +502,7 @@
 .bulk-actions .bulk-marker-button:focus-visible{outline:3px solid #b37a2c;outline-offset:2px}
 .bulk-marker-hint{font-size:.84rem;color:#536e5a;line-height:1.5;margin:9px 0 5px}
 @media(max-width:580px){.enhanced-admin-scope{align-items:stretch;flex-direction:column}.enhanced-admin-scope select{flex:1 1 auto;max-width:none;width:100%}.bulk-actions .bulk-marker-button{width:100%}}
+
+/* Samostatný filter rastu a jemný informačný štítok. */
+.growth-filter-row select { border: 1px solid var(--border-color,#d8e1d8); border-radius: 8px; padding: 8px 10px; background: #fff; color: #294331; max-width:100%; }
+.badge.growth-habit { background: #eef4ef; color:#385742; border:1px solid #cedfce; font-size:.73rem; }

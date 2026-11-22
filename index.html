@@ -1602,7 +1602,8 @@
                         <tr>
                             <th style="padding: 10px;">Názov odrody</th>
                             <th style="padding: 10px;">Sekcia</th>
-                            <th style="padding: 10px;">Typ / Pomológia</th>
+                            <th style="padding: 10px;">Typ plodu</th>
+                            <th style="padding: 10px;">Spôsob rastu</th>
                             <th style="padding: 10px;">Cena (€)</th>
                             <th style="padding: 10px;">Semien/Bal.</th>
                             <th style="padding: 10px; background: #1A202C;">📦 Sklad (balíčky)</th>
@@ -1687,11 +1688,9 @@
             <div style="margin-bottom: 15px;"><label for="varSectionSelect">Sekcia *</label><select id="varSectionSelect" onchange="window.HERBA_DRAFTS?.syncEditor()"></select><small class="variety-draft-hint" id="varDraftHint" hidden>Rozpracovaná odroda zostáva skrytá. Môžeš postupne dopĺňať fotografie, opis a ďalšie údaje. Na verejné zverejnenie použi kartu Pripravujeme.</small></div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div><label>Názov *</label><input type="text" id="varName"></div>
-                <div><label>Typ / Pomológia *</label>
+                <div><label for="varType">Typ plodu / využitie *</label>
                     <select id="varType" onchange="checkCustomType(this)">
-                        <option value="Neurčené">Neurčené (zatiaľ nerozhodnuté)</option>
-                        <option value="Indeterminantná">Indeterminantná</option>
-                        <option value="Determinantná">Determinantná</option>
+                        <option value="Neurčený">Neurčený (treba overiť)</option>
                         <option value="Multiflora">Multiflora</option>
                         <option value="Cherry & Koktailová">Cherry & Koktailová</option>
                         <option value="Býčie srdce">Býčie srdce</option>
@@ -1699,13 +1698,24 @@
                         <option value="Zberateľská špecialita">Zberateľská špecialita</option>
                         <option value="Tekvica">Tekvica</option>
                         <option value="Cuketa">Cuketa</option>
+                        <option value="Patizón">Patizón</option>
                         <option value="Ďalší">Ďalší...</option>
                     </select>
                 </div>
             </div>
             <div id="customTypeWrapper" style="margin-bottom: 15px; display: none;">
-                <label>Vlastný typ / Pomológia *</label>
+                <label for="varCustomType">Iný typ plodu / využitie *</label>
                 <input type="text" id="varCustomType" placeholder="Zadajte vlastný typ...">
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label for="varGrowthHabit">Spôsob rastu (samostatný údaj)</label>
+                <select id="varGrowthHabit">
+                    <option value="Neurčený">Neurčený – zatiaľ neoverený</option>
+                    <option value="Indeterminantná">Indeterminantná (tyčková)</option>
+                    <option value="Determinantná">Determinantná (kríčková)</option>
+                    <option value="Polodeterminantná">Polodeterminantná</option>
+                </select>
+                <small class="image-fit-hint">Typ plodu (napr. cherry, multiflora) a rast (napr. determinantná) sú nezávislé vlastnosti.</small>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div><label>Farba</label>
@@ -1753,7 +1763,7 @@
                 <legend>Samostatné vlastnosti odrody</legend>
                 <p class="variety-properties-help">Vypĺňaj len overené údaje. Pôvodné „Typ / Pomológia“ zostáva nezmenené; tieto položky ho dopĺňajú a nezamieňajú skorosť, rast či využitie.</p>
                 <div class="variety-properties-grid">
-                    <label for="varGrowth">Rastový typ<input type="text" id="varGrowth" maxlength="100" placeholder="napr. kolíková, kríčková"></label>
+                    <label for="varGrowth">Poznámka k vzrastu (voliteľné)<input type="text" id="varGrowth" maxlength="100" placeholder="napr. kolíková, kríčková"></label>
                     <label for="varRipening">Skorosť / dozrievanie<input type="text" id="varRipening" maxlength="100" placeholder="napr. stredne skorá"></label>
                     <label for="varFlavor">Chuť<input type="text" id="varFlavor" maxlength="180" placeholder="napr. sladkokyslá, aromatická"></label>
                     <label for="varUsage">Využitie plodov<input type="text" id="varUsage" maxlength="180" placeholder="napr. čerstvé, omáčka"></label>
@@ -2807,6 +2817,8 @@
                 // Avoid inheriting an unavailable tomato type when opening pumpkins.
                 currentCategory = 'all';
                 currentColor = 'all';
+                const growthSelect=document.getElementById('growthFilter_' + secId);
+                if(growthSelect)growthSelect.value='all';
             }
             currentActiveSection = secId;
             // Kalendár sa má čítať bez prichytenej hornej lišty.
@@ -2994,8 +3006,18 @@
                                 <input type="text" id="searchInput_${sec.id}" placeholder="🔍 Hľadať odrodu, farbu..." onkeyup="applyFilters('${sec.id}')">
                             </div>
                             <div class="filter-row">
-                                <span class="filter-label">Pomológia:</span>
+                                <span class="filter-label">Typ plodu / využitie:</span>
                                 <div class="filter-chips" id="filterChips_${sec.id}"></div>
+                            </div>
+                            <div class="filter-row growth-filter-row">
+                                <label class="filter-label" for="growthFilter_${sec.id}">Spôsob rastu:</label>
+                                <select id="growthFilter_${sec.id}" onchange="applyFilters('${sec.id}')">
+                                    <option value="all">Všetky spôsoby rastu</option>
+                                    <option value="indeterminantná">Indeterminantná</option>
+                                    <option value="determinantná">Determinantná</option>
+                                    <option value="polodeterminantná">Polodeterminantná</option>
+                                    <option value="neurčený">Neurčený rast</option>
+                                </select>
                             </div>
                             <div class="filter-row">
                                 <span class="filter-label">Farebnosť:</span>
@@ -3062,7 +3084,7 @@
             const isAdmin = document.body.classList.contains('admin-mode');
             const types = [...new Set(varietyDatabase
                 .filter(v => v.section === secId && (isAdmin || !v.hidden))
-                .map(v => String(v.type || '').trim())
+                .map(v => String(window.HERBA_TAXONOMY?.fruitType(v) || v.type || '').trim())
                 .filter(Boolean))].sort((a,b) => a.localeCompare(b,'sk'));
             container.replaceChildren();
             const addChip = (value, label) => {
@@ -3125,8 +3147,10 @@
                 const matchesText = card.dataset.search.includes(textQuery);
                 const matchesCategory = currentCategory === 'all' || card.dataset.type === currentCategory;
                 const matchesColor = currentColor === 'all' || card.dataset.color.includes(currentColor);
+                const growthChoice=document.getElementById('growthFilter_'+secId)?.value||'all';
+                const matchesGrowth=growthChoice==='all'||card.dataset.growth===growthChoice;
 
-                card.style.display = (matchesText && matchesCategory && matchesColor) ? 'flex' : 'none';
+                card.style.display = (matchesText && matchesCategory && matchesColor && matchesGrowth) ? 'flex' : 'none';
             });
         }
 
@@ -3153,9 +3177,12 @@
 
                 const card = document.createElement('div');
                 card.className = `variety-card ${t.isFlagship ? 'flagship' : ''}`;
-                card.dataset.type = String(t.type || '').trim().toLowerCase();
+                const fruitType=window.HERBA_TAXONOMY?.fruitType(t)||t.type||'Neurčený';
+                const growthHabit=window.HERBA_TAXONOMY?.growthHabit(t)||'Neurčený';
+                card.dataset.type = String(fruitType).trim().toLocaleLowerCase('sk');
+                card.dataset.growth = String(growthHabit).trim().toLocaleLowerCase('sk');
                 card.dataset.color = String(t.color || '').toLowerCase();
-                card.dataset.search = [t.name, t.info, t.color, t.type,
+                card.dataset.search = [t.name, t.info, t.color, fruitType, growthHabit,
                     ...(window.HERBA_VARIETY_PROPERTIES?.visibleFacts(t).map(f=>f.value) || [])]
                     .map(value => String(value || '').toLocaleLowerCase('sk')).join(' ');
                 card.dataset.name = String(t.name || '');
@@ -3184,7 +3211,8 @@
                     <div class="card-content">
                         <div class="badges-wrapper">
                             ${t.isFlagship ? '<span class="badge multiflora">🌟 Vlajková</span>' : ''}
-                            <span class="badge type">${escapeHtml(t.type)}</span>
+                            <span class="badge type">${escapeHtml(fruitType)}</span>
+                            ${growthHabit !== 'Neurčený' ? `<span class="badge growth-habit">🌱 ${escapeHtml(growthHabit)}</span>` : ''}
                             ${priceFormatted ? `<span class="badge price">💰 ${escapeHtml(priceFormatted)}</span>` : ''}
                             ${seedsInfo ? `<span class="badge seeds-info">${escapeHtml(seedsInfo)}</span>` : ''}
                             ${isSoldOut ? '<span class="badge hidden-badge">❌ Vypredané</span>' : ''}
@@ -4124,7 +4152,7 @@
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = '1px solid var(--border-color)';
                 tr.style.background = v.hidden ? '#FFF5F5' : 'white';
-                tr.dataset.search = `${v.name || ''} ${v.type || ''} ${(v.color || '')} ${v.section || ''}`.toLocaleLowerCase('sk');
+                tr.dataset.search = `${v.name || ''} ${window.HERBA_TAXONOMY?.fruitType(v)||v.type||''} ${window.HERBA_TAXONOMY?.growthHabit(v)||''} ${(v.color || '')} ${v.section || ''}`.toLocaleLowerCase('sk');
                 tr.dataset.index = index;
 
                 const stockVal = typeof v.stock === 'number' ? v.stock : 10;
@@ -4132,7 +4160,8 @@
                 tr.innerHTML = `
                     <td style="padding: 8px 10px; font-weight: 600;">${escapeHtml(v.name)} ${v.isFlagship ? '🌟' : ''}</td>
                     <td style="padding: 8px 10px;">${escapeHtml(v.section)}</td>
-                    <td style="padding: 8px 10px;">${escapeHtml(v.type)}</td>
+                    <td style="padding: 8px 10px;">${escapeHtml(window.HERBA_TAXONOMY?.fruitType(v)||v.type||'')}</td>
+                    <td style="padding: 8px 10px;">${escapeHtml(window.HERBA_TAXONOMY?.growthHabit(v)||'Neurčený')}</td>
                     <td style="padding: 8px 10px; font-weight: 600; color: #B45309;">${escapeHtml(v.price || '0.00')} €</td>
                     <td style="padding: 8px 10px;">${escapeHtml(v.seedsPerPack || '10 ks')}</td>
                     <td style="padding: 8px 10px; background: #F7FAFC;">
@@ -4333,7 +4362,8 @@
             window.HERBA_DRAFTS?.resetEditor();
             document.getElementById('editIndex').value = -1;
             document.getElementById('varName').value = '';
-            document.getElementById('varType').value = 'Indeterminantná';
+            document.getElementById('varType').value = 'Neurčený';
+            document.getElementById('varGrowthHabit').value = 'Neurčený';
             document.getElementById('varCustomType').value = '';
             document.getElementById('customTypeWrapper').style.display = 'none';
             document.getElementById('varPrice').value = '';
@@ -4376,22 +4406,23 @@
             const customWrapper = document.getElementById('customTypeWrapper');
             let foundOption = false;
             for (let i = 0; i < typeSelect.options.length; i++) {
-                if (typeSelect.options[i].value === t.type) {
+                if (typeSelect.options[i].value === (window.HERBA_TAXONOMY?.fruitType(t) || t.type)) {
                     foundOption = true;
                     break;
                 }
             }
 
             if (foundOption) {
-                typeSelect.value = t.type;
+                typeSelect.value = window.HERBA_TAXONOMY?.fruitType(t) || t.type;
                 customWrapper.style.display = 'none';
                 document.getElementById('varCustomType').value = '';
             } else {
                 typeSelect.value = 'Ďalší';
                 customWrapper.style.display = 'block';
-                document.getElementById('varCustomType').value = t.type;
+                document.getElementById('varCustomType').value = window.HERBA_TAXONOMY?.fruitType(t) || t.type;
             }
 
+            document.getElementById('varGrowthHabit').value = window.HERBA_TAXONOMY?.growthHabit(t) || 'Neurčený';
             document.getElementById('varColor').value = t.color || 'Červená';
             document.getElementById('varPrice').value = t.price || '';
             document.getElementById('varSeedsPerPack').value = t.seedsPerPack || '10 ks';
@@ -4468,6 +4499,9 @@
             let type = document.getElementById('varType').value.trim();
             if (type === 'Ďalší') type = document.getElementById('varCustomType').value.trim();
 
+            const growthHabit = document.getElementById('varGrowthHabit').value.trim();
+            if (window.HERBA_TAXONOMY && !window.HERBA_TAXONOMY.growths.includes(growthHabit)) { alert('Vyber platný spôsob rastu.'); return; }
+            if (['Indeterminantná','Determinantná','Polodeterminantná','Semi-determinantná'].includes(type)) { alert('Spôsob rastu patrí do samostatného poľa.'); return; }
             const color = document.getElementById('varColor').value.trim();
             const priceInput = document.getElementById('varPrice').value.trim().replace('€', '').replace(',', '.');
             const priceValue = Number(priceInput);
@@ -4493,7 +4527,7 @@
                 return;
             }
 
-            if (isDraft && !type) type = 'Neurčené';
+            if (isDraft && !type) type = 'Neurčený';
             if (!name || !type || !section) { alert('Vyplň názov, typ a sekciu odrody.'); return; }
             if (isDraft && idx >= 0) {
                 alert('Existujúcu verejnú odrodu nepresúvaj do konceptov cez tento formulár. Nové koncepty ukladaj samostatne do Pripravujeme.'); return;
@@ -4549,7 +4583,7 @@
                     [url, normalizedImageFit(varietyGalleryFitDraft[url])]
                 ));
                 const item = window.HERBA_VARIETY_PROPERTIES.withEditorProperties({
-                    ...previousData, name, section, type, color,
+                    ...previousData, name, section, type, fruitType:type, growthHabit, color,
                     price: priceValue.toFixed(2),
                     seedsPerPack: seedsPerPack ? parseInt(seedsPerPack, 10) + ' ks' : '',
                     stock, weight, img, imageFit, gallery, galleryImageFits,
@@ -4819,6 +4853,7 @@
             if (window.HERBA_CATALOGUE) window.HERBA_CATALOGUE.routeFromHash();
         });
     </script>
+    <script src="./variety-taxonomy.js"></script>
     <script src="./variety-properties.js"></script>
     <script src="./catalogue-ui.js"></script>
     <script src="./site-enhancements.js"></script>

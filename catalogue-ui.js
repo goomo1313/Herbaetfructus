@@ -113,7 +113,8 @@
         byId('detailCategory').textContent = item.section === 'tekvice' ? 'Tekvice a cukety' : 'Zberateľské odrody paradajok';
         byId('detailDescription').textContent = item.info || 'Podrobnejší opis odrody doplníme podľa dostupných podkladov.';
         const props = [
-            ['Typ / pomológia', item.type],
+            ['Typ plodu / využitie', window.HERBA_TAXONOMY?.fruitType(item) || item.type],
+            ['Spôsob rastu', window.HERBA_TAXONOMY?.growthHabit(item) || 'Neurčený'],
             ['Farba plodu', item.color],
             ['Priemerná hmotnosť plodu', item.weight],
             ['Obsah balenia', item.seedsPerPack || '10 ks'],

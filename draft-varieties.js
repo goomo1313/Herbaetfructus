@@ -21,7 +21,8 @@
  function readiness(v){
   const issues=[];
   if(!String(v.name||'').trim())issues.push('názov');
-  if(!v.type||v.type==='Neurčené')issues.push('typ');
+  const fruit=window.HERBA_TAXONOMY?.fruitType(v)||v.fruitType||v.type;
+  if(!fruit||fruit==='Neurčené'||fruit==='Neurčený')issues.push('typ plodu');
   if(!v.color||v.color==='Neurčená')issues.push('farba');
   if(String(v.info||'').trim().length<120)issues.push('opis aspoň 120 znakov');
   if(!/^https:\/\//i.test(String(v.img||'')))issues.push('hlavná fotografia HTTPS');
@@ -76,7 +77,8 @@
   openVarietyModal();
   editorMode=true;editorId=null;
   $('varSectionSelect').value=DRAFT_SECTION;
-  $('varType').value='Neurčené';
+  $('varType').value='Neurčený';
+  $('varGrowthHabit').value='Neurčený';
   $('varColor').value='Neurčená';
   $('varPrice').value='';
   $('varStock').value='0';
@@ -95,11 +97,13 @@
   put('varName',v.name);
   const type=$('varType');
   if(type){
-   const found=[...type.options].some(opt=>opt.value===v.type);
-   type.value=found?v.type:'Ďalší';
-   put('varCustomType',found?'':v.type);
+   const fruit=window.HERBA_TAXONOMY?.fruitType(v)||v.fruitType||v.type;
+   const found=[...type.options].some(opt=>opt.value===fruit);
+   type.value=found?fruit:'Ďalší';
+   put('varCustomType',found?'':fruit);
    const custom=$('customTypeWrapper');if(custom)custom.style.display=found?'none':'block';
   }
+  put('varGrowthHabit',window.HERBA_TAXONOMY?.growthHabit(v)||v.growthHabit||'Neurčený');
   put('varColor',v.color||'Neurčená');
   put('varPrice',v.price);
   put('varSeedsPerPack',v.seedsPerPack);

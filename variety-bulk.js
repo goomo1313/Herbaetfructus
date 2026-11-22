@@ -24,7 +24,7 @@
     function visibleIndices() {
         const query=String($('bulkSearch')?.value||'').trim().toLocaleLowerCase('sk');
         return varietyDatabase.map((item,i)=>({item,i})).filter(({item})=>
-            !query || [item.name,item.type,item.color,item.section].join(' ')
+            !query || [item.name,item.fruitType||item.type,item.growthHabit,item.color,item.section].join(' ')
                 .toLocaleLowerCase('sk').includes(query)).map(x=>x.i);
     }
     function renderRows() {
@@ -123,7 +123,7 @@
             return {def,value:'',options};
         }
         let value='';
-        if(['boolean','fit','color','section'].includes(def.kind))
+        if(['boolean','fit','color','section','growthHabit'].includes(def.kind))
             value=$('bulkChoice')?.value||'';
         else if(['longtext','urls'].includes(def.kind))
             value=$('bulkLongValue')?.value||'';
@@ -134,6 +134,7 @@
         if(def.kind==='boolean')return [['true','Áno'],['false','Nie']];
         if(def.kind==='fit')return [['contain','Zobraziť celú – bez orezania'],['cover','Vyplniť rámik – s orezaním']];
         if(def.kind==='color')return defs().colors.map(c=>[c,c]);
+        if(def.kind==='growthHabit')return defs().growths.map(g=>[g,g]);
         if(def.kind==='section')return sectionsDatabase.filter(s=>
             s && sectionIds().includes(s.id)).map(s=>[s.id,s.name]);
         return [];
@@ -155,7 +156,7 @@
         if(!def)return;
         const choice=$('bulkChoice'),input=$('bulkValue'),
             textarea=$('bulkLongValue'),photo=$('bulkPhotoFiles'),clear=$('bulkClearValue');
-        choice.hidden=!['boolean','fit','color','section'].includes(def.kind);
+        choice.hidden=!['boolean','fit','color','section','growthHabit'].includes(def.kind);
         input.hidden=!['name','type','text','property','price','percent','stock','delta','seeds','url'].includes(def.kind);
         textarea.hidden=!['longtext','urls'].includes(def.kind);
         photo.hidden=!['file','files'].includes(def.kind);
@@ -172,7 +173,7 @@
             def.kind==='name'?'{name} – nová sezóna':
             def.kind==='seeds'?'10 ks':
             def.kind==='url'?'https://.../fotografia.jpg':
-            def.kind==='type'?'napr. Cherry & Koktailová':
+            def.kind==='type'?'napr. Cherry & Koktailová (nie rastový typ)':
             'Zadaj novú hodnotu'
         );
         if(!choice.hidden)setOptions(choice,optionsForChoice(def));

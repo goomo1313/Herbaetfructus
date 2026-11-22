@@ -7,7 +7,8 @@
     const standard = [
         {key:'name',label:'Názov odrody (šablóna)',group:'Základné údaje',kind:'name',placeholder:'{name} – 2026',max:150},
         {key:'section',label:'Katalógová sekcia',group:'Základné údaje',kind:'section'},
-        {key:'type',label:'Typ / pomológia',group:'Základné údaje',kind:'type',max:120},
+        {key:'type',label:'Typ plodu / využitie',group:'Základné údaje',kind:'type',max:120},
+        {key:'growthHabit',label:'Spôsob rastu',group:'Základné údaje',kind:'growthHabit'},
         {key:'color',label:'Farba plodu',group:'Základné údaje',kind:'color'},
         {key:'weight',label:'Hmotnosť plodu',group:'Základné údaje',kind:'text',max:100,allowClear:true},
         {key:'info',label:'Popis odrody',group:'Základné údaje',kind:'longtext',max:4000,allowClear:true},
@@ -35,7 +36,8 @@
     })));
     const field=key=>fields().find(f=>f.key===key)||null;
     const colors=['Červená','Žltá / Oranžová','Čierna / Tmavá','Pásikavá / Pestrá','Zelená / Iná'];
-    const types=['Indeterminantná','Determinantná','Multiflora','Cherry & Koktailová','Býčie srdce','Omáčková','Zberateľská špecialita','Tekvica','Cuketa'];
+    const types=['Neurčený','Multiflora','Cherry & Koktailová','Býčie srdce','Omáčková','Zberateľská špecialita','Tekvica','Cuketa','Patizón'];
+    const growths=['Neurčený','Indeterminantná','Determinantná','Polodeterminantná'];
     const normalize=value=>String(value??'').trim();
     const safeUrl=value=>/^https:\/\/[a-z0-9][^\s<>"']*$/i.test(value) && !/[{}]/.test(value);
     const toUrls=value=>{
@@ -64,6 +66,8 @@
             if(v!=='contain'&&v!=='cover')throw Error('Zvoľ spôsob zobrazenia fotografie.');
             return v;
         }
+        if(def.kind==='growthHabit'){if(!growths.includes(v))throw Error('Zvoľ spôsob rastu zo zoznamu.');return v;}
+        if(def.kind==='type'&&['Indeterminantná','Determinantná','Polodeterminantná','Semi-determinantná'].includes(v))throw Error('Spôsob rastu patrí do samostatného poľa.');
         if(def.kind==='color'){
             if(!colors.includes(v))throw Error('Zvoľ farbu zo zoznamu.');
             return v;
@@ -118,6 +122,7 @@
             return window.HERBA_VARIETY_PROPERTIES.withProperty(old,key,value);
         }
         if(value&&typeof value==='object'&&value.clear===true){delete result[key];return result;}
+        if(key==='type')result.fruitType=value;
         if(def.kind==='price')result.price=value.toFixed(2);
         else if(def.kind==='percent'){
             const oldPrice=Number(String(old.price||'').replace(',','.').replace('€',''));
@@ -189,5 +194,5 @@
         }
         return updated;
     }
-    window.HERBA_BULK_FIELDS=Object.freeze({fields,field,colors,types,parsedValue,candidateFor,safeUrl});
+    window.HERBA_BULK_FIELDS=Object.freeze({fields,field,colors,types,growths,parsedValue,candidateFor,safeUrl});
 })();

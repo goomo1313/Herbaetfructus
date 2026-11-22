@@ -1,11 +1,11 @@
 /* Herba et Fructus – voliteľné, samostatné údaje odrôd.
- * Nikdy neodvodzujeme rast ani chuť z pôvodného poľa "type": je to zmiešaná pomologická kategória.
+ * item.growthHabit je spôsob rastu; properties.growth je len doplňujúca poznámka.
  * Uloženie v item.properties nemení názov, cenu, počet semien, sklad, foto ani galériu.
  */
 (() => {
     'use strict';
     const fields = Object.freeze([
-        { key: 'growth', id: 'varGrowth', label: 'Rastový typ', placeholder: 'napr. kolíková / kríčková', max: 100 },
+        { key: 'growth', id: 'varGrowth', label: 'Poznámka k vzrastu', placeholder: 'napr. kolíková / kríčková', max: 100 },
         { key: 'ripening', id: 'varRipening', label: 'Skorosť / dozrievanie', placeholder: 'napr. stredne skorá', max: 100 },
         { key: 'flavor', id: 'varFlavor', label: 'Chuť', placeholder: 'vlastná skúsenosť s chuťou', max: 180 },
         { key: 'usage', id: 'varUsage', label: 'Využitie plodov', placeholder: 'napr. čerstvé, na omáčky', max: 180 },

@@ -311,18 +311,20 @@
         const sort=$('filterSort_' + sectionId)?.value || 'default';
         const category=(typeof currentCategory==='string' ? currentCategory:'all');
         const color=(typeof currentColor==='string' ? currentColor:'all');
+        const growth=$('growthFilter_' + sectionId)?.value || 'all';
         let shown=0;
         for(const card of cards) {
             const stock=Number(card.dataset.stock)||0;
             const matchText=format(card.dataset.search).includes(query);
             const matchType=category==='all' || card.dataset.type===category;
             const matchColor=colorMatches(card.dataset.color,color);
+            const matchGrowth=growth==='all'||card.dataset.growth===growth;
             const matchWeight=weightMatches(card.dataset.weightText,weight);
             const matchAvailability=availability==='all'
                 || (availability==='stock' && stock>0 && card.dataset.hidden!=='true')
                 || (availability==='out' && stock<=0)
                 || (availability==='photos' && card.dataset.hasPhoto==='true');
-            const match=matchText && matchType && matchColor && matchWeight && matchAvailability;
+            const match=matchText && matchType && matchColor && matchGrowth && matchWeight && matchAvailability;
             card.style.display=match?'flex':'none';
             if(match) shown++;
         }
