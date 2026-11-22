@@ -46,3 +46,21 @@ len v súkromnej sekcii Pripravujeme až do ich schválenia.
 - `tests/original-variety-descriptions.mjs` overuje pôvodné opisy a zabraňuje opätovnému pridaniu zrušenej obsahovej vrstvy.
 - CI test v Chromiu overuje pôvodný opis bez zrušeného bloku externých textov; súkromná staging karta zostáva neprístupná.
 - **Testy nenahrádzajú skutočné overenie Supabase RLS a nahrávania v prihlásenej administrácii.** Po spustení SQL vykonaj jeden vlastný pokus: vytvor neúplný koncept, ulož, obnov stránku, over, že zostal rozpracovaný; zverejni ho iba na test po doplnení všetkých údajov.
+
+
+## Prehľad správcu a hromadné 3D štítky
+
+V administračnej lište otvor **📊 Prehľad správcu**. Hore vyber zdroj:
+**🌿 Zverejnené** (verejne viditeľné odrody), **📝 Pripravujeme**
+(súkromné koncepty z `site_drafts`) alebo **📋 Celý katalóg vrátane skrytých**.
+Vyhľadávanie, diagnostika a editácia sa automaticky prispôsobia zvolenému
+zdroju. Pri koncepte tlačidlo **✏️ Upraviť** otvorí priamo jeho súkromný
+editor; samotné prepnutie nikdy nič nezverejní. Ak autentifikované
+načítanie konceptov zlyhá, zobrazí sa chyba, nie verejné údaje namiesto nich.
+
+**🛠️ Hromadné operácie → označ odrody → 🖨️ 3D štítky k označeným.**
+Prenesie sa 1–60 názvov do bezplatného 3D generátora a tam možno stiahnuť
+STL alebo ZIP; pri pozastavenom generátore je tlačidlo zablokované.
+Táto akcia **neukladá žiadnu hromadnú zmenu do Supabase**, nezasahuje
+do cien ani do zákazníckeho výberu semien. Súkromné koncepty sa do
+hromadného výberu verejného katalógu nepridávajú.
