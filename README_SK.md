@@ -531,3 +531,26 @@ by bol potrebný oddelený chránený zdroj údajov na serveri.
 
 Kontrolné testy sú v `tests/price-visibility.mjs`.
 
+
+## Pripravujeme – nové odrody pred zverejnením (22. november 2026)
+
+V prihlásenej administračnej lište je tlačidlo **📝 Pripravujeme**.
+Nové odrody pripravuj v tejto sekcii – postupne doplň názov, fotografie,
+vlastnosti, pestovateľský opis, cenu, počet semien a zásoby.
+
+**Dôležité jednorazové nastavenie:** v Supabase SQL Editore spusti
+[`SUPABASE_PRIPRAVUJEME.sql`](SUPABASE_PRIPRAVUJEME.sql). Aplikácia vyžaduje
+súkromnú tabuľku `site_drafts` s RLS. Záznamy sa nesmú ukladať ako skryté
+v pôvodnom verejne čitateľnom `site_content.varieties`. Bez SQL sa karta
+z bezpečnostných dôvodov nedá používať.
+
+Cez tlačidlo **Uložiť cieľovú kategóriu** sa zapamätá len plánovaný cieľ
+(Paradajky, Tekvice a cukety a ďalšie verejné sekcie). Cez **Zverejniť**
+sa po kontrole povinných údajov, potvrdení a úspešnom zápise do Supabase
+vytvorí verejný záznam. Automatický export SEO potom pripraví verejnú URL.
+
+Aktuálne je **27 verejných odrôd** doplnených samostatnými odbornými
+odsekmi a explicitnými zdrojmi v `variety-research.json`. Ostatné odrody
+zatiaľ zostávajú pri pôvodných používateľských opisoch bez vymyslených údajov.
+
+Postup krok za krokom: [PRIPRAVUJEME_NAVOD.md](PRIPRAVUJEME_NAVOD.md).
