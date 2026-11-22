@@ -6,29 +6,54 @@
     <meta name="robots" content="noindex,follow">
     <meta name="theme-color" content="#315b38">
     <title>Ďakujeme za dopyt | Herba et Fructus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./shared-site-header.css?v=20261122-1">
+    <script src="./config.js" defer></script>
+    <script src="./shared-site-header.js?v=20261122-1" defer></script>
     <style>
-      :root{color-scheme:light;}
-      *{box-sizing:border-box;}
-      body{margin:0;min-height:100vh;display:grid;place-items:center;padding:28px 18px;background:linear-gradient(145deg,#eef5e9,#fbfcf8);font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#304438;}
-      main{background:#fff;border:1px solid #dce8d9;border-radius:20px;padding:clamp(24px,5vw,52px);width:min(100%,700px);box-shadow:0 15px 40px rgba(37,72,44,.07);text-align:center;}
-      .icon{display:grid;place-items:center;width:74px;height:74px;border-radius:100%;background:#e3f0df;margin:0 auto 18px;color:#3d774a;font-size:2.1rem;}
-      h1{color:#2a5635;font-family:Georgia,serif;font-size:clamp(1.7rem,4vw,2.3rem);margin:12px 0 18px;}
-      p{line-height:1.85;margin:0 auto 15px;max-width:575px;}
-      .note{padding:15px 18px;margin:22px 0;background:#fff8eb;border-left:4px solid #b48a3a;text-align:left;border-radius:0 10px 10px 0;}
-      a{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 23px;background:#2e5b39;color:white;border-radius:9px;font-weight:700;text-decoration:none;margin-top:14px;}
-      a:hover,a:focus-visible{background:#3a7546;outline-offset:3px;}
-      small{display:block;margin-top:21px;color:#647467;}
+      :root{color-scheme:light}
+      *{box-sizing:border-box}
+      body.hf-confirmation-page{min-height:100vh;margin:0;display:flex;flex-direction:column}
+      .hf-confirmation-page .skip-link{position:absolute;top:-100px;left:12px;z-index:1005;padding:11px 15px;background:#285638;color:white;border-radius:8px;text-decoration:none}
+      .hf-confirmation-page .skip-link:focus{top:10px}
+      .hf-confirmation-page main.confirmation-card{background:#fff;border:1px solid #dce8d9;border-radius:20px;padding:clamp(24px,5vw,52px);width:min(calc(100% - 36px),700px);box-shadow:0 15px 40px rgba(37,72,44,.07);text-align:center;margin:clamp(30px,5vw,65px) auto;flex:1 0 auto;align-self:center}
+      .hf-confirmation-page .confirmation-icon{display:grid;place-items:center;width:74px;height:74px;border-radius:100%;background:#e3f0df;margin:0 auto 18px;color:#3d774a;font-size:2.1rem}
+      .hf-confirmation-page h1{color:#2a5635;font-family:"Playfair Display",Georgia,serif;font-size:clamp(1.7rem,4vw,2.3rem);margin:12px 0 18px}
+      .hf-confirmation-page main p{line-height:1.85;margin:0 auto 15px;max-width:575px}
+      .hf-confirmation-page .confirmation-note{padding:15px 18px;margin:22px 0;background:#fff8eb;border-left:4px solid #b48a3a;text-align:left;border-radius:0 10px 10px 0}
+      .hf-confirmation-page .confirmation-return{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 23px;background:#2e5b39;color:white;border-radius:9px;font-weight:700;text-decoration:none;margin-top:14px}
+      .hf-confirmation-page .confirmation-return:hover,.hf-confirmation-page .confirmation-return:focus-visible{background:#3a7546;outline-offset:3px}
+      .hf-confirmation-page small{display:block;margin-top:21px;color:#647467}
+      .hf-confirmation-page .confirmation-footer{width:100%;text-align:center;padding:25px 16px;border-top:1px solid #dce5d9;background:#fff;color:#617068;font-size:.88rem}
+      @media(max-width:600px){.hf-confirmation-page main.confirmation-card{width:calc(100% - 24px);margin:24px auto;padding:24px 18px}}
     </style>
 </head>
-<body>
-    <main>
-      <div class="icon" aria-hidden="true">✓</div>
+<body class="hf-unified-page hf-confirmation-page">
+    <a class="skip-link" href="#obsah">Preskočiť na obsah</a>
+    <header class="hf-site-header"><nav class="hf-site-nav" aria-label="Hlavná navigácia"><a class="logo" href="/" aria-label="Herba et Fructus – úvodná stránka">
+                <svg width="42" height="42" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="55" r="32" fill="#C05621"/>
+                    <path d="M50 23C50 15 57 6 66 3C66 3 63 14 54 19Z" fill="#2C5530"/>
+                    <path d="M47 23C39 16 31 18 28 18C32 25 40 26 47 23Z" fill="#2C5530"/>
+                    <path d="M53 23C61 16 69 18 72 18C68 25 60 26 53 23Z" fill="#2C5530"/>
+                    <circle cx="50" cy="55" r="11" fill="#D97706" opacity="0.95"/>
+                </svg>
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 700; color: var(--primary-color); line-height: 1.1;">Herba et Fructus</span>
+                    <span style="font-family: 'Poppins', sans-serif; font-size: 0.65rem; font-weight: 600; letter-spacing: 1.5px; color: var(--accent-color); margin-top: 2px;">OSOBNÝ PROJEKT</span>
+                </div>
+            </a><ul class="nav-links" data-hf-site-nav><li><a href="/#sekcia=domov">Náš príbeh</a></li><li><a href="/#sekcia=paradajky">Paradajky</a></li><li><a href="/#sekcia=tekvice">Tekvice a Cukety</a></li><li><a href="/#sekcia=blog">Blog & Rady</a></li><li><a href="/#sekcia=podmienky">Ako objednať</a></li><li><a href="/#sekcia=kalendar">Pestovateľský kalendár</a></li><li><a href="/3d/">3D generátor</a></li></ul></nav></header>
+    <main id="obsah" class="confirmation-card">
+      <div class="confirmation-icon" aria-hidden="true">✓</div>
       <h1>Ďakujeme za váš dopyt</h1>
       <p>Formulár bol odoslaný prostredníctvom služby FormSubmit. Ak bol doručený, správca projektu Herba et Fructus sa s vami môže spojiť e-mailom.</p>
-      <p class="note"><strong>Ide iba o nezáväzný dopyt.</strong> Odoslanie nezakladá povinnosť platby, rezerváciu, potvrdenú objednávku ani záväzok poskytnúť semená. Prípadné ďalšie kroky závisia aj od príslušných právnych podmienok.</p>
-      <a href="./index.html">Späť na Herba et Fructus</a>
+      <p class="confirmation-note"><strong>Ide iba o nezáväzný dopyt.</strong> Odoslanie nezakladá povinnosť platby, rezerváciu, potvrdenú objednávku ani záväzok poskytnúť semená. Prípadné ďalšie kroky závisia aj od príslušných právnych podmienok.</p>
+      <a class="confirmation-return" href="./index.html">Späť na Herba et Fructus</a>
       <small>Ak e-mail neprišiel alebo potrebujete dopyt zmeniť, môžete poslať nový dopyt prostredníctvom stránky.</small>
     </main>
+    <footer class="confirmation-footer">© Herba et Fructus · Osobný projekt · <a href="/">Domov</a></footer>
     <script>
       // Zmaž anonymný lokálny výber iba po návrate z platného odoslania FormSubmit.
       // Samotné otvorenie ďakovnej stránky nesmie vymazať rozpracovaný dopyt.
