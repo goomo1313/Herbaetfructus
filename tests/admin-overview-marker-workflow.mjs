@@ -57,7 +57,8 @@ test('správca prepne medzi zverejnenými, súkromnými a skrytými bez miešani
  const tbody=e.add('enhancedDashboardRows'), count=e.add('enhancedDashboardCount');
  e.add('enhancedDashboardStats');e.add('enhancedDashboardActions');
  e.add('enhancedDashboardHint');e.add('enhancedDashboardEmpty');
- let loads=0,edits=[];
+ let loads=0,edits=[],printed=[];
+ e.win.HERBA_DRAFT_BULK={open(){printed.push('bulk');return true},printOne(id){printed.push(id);return true}};
  e.win.HERBA_DRAFTS={
   async load(){loads++;return true},
   entries(){return privateRows},
@@ -76,6 +77,10 @@ test('správca prepne medzi zverejnenými, súkromnými a skrytými bez miešani
  assert.equal(tbody.children.length,2);
  assert.equal(count.textContent,'Zobrazených 2 z 2 odrôd');
  assert.equal(status.options.find(o=>o.value==='hidden').disabled,true);
+ const printAction=e.nodes.get('enhancedDashboardActions').children.find(btn=>btn.textContent.includes('3D štítky'));
+ assert.ok(printAction,'Prehľad správcu musí zobrazovať priamy vstup do 3D tlače konceptov.');
+ printAction.on_click();
+ assert.deepEqual(printed,['bulk']);
  status.value='ready';api.dashboardFilter();
  assert.equal(tbody.children.length,1);
  assert.equal(tbody.children[0].children[0].textContent,'Skúšobná rozpracovaná');
@@ -84,6 +89,10 @@ test('správca prepne medzi zverejnenými, súkromnými a skrytými bez miešani
  assert.equal(typeof last.children[0].on_click,'function');
  last.children[0].on_click();
  assert.deepEqual(edits,['draft-002']);
+ assert.equal(last.children.length,2,'Pri koncepte musí byť aj tlačidlo 3D štítok.');
+ assert.match(last.children[1].textContent,/3D štítok/);
+ last.children[1].on_click();
+ assert.deepEqual(printed,['bulk','draft-002']);
  scope.value='catalogue';
  await api.dashboardScopeChange();
  assert.equal(status.value,'all');
