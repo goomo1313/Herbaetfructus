@@ -3,7 +3,7 @@
 Verejné redakčné články z `editorial-content.js` majú vlastné statické stránky pod
 `/clanky/<id-bez-hf->/`. Sú viditeľné aj bez JavaScriptu a majú vlastné
 `title`, `description`, `canonical`, štruktúrované údaje BlogPosting a
-normálne odkazy. Slogan projektu je „Rodinná semenná farma“.
+normálne odkazy. Označenie projektu je „Osobný projekt“.
 
 ## Ako aktualizovať obsah
 
@@ -77,3 +77,17 @@ Zmeny overujú `tests/generator-seo.mjs` a aktualizovaná kontrola sitemap
 v `tests/seo-static-pages.mjs` spolu s `node scripts/generate-seo.mjs --check`.
 Indexovanie do Googlu nemôže za web garantovať ani spustiť samotný kód.
 
+
+## Vyhľadávanie „semená paradajok“
+
+Hlavná verejná adresa `https://herbaetfructus.sk/` má vlastný canonical.
+SEO titulok a viditeľný úvod používajú prirodzene výraz „semená paradajok“,
+pričom /odrody/ a /clanky/ poskytujú verejné opisy a pestovateľské rady.
+Nevytvárame duplicitnú cieľovú stránku pre tú istú vyhľadávaciu frázu.
+
+Na Google Search Console skontroluj indexovanie hlavnej HTTPS adresy,
+odoslanie `https://herbaetfructus.sk/sitemap.xml` a výkon pre dopyty
+„semená paradajok“, „zberateľské semená paradajok“ či konkrétne odrody.
+Správne značky a sitemap **nezaručujú** indexovanie ani pozíciu vo vyhľadávaní.
+Obsah a zoznamy musia zostať pravdivé; nevytvárať falošné recenzie, skladové
+zásoby ani nereálne ponuky.
