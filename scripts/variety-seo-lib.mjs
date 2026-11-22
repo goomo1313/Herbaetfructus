@@ -51,8 +51,8 @@ const commonHead=(path)=>'<link rel="preconnect" href="https://fonts.googleapis.
  '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">'+
  '<link rel="stylesheet" href="'+path+'article-pages.css"><link rel="stylesheet" href="'+path+'variety-seo.css">';
 const header=logo=>'<a class="skip-link" href="#obsah">Preskočiť na obsah</a><header class="page-header"><div class="header-inner">'+logo+
- '<nav aria-label="Hlavná navigácia"><a href="/odrody/">Odrody</a><a href="/clanky/">Články</a><a href="/">Katalóg</a></nav></div></header>';
-const footer='<footer class="page-footer">© Herba et Fructus · Rodinná semenná farma · <a href="/">Domov</a></footer>';
+ '<nav aria-label="Hlavná navigácia"><a href="/">Domov</a><a href="/">Katalóg</a><a href="/odrody/">Profily odrôd</a><a href="/clanky/">Články</a></nav></div></header>';
+const footer='<footer class="page-footer">© Herba et Fructus · Osobný projekt · <a href="/">Domov</a></footer>';
 const head=title=>'<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+esc(title)+'</title>';
 const xmljson=v=>JSON.stringify(v).replace(/</g,'\\u003c');
 const varietyKind=p=>p.section==='paradajky'?'paradajka':p.section==='tekvice'?'tekvica':'odroda';
@@ -139,7 +139,7 @@ export function renderArchive(profiles,logo){
  '<script type="application/ld+json">'+xmljson(schema)+'</script>'+
  '<script src="../variety-archive.js" defer></script>'+
  '</head><body>'+header(logo)+'<main id="obsah" class="article-container"><nav class="breadcrumbs"><a href="/">Domov</a> › Odrody</nav>'+
- '<div class="archive-heading"><p class="article-kicker">Rodinná semenná farma</p><h1>Profily odrôd</h1>'+
+ '<div class="archive-heading"><p class="article-kicker">Osobný projekt</p><h1>Profily odrôd</h1>'+
  '<p>Vlastnosti a fotografie aktuálne verejných odrôd. Dostupnosť overíte v <a href="/">katalógu</a>.</p></div>'+
  '<form class="profile-filters" id="profile-filters" role="search">'+
  '<div class="profile-filter-field"><label for="profile-search">Vyhľadať odrodu</label><input type="search" id="profile-search" placeholder="Napr. Ildi alebo Tigerella" autocomplete="off"></div>'+
