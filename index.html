@@ -1296,6 +1296,10 @@
                         <div class="cart-summary-box" id="cartSummaryBox">
                             <h3>🌱 Váš výber zberateľských odrôd</h3>
                             <div id="cartSummaryContent" aria-live="polite" style="color: var(--text-muted); font-size: 0.9rem;">Zatiaľ nemáte vybrané žiadne položky.</div>
+                            <div class="saved-cart-controls">
+                                <span id="savedCartStatus" aria-live="polite">Váš výber sa automaticky uchová v tomto prehliadači. Neukladáme sem osobné údaje.</span>
+                                <button type="button" id="clearSavedCartButton" onclick="clearSavedSelection()" hidden>Vymazať celý výber</button>
+                            </div>
                             <button type="button" id="selectedMarkersButton" class="selected-markers-btn" onclick="openMarkerGeneratorForSelection()" hidden>🖨️ Vytvoriť 3D štítky k výberu</button>
                         </div>
                         <details class="form-accordion form-selection-edit" id="formSelectionEditor">
@@ -2588,6 +2592,84 @@
             }
         }
 
+        // Nezáväzný výber balení je uložený len v lokálnom prehliadači, bez osobných
+        // údajov, cien, skladu či kontaktov. Supabase sa kvôli košíku nemení.
+        const savedCartStorageKey = 'herba_cart_v1';
+        let cartReadyToPersist = false;
+
+        function selectionSnapshot() {
+            const saved = [];
+            document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
+                const cb = item.querySelector('input[type="checkbox"]');
+                if (!cb?.checked || cb.disabled) return;
+                const variety = varietyDatabase.find(v => v && v.name === cb.value && !v.hidden);
+                const stock = Math.floor(Number(variety?.stock));
+                if (!variety || !(stock > 0)) return;
+                const qty = item.querySelector('.form-qty-input');
+                const quantity = Math.min(stock, Math.max(1, Number.parseInt(qty?.value, 10) || 1));
+                if (saved.length < 100) saved.push({name: cb.value, quantity});
+            });
+            return saved;
+        }
+
+        function persistSelectionToBrowser() {
+            if (!cartReadyToPersist) return;
+            try {
+                const items = selectionSnapshot();
+                if (items.length) localStorage.setItem(savedCartStorageKey, JSON.stringify(items));
+                else localStorage.removeItem(savedCartStorageKey);
+            } catch (_) {
+                // Súkromný režim alebo zakázané úložisko: výber je stále funkčný do obnovy.
+            }
+        }
+
+        function restoreSavedSelection() {
+            try {
+                const raw = localStorage.getItem(savedCartStorageKey);
+                if (raw && raw.length <= 24000) {
+                    const saved = JSON.parse(raw);
+                    if (Array.isArray(saved)) {
+                        const valid = new Map();
+                        for (const row of saved.slice(0, 100)) {
+                            if (!row || typeof row.name !== 'string') continue;
+                            const variety = varietyDatabase.find(v => v && v.name === row.name && !v.hidden);
+                            const stock = Math.floor(Number(variety?.stock));
+                            if (!variety || !(stock > 0) || valid.has(row.name)) continue;
+                            const requested = Math.floor(Number(row.quantity));
+                            valid.set(row.name, Math.min(stock, Math.max(1, Number.isFinite(requested) ? requested : 1)));
+                        }
+                        document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
+                            const cb = item.querySelector('input[type="checkbox"]');
+                            if (!cb || cb.disabled || !valid.has(cb.value)) return;
+                            const qty = item.querySelector('.form-qty-input');
+                            cb.checked = true;
+                            if (qty) qty.value = String(valid.get(cb.value));
+                        });
+                    }
+                }
+            } catch (_) {
+                // Chybný alebo nedostupný lokálny záznam nikdy nezablokuje katalóg.
+            }
+            cartReadyToPersist = true;
+            updateSelectionCounter();
+            return selectionSnapshot().length;
+        }
+
+        function clearSavedSelection() {
+            document.querySelectorAll('#formTomatoSelector .selector-item').forEach(item => {
+                const cb = item.querySelector('input[type="checkbox"]');
+                const qty = item.querySelector('.form-qty-input');
+                if (cb) cb.checked = false;
+                if (qty) qty.value = '1';
+            });
+            try {
+                localStorage.removeItem(savedCartStorageKey);
+                sessionStorage.removeItem('herba_cart_restore_v1');
+            } catch (_) {}
+            updateSelectionCounter();
+            return true;
+        }
+
         function openMarkerGeneratorForVariety(name) {
             if (isGeneratorPaused()) return false;
             const variety = varietyDatabase.find(v => v && v.name === name && !v.hidden);
@@ -3542,8 +3624,11 @@
                     ? selectedItemsList.join('\n') + `\nCelkový počet balíčkov: ${totalCount}` + (arePricesHidden() ? '' : `\nOrientačná hodnota výberu: ${totalPrice.toFixed(2)} €`)
                     : 'Bez výberu odrôd';
             }
+            const savedCartClear = document.getElementById('clearSavedCartButton');
+            if (savedCartClear) savedCartClear.hidden = totalCount === 0;
             syncSelectedVarietyCards();
             updateMarkerSelectionButton();
+            persistSelectionToBrowser();
         }
 
         function handleFormSubmit(event) {
@@ -3585,6 +3670,9 @@
                 alert('Niektoré vybrané odrody už nemajú dostatočný sklad:\n\n' + problems.join('\n') + '\n\nUpravte výber a odošlite formulár znova.');
                 return false;
             }
+            // Len platný dopyt označíme v tejto karte ako odosielaný. Výber vymaže
+            // ďakovná stránka až po návrate zo služby FormSubmit, nie pred odoslaním.
+            try { sessionStorage.setItem('herba_inquiry_pending_v1', '1'); } catch (_) {}
             // Ide iba o nezáväzný dopyt. Sklad sa upravuje až po ručnom potvrdení objednávky správcom.
             return true;
         }
@@ -4645,6 +4733,7 @@
             await loadCloudContent();
             renderAll();
             await restoreAdminSession();
+            restoreSavedSelection();
             restoreMarkerCart();
             syncAdminBarHeight();
             if (window.HERBA_CATALOGUE) window.HERBA_CATALOGUE.routeFromHash();
