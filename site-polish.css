@@ -53,3 +53,23 @@ select:focus-visible, textarea:focus-visible, summary:focus-visible,
         animation-duration: 0.01ms !important;
     }
 }
+
+/* Navigácia: 3D generátor je <a>, ostatné položky sú <button>.
+   Zarovnať ich na rovnakú výšku a stred bez rozdielneho inline baseline. */
+#mainNavLinks.nav-links {
+    align-items: center;
+}
+#mainNavLinks.nav-links > li {
+    display: flex;
+    align-items: stretch;
+}
+#mainNavLinks.nav-links > li > button,
+#mainNavLinks.nav-links > li > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 44px;
+    line-height: 1.4;
+    white-space: nowrap;
+}
