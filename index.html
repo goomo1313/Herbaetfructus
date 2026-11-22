@@ -3672,7 +3672,7 @@
             }
             // Len platný dopyt označíme v tejto karte ako odosielaný. Výber vymaže
             // ďakovná stránka až po návrate zo služby FormSubmit, nie pred odoslaním.
-            try { sessionStorage.setItem('herba_inquiry_pending_v1', '1'); } catch (_) {}
+            try { sessionStorage.setItem('herba_inquiry_pending_v1', String(Date.now())); } catch (_) {}
             // Ide iba o nezáväzný dopyt. Sklad sa upravuje až po ručnom potvrdení objednávky správcom.
             return true;
         }
