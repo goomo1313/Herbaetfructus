@@ -1057,6 +1057,7 @@
         </div>
         <div class="admin-actions-scroll">
             <button class="admin-btn" style="background: #276749;" type="button" onclick="window.HERBA_IMPROVEMENTS?.dashboardOpen()">📊 Prehľad správcu</button>
+            <button class="admin-btn" id="openDraftsButton" style="background: #765a29;" type="button" onclick="window.HERBA_DRAFTS?.open()">📝 Pripravujeme <span id="draftsAdminCount" aria-label="Počet rozpracovaných odrôd"></span></button>
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openTableManagerModal()">📊 Tabuľka odrôd & Sklad</button>
             <button class="admin-btn" style="background: #375c78;" type="button" onclick="window.HERBA_BULK?.open()" title="Hromadné ceny, sklad, fotografie, vlastnosti a ďalšie údaje odrôd">🛠️ Hromadné operácie</button>
             <button class="admin-btn" style="background: #2B6CB0;" onclick="openSectionTableModal()">📂 Správa kariet</button>
@@ -1648,16 +1649,36 @@
         </div>
     </div>
 
+    <!-- ADMIN: NEVERJEJNÁ ROZPRACOVANÁ KNIŽNICA ODROD -->
+    <div class="enhanced-overlay drafts-overlay" id="draftsOverlay" aria-hidden="true">
+        <section class="enhanced-dialog drafts-dialog" role="dialog" aria-modal="true" aria-labelledby="draftsTitle">
+            <div class="enhanced-dialog-head">
+                <div>
+                    <h2 id="draftsTitle">📝 Pripravujeme – nové odrody</h2>
+                    <p>Bezpečný pracovný priestor. Rozpracované odrody sa nezobrazujú v katalógu, objednávke ani SEO profile. Zverejnia sa až po výslovnom potvrdení.</p>
+                </div>
+                <button type="button" class="enhanced-close" onclick="window.HERBA_DRAFTS?.close()" aria-label="Zavrieť prípravu odrôd">×</button>
+            </div>
+            <div class="drafts-toolbar">
+                <button type="button" class="admin-btn" onclick="window.HERBA_DRAFTS?.create()">+ Pripraviť novú odrodu</button>
+                <span id="draftsCount" role="status" aria-live="polite"></span>
+            </div>
+            <div id="draftsRows" class="drafts-list"></div>
+            <p id="draftsFeedback" role="status" aria-live="polite" class="drafts-feedback"></p>
+        </section>
+    </div>
+
     <!-- MODÁLNE OKNO - PRIDANIE / ÚPRAVA ODRODY -->
     <div class="modal-overlay" id="varietyModal">
         <div class="modal-box" style="max-width: 780px;">
             <h3 id="modalVarietyTitle" style="color: var(--primary-color); margin-bottom: 15px;">Pridať odrodu</h3>
             <input type="hidden" id="editIndex" value="-1">
-            <div style="margin-bottom: 15px;"><label>Sekcia *</label><select id="varSectionSelect"></select></div>
+            <div style="margin-bottom: 15px;"><label for="varSectionSelect">Sekcia *</label><select id="varSectionSelect" onchange="window.HERBA_DRAFTS?.syncEditor()"></select><small class="variety-draft-hint" id="varDraftHint" hidden>Rozpracovaná odroda zostáva skrytá. Môžeš postupne dopĺňať fotografie, opis a ďalšie údaje. Na verejné zverejnenie použi kartu Pripravujeme.</small></div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div><label>Názov *</label><input type="text" id="varName"></div>
                 <div><label>Typ / Pomológia *</label>
                     <select id="varType" onchange="checkCustomType(this)">
+                        <option value="Neurčené">Neurčené (zatiaľ nerozhodnuté)</option>
                         <option value="Indeterminantná">Indeterminantná</option>
                         <option value="Determinantná">Determinantná</option>
                         <option value="Multiflora">Multiflora</option>
@@ -1678,6 +1699,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div><label>Farba</label>
                     <select id="varColor">
+                        <option value="Neurčená">Neurčená (zatiaľ neoverená)</option>
                         <option value="Červená">Červená</option>
                         <option value="Žltá / Oranžová">Žltá / Oranžová</option>
                         <option value="Čierna / Tmavá">Čierna / Tmavá</option>
@@ -4316,13 +4338,17 @@
             window.HERBA_VARIETY_PROPERTIES?.fillEditor({});
             document.getElementById('varMultiflora').checked = false;
             document.getElementById('varHidden').checked = false;
+            document.getElementById('varHidden').disabled = false;
             updateImageFitPreview('varImg', 'varPhotoFiles', 'varImageFit', 'varMainPhotoPreview');
 
             const sel = document.getElementById('varSectionSelect');
-            sel.innerHTML = '';
-            sectionsDatabase.filter(s => s.id !== 'domov' && s.id !== 'blog' && s.id !== 'podmienky').forEach(s => {
+            sel.innerHTML = '<option value="pripravujeme">📝 Pripravujeme (nezverejnené)</option>';
+            sectionsDatabase.filter(s => s.id !== 'domov' && s.id !== 'blog' && s.id !== 'podmienky' && s.id !== 'pripravujeme').forEach(s => {
                 sel.innerHTML += `<option value="${escapeHtml(s.id)}">${escapeHtml(s.name)}</option>`;
             });
+            // Bežné pridanie odrody zachová predvolenú verejnú kategóriu.
+            sel.value = sectionsDatabase.find(s => !s.hidden && !['domov','blog','podmienky'].includes(s.id))?.id || 'pripravujeme';
+            window.HERBA_DRAFTS?.syncEditor();
             document.getElementById('varietyModal').classList.add('active');
         }
 
@@ -4368,13 +4394,16 @@
             window.HERBA_VARIETY_PROPERTIES?.fillEditor(t);
             document.getElementById('varMultiflora').checked = t.multiflora;
             document.getElementById('varHidden').checked = t.hidden || false;
+            document.getElementById('varHidden').disabled = false;
             updateImageFitPreview('varImg', 'varPhotoFiles', 'varImageFit', 'varMainPhotoPreview');
 
             const sel = document.getElementById('varSectionSelect');
-            sel.innerHTML = '';
-            sectionsDatabase.filter(s => s.id !== 'domov' && s.id !== 'blog' && s.id !== 'podmienky').forEach(s => {
+            sel.innerHTML = '<option value="pripravujeme">📝 Pripravujeme (nezverejnené)</option>';
+            sectionsDatabase.filter(s => s.id !== 'domov' && s.id !== 'blog' && s.id !== 'podmienky' && s.id !== 'pripravujeme').forEach(s => {
                 sel.innerHTML += `<option value="${escapeHtml(s.id)}" ${s.id === t.section ? 'selected' : ''}>${escapeHtml(s.name)}</option>`;
             });
+            sel.value = t.section;
+            window.HERBA_DRAFTS?.syncEditor();
             document.getElementById('varietyModal').classList.add('active');
         }
         function closeVarietyModal() { document.getElementById('varietyModal').classList.remove('active'); }
@@ -4426,13 +4455,14 @@
             const priceInput = document.getElementById('varPrice').value.trim().replace('€', '').replace(',', '.');
             const priceValue = Number(priceInput);
             const seedsPerPack = document.getElementById('varSeedsPerPack').value.trim();
+            const isDraft = section === 'pripravujeme';
             const stock = Number(document.getElementById('varStock').value.trim());
             const weight = document.getElementById('varWeight').value.trim();
             let img = document.getElementById('varImg').value.trim();
             const imageFit = normalizedImageFit(document.getElementById('varImageFit').value);
             const info = document.getElementById('varInfo').value.trim();
             const multiflora = document.getElementById('varMultiflora').checked;
-            const hidden = document.getElementById('varHidden').checked;
+            const hidden = isDraft || document.getElementById('varHidden').checked;
             const galleryUrls = document.getElementById('varGalleryUrls').value.split(/\r?\n/)
                 .map(url => url.trim()).filter(Boolean);
             const files = Array.from(document.getElementById('varPhotoFiles').files || []);
@@ -4446,17 +4476,21 @@
                 return;
             }
 
+            if (isDraft && !type) type = 'Neurčené';
             if (!name || !type || !section) { alert('Vyplň názov, typ a sekciu odrody.'); return; }
+            if (idx >= 0 && varietyDatabase[idx]?.section === 'pripravujeme' && !isDraft && !hidden) {
+                alert('Rozpracovanú odrodu najskôr ulož ako skrytú alebo ju publikuj cez kartu Pripravujeme.'); return;
+            }
             if (varietyDatabase.some((v, i) => i !== idx && String(v.name || '').trim().toLocaleLowerCase('sk') === name.toLocaleLowerCase('sk'))) {
                 alert('Odroda s týmto názvom už existuje. Použi jedinečný názov.'); return;
             }
-            if (!Number.isFinite(priceValue) || priceValue <= 0 || priceValue > 1000) {
-                alert('Zadaj platnú cenu za balenie (napríklad 1,50).'); return;
+            if (!Number.isFinite(priceValue) || priceValue < (isDraft ? 0 : Number.EPSILON) || priceValue > 1000) {
+                alert(isDraft ? 'Cena rozpracovanej odrody musí byť medzi 0 a 1000 €.' : 'Zadaj platnú cenu za balenie (napríklad 1,50).'); return;
             }
             if (!Number.isInteger(stock) || stock < 0 || stock > 100000) {
                 alert('Sklad musí byť nezáporné celé číslo.'); return;
             }
-            if (!/^\d+\s*ks$/i.test(seedsPerPack) || parseInt(seedsPerPack, 10) < 1) {
+            if ((!isDraft || seedsPerPack) && (!/^\d+\s*ks$/i.test(seedsPerPack) || parseInt(seedsPerPack, 10) < 1)) {
                 alert('Počet semien uveď vo formáte „10 ks“.'); return;
             }
             if ((img && !safeImageUrl(img)) || galleryUrls.some(url => !safeImageUrl(url))) {
@@ -4497,7 +4531,7 @@
                 const item = window.HERBA_VARIETY_PROPERTIES.withEditorProperties({
                     ...previousData, name, section, type, color,
                     price: priceValue.toFixed(2),
-                    seedsPerPack: parseInt(seedsPerPack, 10) + ' ks',
+                    seedsPerPack: seedsPerPack ? parseInt(seedsPerPack, 10) + ' ks' : '',
                     stock, weight, img, imageFit, gallery, galleryImageFits,
                     info, multiflora, hidden
                 }, propertyInputs);
@@ -4513,7 +4547,8 @@
                 savedToCloud = true;
                 closeVarietyModal();
                 renderAll();
-                showToast('✅ Odroda a jej fotografie sú uložené v online databáze.');
+                window.HERBA_DRAFTS?.render();
+                showToast(isDraft ? '📝 Rozpracovaná odroda zostáva skrytá v Pripravujeme.' : '✅ Odroda a jej fotografie sú uložené v online databáze.');
             } catch (error) {
                 status.textContent = 'Uloženie zlyhalo: ' + (error.message || 'Neznáma chyba');
                 if (uploadedPaths.length && !savedToCloud && adminSupabase) {
@@ -4758,5 +4793,6 @@
     <script src="./site-enhancements.js"></script>
     <script src="./variety-bulk-fields.js"></script>
     <script src="./variety-bulk.js"></script>
+    <script src="./draft-varieties.js"></script>
 </body>
 </html>
