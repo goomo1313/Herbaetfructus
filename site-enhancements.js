@@ -198,6 +198,7 @@
             actions.appendChild(dashAction('📝 Otvoriť Pripravujeme',()=>go(()=>window.HERBA_DRAFTS?.open())));
             actions.appendChild(dashAction('🌱 Nový koncept',()=>go(()=>window.HERBA_DRAFTS?.create())));
             actions.appendChild(dashAction('🛠️ Hromadné operácie',()=>go(()=>window.HERBA_DRAFT_BULK?.open())));
+            actions.appendChild(dashAction('🖨️ 3D štítky z Pripravujeme',()=>go(()=>window.HERBA_DRAFT_BULK?.open())));
         } else {
             actions.appendChild(dashAction('🛠️ Hromadné operácie',()=>go(()=>window.HERBA_BULK?.open())));
             actions.appendChild(dashAction('📋 Správa skladu',()=>go(openTableManagerModal)));
@@ -265,6 +266,12 @@
                 if (row.draft) window.HERBA_DRAFTS?.edit(row.id);
                 else editVariety(row.index);
             }));
+            if (row.draft) {
+                const print = makeButton('🖨️ 3D štítok',() => window.HERBA_DRAFT_BULK?.printOne(row.id));
+                print.className = 'enhanced-draft-print';
+                print.title = 'Súkromný štítok pre vlastnú 3D tlač, bez zverejnenia odrody';
+                action.appendChild(print);
+            }
             tr.appendChild(action);
             tbody.appendChild(tr);
         });
