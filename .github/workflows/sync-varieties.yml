@@ -9,6 +9,7 @@ on:
       - 'scripts/generate-varieties.mjs'
       - 'scripts/variety-seo-lib.mjs'
       - 'variety-research.json'
+      - 'tests/variety-research.mjs'
       - '.github/workflows/sync-varieties.yml'
 permissions:
   contents: write
