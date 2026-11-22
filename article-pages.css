@@ -44,3 +44,13 @@ h1{font-size:clamp(1.9rem,4.4vw,3rem);margin:12px 0 14px}
 .page-footer{text-align:center;padding:25px 16px;border-top:1px solid var(--border);color:var(--muted);font-size:.88rem;background:#fff}
 @media(max-width:620px){.header-inner{align-items:flex-start;flex-direction:column;gap:8px}.page-header .logo{max-width:100%;gap:10px}.page-header .logo svg{width:38px;height:38px}.page-header .logo>div span:last-child{letter-spacing:1px!important;font-size:.57rem!important}.page-header nav{gap:15px}.article-card{padding:22px}.article-container{padding-top:18px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Kalendár je súčasťou redakčnej sekcie, nie samostatná položka globálneho menu. */
+.archive-calendar-feature{display:flex;flex-wrap:wrap;align-items:center;gap:16px;margin:0 0 25px;padding:22px;border:1px solid #cadec8;border-radius:15px;background:linear-gradient(130deg,#edf6e9,#fffdf7)}
+.archive-calendar-feature>span{width:54px;height:54px;display:grid;place-items:center;border-radius:12px;background:#dcebd7;font-size:1.7rem}
+.archive-calendar-feature>div{flex:1 1 230px}
+.archive-calendar-feature strong{display:block;color:#295635;font:700 1.27rem/1.3 "Playfair Display",Georgia,serif}
+.archive-calendar-feature p{margin:6px 0 0;font-size:.92rem;color:#506757;line-height:1.65}
+.archive-calendar-feature>a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 16px;border-radius:30px;background:#2c5530;color:#fff;text-decoration:none;font-weight:700;white-space:normal}
+.archive-calendar-feature>a:hover{background:#1e3d22;color:#fff}
+@media(max-width:610px){.archive-calendar-feature>a{width:100%}}
