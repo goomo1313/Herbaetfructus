@@ -311,7 +311,7 @@
         const sort=$('filterSort_' + sectionId)?.value || 'default';
         const category=(typeof currentCategory==='string' ? currentCategory:'all');
         const color=(typeof currentColor==='string' ? currentColor:'all');
-        const growth=$('growthFilter_' + sectionId)?.value || 'all';
+        const growth=(typeof currentGrowth==='string' ? currentGrowth:'all');
         let shown=0;
         for(const card of cards) {
             const stock=Number(card.dataset.stock)||0;

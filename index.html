@@ -2249,6 +2249,7 @@
         let currentActiveSection = 'domov';
         let currentCategory = 'all';
         let currentColor = 'all';
+        let currentGrowth = 'all';
 
         // Údaje sa načítajú zo Supabase po inicializácii stránky.
 
@@ -2819,8 +2820,7 @@
                 // Avoid inheriting an unavailable tomato type when opening pumpkins.
                 currentCategory = 'all';
                 currentColor = 'all';
-                const growthSelect=document.getElementById('growthFilter_' + secId);
-                if(growthSelect)growthSelect.value='all';
+                currentGrowth = 'all';
             }
             currentActiveSection = secId;
             // Kalendár sa má čítať bez prichytenej hornej lišty.
@@ -2834,7 +2834,7 @@
                 target.classList.add('active-section');
                 const grid = target.querySelector('[data-section-grid]');
                 if (sectionChanged) {
-                    for (const id of ['filterChips_', 'colorChips_']) {
+                    for (const id of ['filterChips_', 'growthChips_', 'colorChips_']) {
                         const chips = document.getElementById(id + secId);
                         if (!chips) continue;
                         const buttons = chips.querySelectorAll('button.chip');
@@ -3012,14 +3012,8 @@
                                 <div class="filter-chips" id="filterChips_${sec.id}"></div>
                             </div>
                             <div class="filter-row growth-filter-row">
-                                <label class="filter-label" for="growthFilter_${sec.id}">Spôsob rastu:</label>
-                                <select id="growthFilter_${sec.id}" onchange="applyFilters('${sec.id}')">
-                                    <option value="all">Všetky spôsoby rastu</option>
-                                    <option value="indeterminantná">Indeterminantná</option>
-                                    <option value="determinantná">Determinantná</option>
-                                    <option value="polodeterminantná">Polodeterminantná</option>
-                                    <option value="neurčený">Neurčený rast</option>
-                                </select>
+                                <span class="filter-label">Spôsob rastu:</span>
+                                <div class="filter-chips" id="growthChips_${sec.id}" role="group" aria-label="Filtrovať podľa spôsobu rastu"></div>
                             </div>
                             <div class="filter-row">
                                 <span class="filter-label">Farebnosť:</span>
@@ -3099,6 +3093,46 @@
             };
             addChip('all','Všetky');
             for (const type of types) addChip(type.toLocaleLowerCase('sk'),type);
+            renderGrowthFilterChipsForSection(secId);
+        }
+
+        function renderGrowthFilterChipsForSection(secId) {
+            const container = document.getElementById('growthChips_' + secId);
+            if (!container) return;
+            const isAdmin = document.body.classList.contains('admin-mode');
+            const available = new Set(varietyDatabase
+                .filter(v => v.section === secId && (isAdmin || !v.hidden))
+                .map(v => String(window.HERBA_TAXONOMY?.growthHabit(v) || 'Neurčený').toLocaleLowerCase('sk')));
+            const choices = [
+                ['indeterminantná', 'Indeterminantná'],
+                ['determinantná', 'Determinantná'],
+                ['polodeterminantná', 'Polodeterminantná'],
+                ['neurčený', 'Neurčený rast']
+            ];
+            container.replaceChildren();
+            const addChip = (value, label) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'chip' + (value === currentGrowth ? ' active' : '');
+                button.textContent = label;
+                button.setAttribute('aria-pressed', String(value === currentGrowth));
+                button.addEventListener('click', () => filterByGrowth(value, secId, button));
+                container.appendChild(button);
+            };
+            if (currentGrowth !== 'all' && !available.has(currentGrowth)) currentGrowth = 'all';
+            addChip('all', 'Všetky');
+            for (const [value, label] of choices) if (available.has(value)) addChip(value, label);
+        }
+
+        function filterByGrowth(value, secId, btnElement) {
+            currentGrowth = String(value).toLocaleLowerCase('sk');
+            const container = document.getElementById('growthChips_' + secId);
+            if (container) container.querySelectorAll('button.chip').forEach(button => {
+                const selected = button === btnElement;
+                button.classList.toggle('active', selected);
+                button.setAttribute('aria-pressed', String(selected));
+            });
+            applyFilters(secId);
         }
 
         function filterByCategory(category, secId, btnElement) {
@@ -3149,8 +3183,7 @@
                 const matchesText = card.dataset.search.includes(textQuery);
                 const matchesCategory = currentCategory === 'all' || card.dataset.type === currentCategory;
                 const matchesColor = currentColor === 'all' || card.dataset.color.includes(currentColor);
-                const growthChoice=document.getElementById('growthFilter_'+secId)?.value||'all';
-                const matchesGrowth=growthChoice==='all'||card.dataset.growth===growthChoice;
+                const matchesGrowth=currentGrowth==='all'||card.dataset.growth===currentGrowth;
 
                 card.style.display = (matchesText && matchesCategory && matchesColor && matchesGrowth) ? 'flex' : 'none';
             });

@@ -33,7 +33,12 @@ test('editor zachováva nezávislé hodnoty a odmietne prehodenú kategóriu',()
 test('katalóg a hromadné úpravy majú dva nezávislé ovládače',()=>{
  assert.match(html,/id="varGrowthHabit"/);
  assert.match(html,/id="varType"/);
- assert.match(html,/id="growthFilter_\$\{sec.id\}"/);
+ assert.match(html,/id="growthChips_\$\{sec.id\}"/);
+ assert.doesNotMatch(html,/<select id="growthFilter_/);
+ assert.match(html,/function filterByGrowth\(/);
+ assert.match(html,/renderGrowthFilterChipsForSection\(secId\)/);
+ assert.match(html,/currentGrowth === 'all'/);
+ assert.match(filters,/typeof currentGrowth/);
  assert.match(html,/dataset\.growth/);
  assert.match(filters,/matchGrowth/);
  assert.match(bulk,/key:'growthHabit'/);
