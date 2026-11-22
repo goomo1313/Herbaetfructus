@@ -40,8 +40,36 @@ test('dashboard statistics are based on actual record fields and never mutate so
     ];
     const before=JSON.stringify(sample);
     const d=env.window.HERBA_IMPROVEMENTS.diagnostics(sample);
-    assert.deepEqual({...d},{total:3,visible:2,hidden:1,noPhoto:1,incomplete:1,soldOut:1,stock:3});
+    assert.deepEqual({...d},{total:3,visible:2,hidden:1,noPhoto:1,incomplete:1,shortDescription:2,soldOut:1,stock:3});
     assert.equal(JSON.stringify(sample),before);
+});
+
+
+test('redakčný prehľad rozpozná krátke verejné opisy bez zmeny Supabase dát',()=>{
+    const {context,doc,window}=makeEnvironment();
+    const input=[
+      {name:'Krátka',section:'paradajky',info:'Krátky opis',hidden:false,stock:2},
+      {name:'Dlhá',section:'paradajky',info:'X'.repeat(190),hidden:false,stock:1},
+      {name:'Skrytá',section:'paradajky',info:'Chýba',hidden:true,stock:1}
+    ];
+    const before=JSON.stringify(input);
+    runInContext('varietyDatabase = '+JSON.stringify(input),context);
+    const d=window.HERBA_IMPROVEMENTS.diagnostics(input);
+    assert.equal(d.shortDescription,1);
+    const status={value:'short-description'}, search={value:''};
+    const rows={children:[],replaceChildren(){this.children=[]},appendChild(el){this.children.push(el)}};
+    const count={textContent:''};
+    doc.getElementById=id=>({
+      enhancedDashboardStatus:status,
+      enhancedDashboardSearch:search,
+      enhancedDashboardRows:rows,
+      enhancedDashboardCount:count
+    }[id]||null);
+    window.HERBA_IMPROVEMENTS.dashboardFilter();
+    assert.equal(rows.children.length,1);
+    assert.equal(count.textContent,'Zobrazených 1 z 3 odrôd');
+    assert.equal(JSON.stringify(input),before);
+    assert.match(html,/value="short-description"/);
 });
 
 test('size filtering uses approximate range midpoint without fabricating mass',()=>{
