@@ -25,5 +25,7 @@ jobs:
         run: node scripts/generate-varieties.mjs --check
       - name: Overiť generované SEO články a sitemap
         run: node scripts/generate-seo.mjs --check
+      - name: Overiť SEO stránku semená paradajok
+        run: node scripts/generate-semena-paradajok.mjs --check
       - name: Spustiť automatické kontroly
         run: node --test tests/*.mjs
