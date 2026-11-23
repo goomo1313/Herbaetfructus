@@ -160,3 +160,9 @@ test('podstránky odkazujú na kalendár len ako na súčasť Blog & Rady',()=>{
  const js=readFileSync('shared-site-header.js','utf8');
  assert.doesNotMatch(js,/fragment\.appendChild\(link\('Pestovateľský kalendár'/);
 });
+
+test('spoločná navigácia má viditeľné zameranie loga a rešpektuje obmedzenie animácií',()=>{
+ assert.match(sharedCss,/\.hf-site-header \.logo:focus-visible\s*\{[^}]*outline:\s*3px solid var\(--accent-color\)/);
+ assert.match(sharedCss,/@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{\s*\.hf-site-header \.nav-links a\s*\{\s*transition:\s*none/);
+ assert.match(sharedCss,/\.hf-site-header \.nav-links a:focus-visible\s*\{[^}]*outline:/);
+});
