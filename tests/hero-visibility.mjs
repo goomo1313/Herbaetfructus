@@ -95,3 +95,9 @@ test('otvorenie kalendára v blogu vypne prichytenú navigáciu a zatvorenie ju 
     runInContext("switchSection('kalendar'); switchSection('domov')",context);
     assert.equal(bodyClasses.has('calendar-reading'), false);
 });
+
+test('HTML odkaz na verejné profily odrôd je dostupný aj bez JavaScriptu', () => {
+    assert.match(html, /<a class="hero-archive-link" href="\/odrody\/">Profily a fotografie odrôd paradajok<\/a>/);
+    assert.match(html, /\.hero-links \.hero-archive-link \{/);
+    assert.match(html, /<footer>[\s\S]*href="\/odrody\/"/);
+});
