@@ -14,27 +14,11 @@ const data={
  ]
 };
 
-test('verejný archív má prístupné filtre, kategórie a nevypíše súkromné údaje',()=>{
- const profiles=publicProfiles(data);
- const page=renderArchive(profiles,mainLogo(readFileSync('index.html','utf8')));
- assert.match(page,/id="profile-search"/);
- assert.match(page,/id="profile-section"/);
- assert.match(page,/id="profile-reset"/);
- assert.match(page,/id="profile-count" aria-live="polite"/);
- assert.match(page,/id="profile-empty" hidden/);
- assert.match(page,/id="profile-list"/);
- assert.match(page,/src="\.\.\/variety-archive\.js" defer/);
- assert.match(page,/data-section="paradajky"/);
- assert.match(page,/data-section="tekvice"/);
- assert.match(page,/<option value="tekvice">Tekvice a cukety<\/option>/);
- assert.equal((page.match(/class="profile-card"/g)||[]).length,3);
- assert.doesNotMatch(page,/Skrytá|stock|price|>200<|data-stock|data-price/);
- const structured=page.match(/<script type="application\/ld\+json">([^<]+)<\/script>/)?.[1];
- assert.ok(structured);
- const schema=JSON.parse(structured);
- assert.equal(schema['@type'],'CollectionPage');
- assert.equal(schema.mainEntity.numberOfItems,3);
- assert.equal(schema.mainEntity.itemListElement.length,3);
+test('duplicitný prehľad odrôd len presmeruje na hlavný katalóg',()=>{
+ const page=renderArchive(publicProfiles(data),mainLogo(readFileSync('index.html','utf8')));
+ assert.match(page,/noindex,follow/);
+ assert.match(page,/location\\.replace\\("https:\\/\\/herbaetfructus\\.sk\\/#sekcia=paradajky"\\)/);
+ assert.doesNotMatch(page,/class="profile-card"|id="profile-list"/);
 });
 
 test('filterovanie ignoruje diakritiku, kombinuje skupiny, oznamuje počty a funguje reset',()=>{
@@ -75,14 +59,9 @@ test('filterovanie ignoruje diakritiku, kombinuje skupiny, oznamuje počty a fun
  assert.equal(search.focused,true);
 });
 
-test('publikovaný archív naozaj obsahuje vyhľadávanie aj všetkých aktuálnych 51 odrôd',()=>{
- const manifest=JSON.parse(readFileSync('odrody/manifest.json','utf8'));
+test('publikovaný prehľad nie je duplicitný katalóg',()=>{
  const page=readFileSync('odrody/index.html','utf8');
- assert.ok(manifest.length>0);
- assert.match(page,/id="profile-search"/);
- assert.equal((page.match(/class="profile-card"/g)||[]).length,manifest.length);
- for(const p of manifest){
-  assert.ok(page.includes('href="/odrody/'+p.slug+'/"'),p.slug);
-  assert.ok(page.includes('data-section="'+p.section+'"'),p.section);
- }
+ assert.match(page,/noindex,follow/);
+ assert.match(page,/window\\.location\\.replace/);
+ assert.doesNotMatch(page,/class="profile-card"|id="profile-list"/);
 });
