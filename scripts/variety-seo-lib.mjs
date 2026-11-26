@@ -140,7 +140,7 @@ export function renderArchive(profiles,logo){
  '<script src="../variety-archive.js" defer></script>'+
  '</head><body class="hf-unified-page">'+header(logo)+'<main id="obsah" class="article-container"><nav class="breadcrumbs"><a href="/">Domov</a> › Odrody</nav>'+
  '<div class="archive-heading"><p class="article-kicker">Osobný projekt</p><h1>Profily odrôd</h1>'+
- '<p>Vlastnosti a fotografie aktuálne verejných odrôd. Dostupnosť overíte v <a href="/">katalógu</a>.</p></div>'+
+ '<p>Prezrite si verejné profily odrôd paradajok a ďalších rastlín. Nájdete v nich dostupné fotografie, opisy a známe vlastnosti. Aktuálnu dostupnosť zberateľských semien paradajok overíte v <a href="/">hlavnom katalógu</a>.</p></div>'+
  '<form class="profile-filters" id="profile-filters" role="search">'+
  '<div class="profile-filter-field"><label for="profile-search">Vyhľadať odrodu</label><input type="search" id="profile-search" placeholder="Napr. Ildi alebo Tigerella" autocomplete="off"></div>'+
  '<div class="profile-filter-field"><label for="profile-section">Skupina rastlín</label><select id="profile-section"><option value="">Všetky skupiny</option>'+options+'</select></div>'+
