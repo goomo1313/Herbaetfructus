@@ -135,7 +135,9 @@ export function renderArchive(profiles,logo){
   mainEntity:{'@type':'ItemList',numberOfItems:profiles.length,itemListElement:profiles.map((p,i)=>({
    '@type':'ListItem',position:i+1,name:p.name,url:SITE+'/odrody/'+p.slug+'/'}))}};
  return startTag+head('Odrody paradajok a rastlín | Herba et Fructus')+
- '<meta name="description" content="'+esc(desc)+'"><link rel="canonical" href="'+SITE+'/odrody/">'+commonHead('../')+
+ '<meta name="description" content="'+esc(desc)+'"><link rel="canonical" href="'+SITE+'/">'+
+ '<meta http-equiv="refresh" content="0;url=/#sekcia=paradajky">'+
+ '<script>location.replace("/#sekcia=paradajky")</script>'+commonHead('../')+
  '<script type="application/ld+json">'+xmljson(schema)+'</script>'+
  '<script src="../variety-archive.js" defer></script>'+
  '</head><body class="hf-unified-page">'+header(logo)+'<main id="obsah" class="article-container"><nav class="breadcrumbs"><a href="/">Domov</a> › Odrody</nav>'+
