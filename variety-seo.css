@@ -46,3 +46,142 @@
 .profile-marker:hover{background:#e5f1e2;color:#20452d}
 .profile-marker:focus-visible{outline:3px solid #8ac48a;outline-offset:2px}
 .profile-marker[hidden]{display:none!important}
+
+
+/* Zjednotenie verejných profilov s hlavným katalógom Herba et Fructus.
+   Tieto pravidlá sa zachovajú aj pri automatickom pre-generovaní /odrody/. */
+body.hf-unified-page:has(.profile-grid) .article-container{
+  width:min(100% - 32px,1200px);
+  max-width:1200px;
+  padding:30px 0 72px;
+}
+body.hf-unified-page .breadcrumbs{
+  font-family:"Poppins",sans-serif;
+  font-size:.85rem;
+  color:#718096;
+}
+body.hf-unified-page .archive-heading{
+  position:relative;
+  overflow:hidden;
+  margin-bottom:22px;
+  padding:clamp(25px,4vw,48px);
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  background:linear-gradient(115deg,#e8f0e9 0%,#fff 75%);
+  box-shadow:0 4px 6px -1px rgba(0,0,0,.05);
+}
+body.hf-unified-page .archive-heading h1{
+  margin:8px 0 12px;
+  font:700 clamp(2rem,4vw,3rem)/1.2 "Playfair Display",Georgia,serif;
+  color:#2c5530;
+}
+body.hf-unified-page .archive-heading>p:last-child{
+  max-width:780px;
+  margin:0;
+  font-size:1rem;
+  line-height:1.8;
+  color:#4a5b50;
+}
+body.hf-unified-page .profile-filters{
+  padding:18px 20px;
+  margin:0 0 14px;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 4px 6px -1px rgba(0,0,0,.05);
+}
+body.hf-unified-page .profile-filter-field label{
+  font:600 .84rem/1.5 "Poppins",sans-serif;
+  color:#2d3748;
+}
+body.hf-unified-page .profile-filter-field input,
+body.hf-unified-page .profile-filter-field select{
+  font-family:"Poppins",sans-serif;
+  border-color:#d5dfd7;
+  border-radius:10px;
+}
+body.hf-unified-page .profile-reset{
+  font-family:"Poppins",sans-serif;
+  border:1px solid #cbdccf;
+  border-radius:30px;
+  padding-inline:20px;
+  background:#e8f0e9;
+  color:#2c5530;
+}
+body.hf-unified-page .profile-grid{
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,245px),1fr));
+  gap:20px;
+}
+body.hf-unified-page .profile-card{
+  min-width:0;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  background:#fff;
+  overflow:hidden;
+  box-shadow:0 4px 6px -1px rgba(0,0,0,.05);
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+body.hf-unified-page .profile-card:hover,
+body.hf-unified-page .profile-card:focus-within{
+  transform:translateY(-3px);
+  border-color:#bad2bd;
+  box-shadow:0 16px 26px -8px rgba(28,60,35,.15);
+}
+body.hf-unified-page .profile-card-link{
+  display:flex;
+  flex-direction:column;
+  height:100%;
+  color:#2d3748;
+}
+body.hf-unified-page .profile-card-link:hover{background:#fff;color:#2c5530}
+body.hf-unified-page .profile-card-link img,
+body.hf-unified-page .profile-thumb-fallback{
+  display:flex;
+  width:100%;
+  height:auto;
+  aspect-ratio:4/3;
+  object-fit:contain;
+  background:#f3f6f1;
+}
+body.hf-unified-page .profile-card-content{
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:6px;
+  padding:16px 18px 19px;
+}
+body.hf-unified-page .profile-card-content small{
+  font:600 .72rem/1.6 "Poppins",sans-serif;
+  letter-spacing:.02em;
+  color:#c05621;
+}
+body.hf-unified-page .profile-card-content strong{
+  font:700 1.22rem/1.35 "Playfair Display",Georgia,serif;
+  color:#2c5530;
+}
+body.hf-unified-page .page-footer{
+  font-family:"Poppins",sans-serif;
+  background:#fff;
+  border-color:#e2e8f0;
+}
+body.hf-unified-page .variety-seo-profile .profile-primary{
+  border-radius:30px;
+  background:#2c5530;
+  font-family:"Poppins",sans-serif;
+}
+body.hf-unified-page .variety-seo-profile .profile-primary:hover{background:#1e3d22}
+@media(max-width:600px){
+  body.hf-unified-page:has(.profile-grid) .article-container{width:calc(100% - 28px);padding-top:20px}
+  body.hf-unified-page .profile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  body.hf-unified-page .profile-card-content{padding:12px}
+  body.hf-unified-page .profile-card-content strong{font-size:1.02rem}
+  body.hf-unified-page .profile-filters{padding:14px}
+}
+@media(max-width:350px){
+  body.hf-unified-page .profile-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){
+  body.hf-unified-page .profile-card{transition:none}
+  body.hf-unified-page .profile-card:hover{transform:none}
+}
