@@ -123,33 +123,13 @@ export function renderProfile(p,logo,all=[]){
  '<a class="profile-marker" data-marker-link href="/3d/?odroda='+encodeURIComponent(p.name)+'" hidden>🖨️ Vytvoriť 3D štítok</a></p>'+
  extras+'</article><p class="back-to-blog"><a href="/odrody/">← Všetky odrody</a></p></main>'+footer+'</body></html>\n';
 }
-export function renderArchive(profiles,logo){
- const sections=new Map(profiles.map(p=>[p.section,p.sectionTitle]));
- const options=[...sections].sort((a,b)=>a[1].localeCompare(b[1],'sk')).map(([id,name])=>
-  '<option value="'+esc(id)+'">'+esc(name)+'</option>').join('');
- const cards=profiles.map(p=>'<li class="profile-card" data-section="'+esc(p.section)+'"><a href="/odrody/'+esc(p.slug)+'/" class="profile-card-link">'+
- (p.photos[0]?'<img src="'+esc(p.photos[0])+'" alt="'+esc(p.name)+'" loading="lazy">':'<span class="profile-thumb-fallback">🌱</span>')+
- '<span class="profile-card-content"><small>'+esc(p.sectionTitle)+'</small><strong>'+esc(p.name)+'</strong></span></a></li>').join('');
- const desc='Zbierka verejných odrôd paradajok a iných rastlín Herba et Fructus – charakteristiky, vlastnosti a fotografie.';
- const schema={'@context':'https://schema.org','@type':'CollectionPage',name:'Profily odrôd | Herba et Fructus',url:SITE+'/odrody/',
-  mainEntity:{'@type':'ItemList',numberOfItems:profiles.length,itemListElement:profiles.map((p,i)=>({
-   '@type':'ListItem',position:i+1,name:p.name,url:SITE+'/odrody/'+p.slug+'/'}))}};
- return startTag+head('Odrody paradajok a rastlín | Herba et Fructus')+
- '<meta name="description" content="'+esc(desc)+'"><link rel="canonical" href="'+SITE+'/">'+
- '<meta http-equiv="refresh" content="0;url=/#sekcia=paradajky">'+
- '<script>location.replace("/#sekcia=paradajky")</script>'+commonHead('../')+
- '<script type="application/ld+json">'+xmljson(schema)+'</script>'+
- '<script src="../variety-archive.js" defer></script>'+
- '</head><body class="hf-unified-page">'+header(logo)+'<main id="obsah" class="article-container"><nav class="breadcrumbs"><a href="/">Domov</a> › Odrody</nav>'+
- '<div class="archive-heading"><p class="article-kicker">Osobný projekt</p><h1>Profily odrôd</h1>'+
- '<p>Prezrite si verejné profily odrôd paradajok a ďalších rastlín. Nájdete v nich dostupné fotografie, opisy a známe vlastnosti. Aktuálnu dostupnosť zberateľských semien paradajok overíte v <a href="/">hlavnom katalógu</a>.</p></div>'+
- '<form class="profile-filters" id="profile-filters" role="search">'+
- '<div class="profile-filter-field"><label for="profile-search">Vyhľadať odrodu</label><input type="search" id="profile-search" placeholder="Napr. Ildi alebo Tigerella" autocomplete="off"></div>'+
- '<div class="profile-filter-field"><label for="profile-section">Skupina rastlín</label><select id="profile-section"><option value="">Všetky skupiny</option>'+options+'</select></div>'+
- '<button class="profile-reset" type="button" id="profile-reset">Vymazať filtre</button></form>'+
- '<p class="profile-result-count" id="profile-count" aria-live="polite">'+(profiles.length===1?'1 odroda':profiles.length>=2&&profiles.length<=4?profiles.length+' odrody':profiles.length+' odrôd')+'</p>'+
- '<p class="profile-empty" id="profile-empty" hidden>Nenašli sa žiadne odrody. Skúste upraviť názov alebo vybrať inú skupinu.</p>'+
- '<ul class="profile-grid" id="profile-list">'+cards+'</ul>'+
- '<noscript><p>Vyhľadávanie vyžaduje JavaScript. Všetky profily odrôd sú uvedené vyššie.</p></noscript>'+
- '</main>'+footer+'</body></html>\n';
+// Prehľad /odrody/ nie je druhý katalóg. Jednotlivé detailné SEO profily zostávajú zachované.
+export function renderArchive(_profiles,_logo){
+ return startTag+'<!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
+ '<title>Katalóg odrôd | Herba et Fructus</title><meta name="robots" content="noindex,follow">'+
+ '<link rel="canonical" href="'+SITE+'/">'+
+ '<meta http-equiv="refresh" content="0;url='+SITE+'/#sekcia=paradajky">'+
+ '<script>window.location.replace("'+SITE+'/#sekcia=paradajky");</script></head><body>'+ 
+ '<p>Katalóg odrôd nájdete na <a href="'+SITE+'/#sekcia=paradajky">hlavnej stránke Herba et Fructus</a>.</p>'+ 
+ '</body></html>\\n';
 }
