@@ -131,5 +131,5 @@ export function renderArchive(_profiles,_logo){
  '<meta http-equiv="refresh" content="0;url='+SITE+'/#sekcia=paradajky">'+
  '<script>window.location.replace("'+SITE+'/#sekcia=paradajky");</script></head><body>'+ 
  '<p>Katalóg odrôd nájdete na <a href="'+SITE+'/#sekcia=paradajky">hlavnej stránke Herba et Fructus</a>.</p>'+ 
- '</body></html>\\n';
+ '</body></html>\n';
 }
