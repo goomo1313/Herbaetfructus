@@ -23,7 +23,7 @@ const logo=()=>{
 };
 
 test('3D a články zobrazia identické SVG logo, farby a navigačné karty hlavného webu',()=>{
- for(const [name,page] of [['3D',generator],['Články',articleArchive],['Článok',article],['Archív odrôd',varietyArchive]]){
+ for(const [name,page] of [['3D',generator],['Články',articleArchive],['Článok',article]]){
   assert.ok(page.includes(logo()),name+' musí používať hlavné logo');
   assert.match(page,/class="hf-site-header"/,name);
   assert.match(page,/class="hf-site-nav"/,name);
@@ -34,6 +34,9 @@ test('3D a články zobrazia identické SVG logo, farby a navigačné karty hlav
   assert.match(page,/href="\/#sekcia=blog"/,name);
   assert.match(page,/href="\/3d\/"/,name);
  }
+ assert.match(varietyArchive,/name="robots" content="noindex,follow"/);
+ assert.match(varietyArchive,/window\.location\.replace\("https:\/\/herbaetfructus\.sk\/#sekcia=paradajky"\)/);
+ assert.doesNotMatch(varietyArchive,/class="hf-site-header"|class="profile-card"/);
  assert.match(sharedCss,/max-width:1200px/);
  assert.match(sharedCss,/border-radius:30px/);
  assert.match(sharedCss,/overflow-x:auto/);
@@ -111,6 +114,9 @@ test('všetky HTML podstránky používajú rovnakú hlavičku a funkčné relat
   }
  }
  for(const dir of ['3d','clanky','odrody'])walk(dir);
+ // /odrody/ slúži iba ako presmerovanie; nemá vlastnú hlavičku ani katalóg.
+ const activePages=pages.filter(file=>file!=='odrody/index.html');
+ pages.length=0;pages.push(...activePages);
  pages.push('dakujeme.html');
  assert.ok(pages.length>=60,'Kontrola má pokrývať všetky články a profily odrôd');
  const expectedLogo=logo();
