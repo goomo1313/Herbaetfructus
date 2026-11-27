@@ -17,7 +17,7 @@ const data={
 test('duplicitný prehľad odrôd len presmeruje na hlavný katalóg',()=>{
  const page=renderArchive(publicProfiles(data),mainLogo(readFileSync('index.html','utf8')));
  assert.match(page,/noindex,follow/);
- assert.match(page,/location\\.replace\\("https:\\/\\/herbaetfructus\\.sk\\/#sekcia=paradajky"\\)/);
+ assert.match(page,/location\.replace\("https:\/\/herbaetfructus\.sk\/#sekcia=paradajky"\)/);
  assert.doesNotMatch(page,/class="profile-card"|id="profile-list"/);
 });
 
