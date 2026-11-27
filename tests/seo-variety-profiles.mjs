@@ -36,7 +36,10 @@ test('profily majú skutočný text, správny canonical, logo a bez citlivých i
  assert.match(html,/application\/ld\+json/);
  assert.match(html,/<svg/);
  assert.doesNotMatch(html,/NEZVEREJŇOVAŤ|data-stock|data-price|seedsPerPack/);
- assert.match(renderArchive([one],mainLogo(readFileSync('index.html','utf8'))),/href="\/odrody\/ildi\/"/);
+ const archive=renderArchive([one],mainLogo(readFileSync('index.html','utf8')));
+ assert.match(archive,/noindex,follow/);
+ assert.match(archive,/location\.replace\("https:\/\/herbaetfructus\.sk\/#sekcia=paradajky"\)/);
+ assert.doesNotMatch(archive,/class="profile-card"|href="\/odrody\/ildi\/"/);
 });
 test('URL názvy sú predvídateľné a pri rôznej diakritike sa neprepisujú',()=>{
  assert.equal(slugify('Dívčí prs'),'divci-prs');
