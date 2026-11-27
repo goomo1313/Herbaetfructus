@@ -62,6 +62,6 @@ test('filterovanie ignoruje diakritiku, kombinuje skupiny, oznamuje počty a fun
 test('publikovaný prehľad nie je duplicitný katalóg',()=>{
  const page=readFileSync('odrody/index.html','utf8');
  assert.match(page,/noindex,follow/);
- assert.match(page,/window\\.location\\.replace/);
+ assert.match(page,/window\.location\.replace/);
  assert.doesNotMatch(page,/class="profile-card"|id="profile-list"/);
 });
